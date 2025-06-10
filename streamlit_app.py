@@ -326,14 +326,115 @@ def show_probability_analysis(df, teams):
             st.metric("✈️ Visitante", f"{away_prob:.1f}%")
 
 def show_corner_simulation(df, teams):
-    """Simulação de escanteios"""
-    st.header("🚩 Simulação de Escanteios")
-    st.info("Funcionalidade de simulação de escanteios - Em desenvolvimento")
+    """Simulação de escanteios com base nas médias"""
+    st.header("🚩 Simulação de Escanteios por Time")
+
+    if not teams:
+        st.warning("Nenhum time disponível.")
+        return
+
+    col1, col2 = st.columns(2)
+    with col1:
+        home_team = st.selectbox("🏠 Time Mandante:", teams, key="corner_home")
+    with col2:
+        away_team = st.selectbox("✈️ Time Visitante:", teams, key="corner_away")
+
+    if home_team == away_team:
+        st.warning("Por favor, selecione dois times diferentes.")
+        return
+
+    if st.button("🚩 Simular Escanteios"):
+        # Calcula estatísticas de escanteios
+        home_stats = calculate_team_stats(df, home_team, as_home=True)
+        away_stats = calculate_team_stats(df, away_team, as_home=False)
+
+        if home_stats['jogos'] < 3 or away_stats['jogos'] < 3:
+            st.warning("Dados insuficientes para simular escanteios com confiança.")
+            return
+
+        # Médias esperadas
+        corner_home = (home_stats['media_escanteios_feitos'] + away_stats['media_escanteios_sofridos']) / 2
+        corner_away = (away_stats['media_escanteios_feitos'] + home_stats['media_escanteios_sofridos']) / 2
+        total_corners = corner_home + corner_away
+
+        st.subheader("📊 Resultado da Simulação")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🏠 Escanteios Mandante", f"{corner_home:.1f}")
+        with col2:
+            st.metric("✈️ Escanteios Visitante", f"{corner_away:.1f}")
+        with col3:
+            st.metric("📦 Total Esperado", f"{total_corners:.1f}")
+
+        # Distribuição de probabilidade para número total de escanteios (até 20)
+        st.subheader("📈 Distribuição de Probabilidades (Total de Escanteios)")
+        fig = go.Figure()
+        for total in range(0, 21):
+            prob = poisson.pmf(total, total_corners)
+            fig.add_trace(go.Bar(x=[total], y=[prob * 100], name=f"{total} escanteios"))
+        fig.update_layout(
+            title="Distribuição Poisson do Total de Escanteios",
+            xaxis_title="Total de Escanteios no Jogo",
+            yaxis_title="Probabilidade (%)",
+            showlegend=False
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 def show_score_prediction(df, teams):
-    """Predição de placar usando Poisson"""
+    """Predição de placar usando Distribuição de Poisson"""
     st.header("🎯 Predição de Placar (Distribuição de Poisson)")
-    st.info("Funcionalidade de predição de placar - Em desenvolvimento")
+
+    if not teams:
+        st.warning("Nenhum time disponível.")
+        return
+
+    col1, col2 = st.columns(2)
+    with col1:
+        team_home = st.selectbox("🏠 Time Mandante:", teams, key="poisson_home")
+    with col2:
+        team_away = st.selectbox("✈️ Time Visitante:", teams, key="poisson_away")
+
+    if team_home == team_away:
+        st.warning("Por favor, selecione dois times diferentes.")
+        return
+
+    if st.button("🔮 Prever Placar"):
+        # Obtém estatísticas dos times
+        home_stats = calculate_team_stats(df, team_home, as_home=True)
+        away_stats = calculate_team_stats(df, team_away, as_home=False)
+
+        # Validação mínima de dados
+        if home_stats['jogos'] < 3 or away_stats['jogos'] < 3:
+            st.warning("Dados insuficientes para realizar predição com confiança.")
+            return
+
+        # Calcula placar mais provável com Poisson
+        resultado, probabilidade, gols_esperados_home, gols_esperados_away = predict_score_poisson(
+            home_avg=home_stats['media_gols_feitos'],
+            away_avg=away_stats['media_gols_feitos'],
+            home_def=home_stats['media_gols_sofridos'],
+            away_def=away_stats['media_gols_sofridos']
+        )
+
+        # Exibição de resultado
+        st.success(f"Placar mais provável: {team_home} {resultado[0]} x {resultado[1]} {team_away}")
+        st.metric(label="🎯 Probabilidade estimada do placar", value=f"{probabilidade*100:.2f}%")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.info(f"Gols esperados para {team_home}: **{gols_esperados_home:.2f}**")
+        with col2:
+            st.info(f"Gols esperados para {team_away}: **{gols_esperados_away:.2f}**")
+
+        # Tabela com top 10 placares prováveis (extra)
+        st.subheader("📋 Top 10 placares mais prováveis")
+        results = []
+        for h in range(6):
+            for a in range(6):
+                prob = poisson.pmf(h, gols_esperados_home) * poisson.pmf(a, gols_esperados_away)
+                results.append(((h, a), prob))
+        results.sort(key=lambda x: x[1], reverse=True)
+        for (h, a), p in results[:10]:
+            st.write(f"{team_home} {h} x {a} {team_away} — {p*100:.2f}%")
 
 def main():
     # Título principal
