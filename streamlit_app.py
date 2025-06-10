@@ -424,7 +424,7 @@ def show_probability_analysis(df, teams):
         ]
 
         if len(df_similar) > 0:
-            st.success(f"✅ {len(df_similar)} jogos encontrados com odds semelhantes.")
+            st.success(f"✅ Dados carregados com sucesso! Total de jogos carregados: {len(df)} | Jogos no filtro: {len(df_filtered)}")
             
             # Calcula probabilidades reais
             total = len(df_similar)
