@@ -41,89 +41,38 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    """Carrega e processa os dados das duas planilhas do Excel"""
     try:
-        df_final = pd.DataFrame()
+        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
 
-        # Tenta abrir o Excel com múltiplas abas
-        excel_file = "BRA_DADOS_2425_B.xlsx"  # ou .csv, se tiver separado
+        # Verifica colunas obrigatórias
+        required_columns = ['Home', 'Away', 'Gols Home']
+        for col in required_columns:
+            if col not in df.columns:
+                st.error(f"Coluna obrigatória ausente: {col}")
+                return pd.DataFrame()
 
-        # Carrega todas as abas do Excel
-        xls = pd.read_csv(excel_file, sheet_name=None)
+        # Ajustes de colunas
+        if 'Gols  Away' in df.columns:
+            df = df.rename(columns={'Gols  Away': 'Gols Away'})
 
-        for nome_aba, df in xls.items():
-            ano = 2024 if "24" in nome_aba else 2025
-            df['Ano'] = ano
-
-            # Normaliza colunas numéricas
-            numeric_columns = ['Gols Home', 'Gols  Away', 'odd Home', 'odd Draw', 'odd Away',
-                               'Home Score HT', 'Away Score HT', 'Corner Home', 'Corner Away',
-                               'Total Corner Match']
-            for col in numeric_columns:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
-
-            # Padroniza colunas
-            if 'Gols  Away' in df.columns:
-                df = df.rename(columns={'Gols  Away': 'Gols Away'})
-
-            # Cria resultado
-            if 'Gols Home' in df.columns and 'Gols Away' in df.columns:
-                df['Resultado Home'] = df.apply(
-                    lambda row: 'Vitória' if row['Gols Home'] > row['Gols Away']
-                    else 'Empate' if row['Gols Home'] == row['Gols Away']
-                    else 'Derrota', axis=1)
-                df['Total Gols'] = df['Gols Home'] + df['Gols Away']
-
-            df_final = pd.concat([df_final, df], ignore_index=True)
-
-        return df_final
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados: {str(e)}")
-        return pd.DataFrame()
-        
-        # Remove linhas onde Home está vazio
-        df = df[df['Home'].notna()]
-        
-        # Remove linhas onde não há dados de gols
-        df = df[df['Gols Home'].notna()]
-        
-        # Converte colunas numéricas com tratamento de erro
-        numeric_columns = ['Gols Home', 'Gols  Away', 'odd Home', 'odd Draw', 'odd Away', 
-                         'Home Score HT', 'Away Score HT', 'Corner Home', 'Corner Away', 
-                         'Total Corner Match']
-        
+        numeric_columns = ['Gols Home', 'Gols Away', 'odd Home', 'odd Draw', 'odd Away',
+                           'Corner Home', 'Corner Away', 'Total Corner Match']
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-        
-        # Renomeia colunas para padronizar
-        if 'Gols  Away' in df.columns:
-            df = df.rename(columns={'Gols  Away': 'Gols Away'})
-        
-        # Verifica se Jogo ID existe antes de usar
-        if 'Jogo ID' in df.columns:
-            # Adiciona ano baseado no ID do jogo
-            df['Ano'] = df['Jogo ID'].apply(lambda x: 2024 if x <= 190 else 2025)
-        else:
-            # Se não há Jogo ID, assume todos os jogos são de 2024
-            df['Ano'] = 2024
-            df['Jogo ID'] = range(1, len(df) + 1)
-        
-        # Calcula resultado apenas se as colunas de gols existem
+
+        # Cria coluna de resultado
         if 'Gols Home' in df.columns and 'Gols Away' in df.columns:
-            df['Resultado Home'] = df.apply(lambda row: 
-                'Vitória' if row['Gols Home'] > row['Gols Away'] else 
-                'Empate' if row['Gols Home'] == row['Gols Away'] else 'Derrota', axis=1)
-            
-            # Calcula total de gols
+            df['Resultado Home'] = df.apply(
+                lambda row: 'Vitória' if row['Gols Home'] > row['Gols Away']
+                else 'Empate' if row['Gols Home'] == row['Gols Away']
+                else 'Derrota', axis=1)
             df['Total Gols'] = df['Gols Home'] + df['Gols Away']
-        
+
         return df
-    
+
     except Exception as e:
-        st.error(f"Erro inesperado ao carregar dados: {str(e)}")
+        st.error(f"Erro ao carregar os dados: {e}")
         return pd.DataFrame()
 
 def calculate_team_stats(df, team, as_home=True):
