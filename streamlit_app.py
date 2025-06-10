@@ -299,31 +299,31 @@ def show_team_comparison(df, teams):
         st.info(f"Comparação entre {team1} e {team2} - Funcionalidade em desenvolvimento")
 
 def show_probability_analysis(df, teams):
-    """Análise de Probabilidades Implícitas comparadas com histórico"""
-    st.header("🎲 Análise de Probabilidade Implícita com Histórico")
+    """Análise de Probabilidades Implícitas comparadas com histórico flexível"""
+    st.header("🎲 Análise de Probabilidade Implícita com Interpretação Histórica")
 
     if not teams:
         st.warning("Nenhum time disponível.")
         return
 
-    # Seleção dos times
+    # Escolha dos times
     col1, col2 = st.columns(2)
     with col1:
-        team_home = st.selectbox("🏠 Time Mandante:", teams, key="prob_home")
+        team_home = st.selectbox("🏠 Time Mandante:", teams, key="prob_home_flex")
     with col2:
-        team_away = st.selectbox("✈️ Time Visitante:", teams, key="prob_away")
+        team_away = st.selectbox("✈️ Time Visitante:", teams, key="prob_away_flex")
 
-    # Inserção das odds
+    # Inserção das odds atuais
     col1, col2, col3 = st.columns(3)
     with col1:
-        odd_home = st.number_input("🏠 Odd Vitória Mandante:", min_value=1.01, value=2.0, step=0.05)
+        odd_home = st.number_input("🏠 Odd Vitória Mandante:", min_value=1.01, value=1.70, step=0.05)
     with col2:
-        odd_draw = st.number_input("🤝 Odd Empate:", min_value=1.01, value=3.0, step=0.05)
+        odd_draw = st.number_input("🤝 Odd Empate:", min_value=1.01, value=3.50, step=0.05)
     with col3:
-        odd_away = st.number_input("✈️ Odd Vitória Visitante:", min_value=1.01, value=3.5, step=0.05)
+        odd_away = st.number_input("✈️ Odd Vitória Visitante:", min_value=1.01, value=4.50, step=0.05)
 
     if st.button("🔍 Analisar Probabilidades"):
-        # Cálculo da probabilidade implícita
+        # Probabilidades implícitas
         prob_home = 100 / odd_home
         prob_draw = 100 / odd_draw
         prob_away = 100 / odd_away
@@ -337,9 +337,8 @@ def show_probability_analysis(df, teams):
         with col3:
             st.metric("✈️ Visitante", f"{prob_away:.1f}%")
 
-        # Filtro por histórico semelhante
         margem = 0.2
-        df_filtrado = df[
+        df_similar = df[
             (df['Home'] == team_home) &
             (df['Away'] == team_away) &
             (df['odd Home'].between(odd_home - margem, odd_home + margem)) &
@@ -347,18 +346,53 @@ def show_probability_analysis(df, teams):
             (df['odd Away'].between(odd_away - margem, odd_away + margem))
         ]
 
-        total = len(df_filtrado)
+        if len(df_similar) > 0:
+            st.success(f"✅ {len(df_similar)} jogos encontrados com odds semelhantes.")
+            df_base = df_similar
+        else:
+            st.warning("⚠️ Nenhum jogo com odds exatas. Aplicando interpretação com histórico mais amplo...")
 
-        if total == 0:
-            st.warning("❌ Nenhum jogo encontrado no histórico com odds semelhantes.")
+            # Criando três filtros amplos
+            df_home = df[
+                (df['Home'] == team_home) &
+                (df['odd Home'] <= odd_home)
+            ]
+            df_draw = df[
+                (df['odd Draw'] >= odd_draw)
+            ]
+            df_away = df[
+                (df['Away'] == team_away) &
+                (df['odd Away'] <= odd_away)
+            ]
+
+            total_home = len(df_home)
+            total_draw = len(df_draw)
+            total_away = len(df_away)
+
+            st.subheader("📊 Análise Alternativa por Condição")
+
+            if total_home > 0:
+                vit = len(df_home[df_home['Resultado Home'] == 'Vitória'])
+                perc = vit / total_home * 100
+                st.info(f"🏠 {team_home} teve **{perc:.1f}% de vitórias** quando sua odd foi ≤ {odd_home} ({total_home} jogos).")
+
+            if total_draw > 0:
+                emp = len(df_draw[df_draw['Resultado Home'] == 'Empate'])
+                perc = emp / total_draw * 100
+                st.info(f"🤝 Empates ocorreram em **{perc:.1f}% dos jogos** com odd de empate ≥ {odd_draw} ({total_draw} jogos).")
+
+            if total_away > 0:
+                vit = len(df_away[df_away['Resultado Home'] == 'Derrota'])
+                perc = vit / total_away * 100
+                st.info(f"✈️ {team_away} venceu ou empatou em **{perc:.1f}% dos jogos** quando sua odd foi ≤ {odd_away} ({total_away} jogos).")
+
             return
 
-        st.success(f"✅ {total} jogos encontrados com condições semelhantes de odds")
-
-        # Frequência real dos resultados
-        vitorias = len(df_filtrado[df_filtrado['Resultado Home'] == 'Vitória'])
-        empates = len(df_filtrado[df_filtrado['Resultado Home'] == 'Empate'])
-        derrotas = len(df_filtrado[df_filtrado['Resultado Home'] == 'Derrota'])
+        # Se houver dados semelhantes: cálculo das probabilidades reais
+        total = len(df_base)
+        vitorias = len(df_base[df_base['Resultado Home'] == 'Vitória'])
+        empates = len(df_base[df_base['Resultado Home'] == 'Empate'])
+        derrotas = len(df_base[df_base['Resultado Home'] == 'Derrota'])
 
         real_prob_home = vitorias / total * 100
         real_prob_draw = empates / total * 100
@@ -373,7 +407,7 @@ def show_probability_analysis(df, teams):
         with col3:
             st.metric("✈️ Visitante", f"{real_prob_away:.1f}%")
 
-        # Comparação e avaliação
+        # Avaliação das odds
         def avaliar(prob_real, prob_implicita):
             dif = prob_real - prob_implicita
             if dif > 5:
@@ -383,7 +417,7 @@ def show_probability_analysis(df, teams):
             else:
                 return "⚖ Justa", "gray"
 
-        st.subheader("🧠 Avaliação das Odds em Relação ao Histórico:")
+        st.subheader("🧠 Avaliação das Odds:")
         for evento, p_imp, p_real in zip(
             ["Vitória Mandante", "Empate", "Vitória Visitante"],
             [prob_home, prob_draw, prob_away],
