@@ -549,48 +549,39 @@ def show_score_prediction(df, teams):
 def main():
     # Título principal
     st.markdown('<h1 class="main-header">⚽ Sistema de Análise de Futebol</h1>', unsafe_allow_html=True)
-    
+
     # Carrega os dados
     with st.spinner("Carregando dados..."):
         df = load_data()
-    
+
     if df.empty:
         st.error("❌ Não foi possível carregar os dados.")
-        st.info("📁 Certifique-se de que o arquivo 'BRA_DADOS_2425_B.csv' está na raiz do repositório.")
-        st.info("🔍 Verifique também se o arquivo está no encoding correto (UTF-8 ou Latin-1).")
+        st.info("📁 Certifique-se de que o arquivo está na raiz do repositório.")
+        st.info("🔍 Verifique também se o arquivo está com o encoding correto.")
         return
-    
+
     st.success(f"✅ Dados carregados com sucesso! Total de jogos: {len(df)}")
-    
-    # Sidebar para filtros
+
+    # Sidebar para filtros e opções
     with st.sidebar:
         st.header("🔧 Configurações")
-        
+
         # Filtro de ano
-with st.sidebar:
-    st.header("🔧 Configurações")
+        if 'Ano' in df.columns:
+            available_years = sorted(df['Ano'].unique())
+            year_options = ["Todos os anos"] + [str(y) for y in available_years]
+            year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
 
-    if 'Ano' in df.columns:
-        available_years = sorted(df['Ano'].unique())
-        year_options = ["Todos os anos"] + [str(y) for y in available_years]
-        year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
+            if year_filter != "Todos os anos":
+                df_filtered = df[df['Ano'] == int(year_filter)]
+            else:
+                df_filtered = df.copy()
+        else:
+            st.warning("Coluna 'Ano' não encontrada nos dados.")
+            df_filtered = df.copy()
 
-        if year_filter != "Todos os anos":
-            df_filtered = df[df['Ano'] == int(year_filter)]
-        else:
-            df_filtered = df.copy()
-    else:
-        st.warning("Coluna 'Ano' não encontrada nos dados.")
-        df_filtered = df.copy()
-        
-        # Aplica filtro de ano
-        if year_filter != "Todos os anos":
-            df_filtered = df[df['Ano'] == int(year_filter)]
-        else:
-            df_filtered = df.copy()
-        
         st.info(f"📊 Total de jogos filtrados: {len(df_filtered)}")
-        
+
         # Lista de times únicos
         try:
             home_teams = df_filtered['Home'].dropna().unique().tolist()
@@ -598,21 +589,20 @@ with st.sidebar:
             teams = sorted(list(set(home_teams + away_teams)))
         except:
             teams = []
-        
+
         st.header("📋 Opções de Análise")
-        
         analysis_option = st.selectbox(
             "Escolha o tipo de análise:",
             [
                 "1. Análise de Desempenho de Time",
-                "2. Comparação entre Times", 
+                "2. Comparação entre Times",
                 "3. Cálculo de Probabilidades Implícitas",
                 "4. Simulação de Escanteios",
                 "5. Predição de Placar (Poisson)",
                 "6. Gráficos Interativos"
             ]
         )
-    
+
     # Conteúdo principal baseado na opção selecionada
     try:
         if analysis_option.startswith("1."):
@@ -630,11 +620,12 @@ with st.sidebar:
     except Exception as e:
         st.error(f"Erro na análise: {str(e)}")
         st.info("Tente selecionar uma opção diferente.")
-        
+
     # Debug info (remover em produção)
     with st.expander("🔍 Informações de Debug"):
         st.write("Colunas do DataFrame:", list(df.columns))
         st.write("Primeiras linhas:", df.head())
+
 
 # Executa a aplicação
 if __name__ == "__main__":
