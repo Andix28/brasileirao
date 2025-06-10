@@ -41,38 +41,47 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    """Carrega e processa os dados do CSV"""
+    """Carrega e processa os dados das duas planilhas do Excel"""
     try:
-        # Tenta diferentes encodings para o CSV
-        encodings = ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
-        df = None
-        
-        for encoding in encodings:
-            try:
-                df = pd.read_csv('BRA_DADOS_2425_B.csv', sep=';', encoding=encoding)
-                st.success(f"Arquivo carregado com encoding: {encoding}")
-                break
-            except UnicodeDecodeError:
-                continue
-            except FileNotFoundError:
-                st.error("Arquivo 'BRA_DADOS_2425_B.csv' não encontrado!")
-                return pd.DataFrame()
-        
-        if df is None:
-            st.error("Não foi possível carregar o arquivo com nenhum encoding testado.")
-            return pd.DataFrame()
-        
-        # Remove linhas completamente vazias
-        df = df.dropna(how='all')
-        
-        # Verifica se as colunas necessárias existem
-        required_columns = ['Home', 'Away', 'Gols Home']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        
-        if missing_columns:
-            st.error(f"Colunas obrigatórias não encontradas: {missing_columns}")
-            st.info(f"Colunas disponíveis: {list(df.columns)}")
-            return pd.DataFrame()
+        df_final = pd.DataFrame()
+
+        # Tenta abrir o Excel com múltiplas abas
+        excel_file = "BRA_DADOS_2425_B.xlsx"  # ou .csv, se tiver separado
+
+        # Carrega todas as abas do Excel
+        xls = pd.read_excel(excel_file, sheet_name=None)
+
+        for nome_aba, df in xls.items():
+            ano = 2024 if "24" in nome_aba else 2025
+            df['Ano'] = ano
+
+            # Normaliza colunas numéricas
+            numeric_columns = ['Gols Home', 'Gols  Away', 'odd Home', 'odd Draw', 'odd Away',
+                               'Home Score HT', 'Away Score HT', 'Corner Home', 'Corner Away',
+                               'Total Corner Match']
+            for col in numeric_columns:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+
+            # Padroniza colunas
+            if 'Gols  Away' in df.columns:
+                df = df.rename(columns={'Gols  Away': 'Gols Away'})
+
+            # Cria resultado
+            if 'Gols Home' in df.columns and 'Gols Away' in df.columns:
+                df['Resultado Home'] = df.apply(
+                    lambda row: 'Vitória' if row['Gols Home'] > row['Gols Away']
+                    else 'Empate' if row['Gols Home'] == row['Gols Away']
+                    else 'Derrota', axis=1)
+                df['Total Gols'] = df['Gols Home'] + df['Gols Away']
+
+            df_final = pd.concat([df_final, df], ignore_index=True)
+
+        return df_final
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados: {str(e)}")
+        return pd.DataFrame()
         
         # Remove linhas onde Home está vazio
         df = df[df['Home'].notna()]
@@ -558,12 +567,21 @@ def main():
         st.header("🔧 Configurações")
         
         # Filtro de ano
-        if 'Ano' in df.columns:
-            available_years = sorted(df['Ano'].unique())
-            year_options = ["Todos os anos"] + [str(year) for year in available_years]
-            year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
+with st.sidebar:
+    st.header("🔧 Configurações")
+
+    if 'Ano' in df.columns:
+        available_years = sorted(df['Ano'].unique())
+        year_options = ["Todos os anos"] + [str(y) for y in available_years]
+        year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
+
+        if year_filter != "Todos os anos":
+            df_filtered = df[df['Ano'] == int(year_filter)]
         else:
-            year_filter = "Todos os anos"
+            df_filtered = df.copy()
+    else:
+        st.warning("Coluna 'Ano' não encontrada nos dados.")
+        df_filtered = df.copy()
         
         # Aplica filtro de ano
         if year_filter != "Todos os anos":
