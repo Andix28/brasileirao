@@ -49,13 +49,13 @@ def load_data():
         
         for encoding in encodings:
             try:
-                df = pd.read_csv('BRA DADOS 2425 B.csv', sep=';', encoding=encoding)
+                df = pd.read_csv('BRA_DADOS_2425_B.csv', sep=';', encoding=encoding)
                 st.success(f"Arquivo carregado com encoding: {encoding}")
                 break
             except UnicodeDecodeError:
                 continue
             except FileNotFoundError:
-                st.error("Arquivo 'BRA DADOS 2425 B.csv' não encontrado!")
+                st.error("Arquivo 'BRA_DADOS_2425_B.csv' não encontrado!")
                 return pd.DataFrame()
         
         if df is None:
@@ -345,7 +345,7 @@ def main():
     
     if df.empty:
         st.error("❌ Não foi possível carregar os dados.")
-        st.info("📁 Certifique-se de que o arquivo 'BRA DADOS 2425 B.csv' está na raiz do repositório.")
+        st.info("📁 Certifique-se de que o arquivo 'BRA_DADOS_2425_B.csv' está na raiz do repositório.")
         st.info("🔍 Verifique também se o arquivo está no encoding correto (UTF-8 ou Latin-1).")
         return
     
