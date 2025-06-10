@@ -42,61 +42,11 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Tenta ler como arquivo Excel primeiro (se tiver abas separadas)
-        try:
-            # Se for um arquivo Excel com abas
-            dados_2024 = pd.read_excel("BRA_DADOS_2425_B.csv", sheet_name='DADOS24')
-            dados_2025 = pd.read_excel("BRA_DADOS_2425_B.csv", sheet_name='DADOS25')
-            
-            # Adiciona coluna de ano
-            dados_2024['Ano'] = 2024
-            dados_2025['Ano'] = 2025
-            
-            # Combina os dados
-            df = pd.concat([dados_2024, dados_2025], ignore_index=True)
-            
-        except:
-            # Se não conseguir ler como Excel, tenta como CSV
-            # Lê o arquivo completo primeiro
-            with open("BRA_DADOS_2425_B.csv", 'r', encoding='utf-8') as file:
-                content = file.read()
-            
-            # Divide o conteúdo por seções
-            if 'DADOS24' in content and 'DADOS25' in content:
-                # Separa as seções
-                sections = content.split('DADOS24')
-                if len(sections) > 1:
-                    section_2024 = sections[1].split('DADOS25')[0]
-                    section_2025 = sections[1].split('DADOS25')[1] if 'DADOS25' in sections[1] else ""
-                    
-                    # Converte para DataFrames
-                    from io import StringIO
-                    dados_2024 = pd.read_csv(StringIO(section_2024), sep=';', encoding='utf-8')
-                    dados_2025 = pd.read_csv(StringIO(section_2025), sep=';', encoding='utf-8')
-                    
-                    # Adiciona coluna de ano
-                    dados_2024['Ano'] = 2024
-                    dados_2025['Ano'] = 2025
-                    
-                    # Combina os dados
-                    df = pd.concat([dados_2024, dados_2025], ignore_index=True)
-                else:
-                    raise Exception("Seções não encontradas")
-            else:
-                # Fallback: lê como CSV normal e tenta inferir o ano
-                df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
-                
-                # Se não tem coluna Ano, cria uma baseada em algum padrão
-                # Você pode ajustar esta lógica conforme seus dados
-                if 'Data' in df.columns:
-                    df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
-                    df['Ano'] = df['Data'].dt.year
-                elif 'Temporada' in df.columns:
-                    df['Ano'] = df['Temporada'].str.extract('(\d{4})').astype(int)
-                else:
-                    # Assumir que metade é 2024 e metade é 2025
-                    meio = len(df) // 2
-                    df['Ano'] = [2024] * meio + [2025] * (len(df) - meio)
+        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
+        
+        # Debug: mostra informações básicas
+        print(f"DEBUG: DataFrame carregado com {len(df)} linhas e {len(df.columns)} colunas")
+        print(f"DEBUG: Colunas disponíveis: {list(df.columns)}")
 
         # Verifica colunas obrigatórias
         required_columns = ['Home', 'Away', 'Gols Home']
@@ -105,12 +55,58 @@ def load_data():
                 st.error(f"Coluna obrigatória ausente: {col}")
                 return pd.DataFrame()
 
-        # Ajustes de colunas (resto do código permanece igual)
+        # ESTRATÉGIAS PARA CRIAR COLUNA ANO (tenta várias abordagens)
+        
+        # Estratégia 1: Verifica se já existe coluna de ano/temporada
+        if 'Ano' in df.columns:
+            print("DEBUG: Coluna 'Ano' já existe")
+            df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce')
+        elif 'Temporada' in df.columns:
+            print("DEBUG: Usando coluna 'Temporada'")
+            df['Ano'] = df['Temporada'].str.extract('(\d{4})').astype(int)
+        elif 'Data' in df.columns:
+            print("DEBUG: Usando coluna 'Data'")
+            df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
+            df['Ano'] = df['Data'].dt.year
+        elif 'Rodada' in df.columns:
+            print("DEBUG: Tentando usar coluna 'Rodada'")
+            # Se a rodada tem padrão como "2024-R1", "2025-R1", etc.
+            if df['Rodada'].astype(str).str.contains('202', na=False).any():
+                df['Ano'] = df['Rodada'].str.extract('(202[4-5])').astype(int)
+            else:
+                # Fallback: divide pela metade
+                meio = len(df) // 2
+                df['Ano'] = [2024] * meio + [2025] * (len(df) - meio)
+        else:
+            print("DEBUG: Usando método de divisão por posição")
+            # Estratégia final: divide pela metade ou por posição específica
+            total_linhas = len(df)
+            
+            # AJUSTE ESTE VALOR conforme seus dados específicos
+            # Se você souber quantos jogos são de 2024, mude aqui:
+            corte_2024_2025 = total_linhas // 2  # ou um número específico como 380
+            
+            df.loc[:corte_2024_2025-1, 'Ano'] = 2024
+            df.loc[corte_2024_2025:, 'Ano'] = 2025
+            
+            print(f"DEBUG: Dividiu em {corte_2024_2025} jogos para 2024 e {total_linhas - corte_2024_2025} para 2025")
+
+        # Verifica se a coluna Ano foi criada corretamente
+        if 'Ano' in df.columns:
+            anos_unicos = df['Ano'].dropna().unique()
+            print(f"DEBUG: Anos criados: {sorted(anos_unicos)}")
+            for ano in sorted(anos_unicos):
+                count = len(df[df['Ano'] == ano])
+                print(f"DEBUG: Ano {ano}: {count} registros")
+        else:
+            print("ERROR: Falha ao criar coluna 'Ano'")
+
+        # Ajustes de colunas
         if 'Gols  Away' in df.columns:
             df = df.rename(columns={'Gols  Away': 'Gols Away'})
 
         numeric_columns = ['Gols Home', 'Gols Away', 'odd Home', 'odd Draw', 'odd Away',
-                           'Corner Home', 'Corner Away', 'Total Corner Match']
+                           'Corner Home', 'Corner Away', 'Total Corner Match', 'Ano']
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -123,10 +119,15 @@ def load_data():
                 else 'Derrota', axis=1)
             df['Total Gols'] = df['Gols Home'] + df['Gols Away']
 
+        # Remove linhas com dados essenciais ausentes
+        df = df.dropna(subset=['Home', 'Away', 'Ano'])
+        
+        print(f"DEBUG: DataFrame final com {len(df)} linhas após limpeza")
         return df
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados: {e}")
+        print(f"ERROR: {e}")
         return pd.DataFrame()
 
 def calculate_team_stats(df, team, as_home=True):
@@ -569,14 +570,25 @@ def main():
     with st.sidebar:
         st.header("🔧 Configurações")
 
+        # DEBUG: Mostra informações sobre a coluna Ano
+        if 'Ano' in df.columns:
+            anos_disponiveis = df['Ano'].dropna().unique()
+            st.write(f"🔍 DEBUG - Anos encontrados: {sorted(anos_disponiveis)}")
+            st.write(f"🔍 DEBUG - Total por ano:")
+            for ano in sorted(anos_disponiveis):
+                count = len(df[df['Ano'] == ano])
+                st.write(f"   - {ano}: {count} jogos")
+        else:
+            st.error("❌ Coluna 'Ano' ainda não foi criada corretamente")
+
         # Filtro de ano
         if 'Ano' in df.columns:
-            available_years = sorted(df['Ano'].unique())
-            year_options = ["Todos os anos"] + [str(y) for y in available_years]
+            available_years = sorted(df['Ano'].dropna().unique())
+            year_options = ["Todos os anos"] + [str(int(y)) for y in available_years]
             year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
 
             if year_filter != "Todos os anos":
-                df_filtered = df[df['Ano'] == int(year_filter)]
+                df_filtered = df[df['Ano'] == int(year_filter)].copy()
             else:
                 df_filtered = df.copy()
         else:
@@ -585,12 +597,32 @@ def main():
 
         st.info(f"📊 Total de jogos filtrados: {len(df_filtered)}")
 
-        # Lista de times únicos
+        # Lista de times únicos COM VALIDAÇÃO
         try:
-            home_teams = df_filtered['Home'].dropna().unique().tolist()
-            away_teams = df_filtered['Away'].dropna().unique().tolist()
-            teams = sorted(list(set(home_teams + away_teams)))
-        except:
+            if df_filtered.empty:
+                st.error("❌ Nenhum dado após filtro!")
+                teams = []
+            else:
+                # Verifica se as colunas existem
+                if 'Home' not in df_filtered.columns or 'Away' not in df_filtered.columns:
+                    st.error("❌ Colunas 'Home' e 'Away' não encontradas!")
+                    teams = []
+                else:
+                    home_teams = df_filtered['Home'].dropna().unique().tolist()
+                    away_teams = df_filtered['Away'].dropna().unique().tolist()
+                    teams = sorted(list(set(home_teams + away_teams)))
+                    
+                    # DEBUG: Mostra informações sobre os times
+                    st.write(f"🔍 DEBUG - Times encontrados: {len(teams)}")
+                    if len(teams) > 0:
+                        st.write(f"   Primeiros 5: {teams[:5]}")
+                    else:
+                        st.error("❌ Nenhum time encontrado após filtro")
+                        # Mostra dados brutos para debug
+                        st.write("🔍 DEBUG - Dados filtrados:")
+                        st.write(df_filtered[['Home', 'Away']].head() if not df_filtered.empty else "DataFrame vazio")
+        except Exception as e:
+            st.error(f"❌ Erro ao processar times: {str(e)}")
             teams = []
 
         st.header("📋 Opções de Análise")
@@ -624,10 +656,24 @@ def main():
         st.error(f"Erro na análise: {str(e)}")
         st.info("Tente selecionar uma opção diferente.")
 
-    # Debug info (remover em produção)
-    with st.expander("🔍 Informações de Debug"):
-        st.write("Colunas do DataFrame:", list(df.columns))
-        st.write("Primeiras linhas:", df.head())
+    # Debug info expandido
+    with st.expander("🔍 Informações de Debug Detalhadas"):
+        st.write("**Colunas do DataFrame:**", list(df.columns))
+        st.write("**Shape do DataFrame original:**", df.shape)
+        st.write("**Shape do DataFrame filtrado:**", df_filtered.shape)
+        
+        if 'Ano' in df.columns:
+            st.write("**Distribuição por ano:**")
+            st.write(df['Ano'].value_counts().sort_index())
+        
+        st.write("**Primeiras linhas do DataFrame filtrado:**")
+        st.write(df_filtered.head())
+        
+        if not df_filtered.empty:
+            st.write("**Valores únicos em 'Home':**", df_filtered['Home'].nunique())
+            st.write("**Valores únicos em 'Away':**", df_filtered['Away'].nunique())
+            st.write("**Amostra de times Home:**", df_filtered['Home'].dropna().unique()[:10].tolist())
+            st.write("**Amostra de times Away:**", df_filtered['Away'].dropna().unique()[:10].tolist())
 
 
 # Executa a aplicação
