@@ -42,7 +42,61 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
+        # Tenta ler como arquivo Excel primeiro (se tiver abas separadas)
+        try:
+            # Se for um arquivo Excel com abas
+            dados_2024 = pd.read_excel("BRA_DADOS_2425_B.csv", sheet_name='DADOS24')
+            dados_2025 = pd.read_excel("BRA_DADOS_2425_B.csv", sheet_name='DADOS25')
+            
+            # Adiciona coluna de ano
+            dados_2024['Ano'] = 2024
+            dados_2025['Ano'] = 2025
+            
+            # Combina os dados
+            df = pd.concat([dados_2024, dados_2025], ignore_index=True)
+            
+        except:
+            # Se não conseguir ler como Excel, tenta como CSV
+            # Lê o arquivo completo primeiro
+            with open("BRA_DADOS_2425_B.csv", 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            # Divide o conteúdo por seções
+            if 'DADOS24' in content and 'DADOS25' in content:
+                # Separa as seções
+                sections = content.split('DADOS24')
+                if len(sections) > 1:
+                    section_2024 = sections[1].split('DADOS25')[0]
+                    section_2025 = sections[1].split('DADOS25')[1] if 'DADOS25' in sections[1] else ""
+                    
+                    # Converte para DataFrames
+                    from io import StringIO
+                    dados_2024 = pd.read_csv(StringIO(section_2024), sep=';', encoding='utf-8')
+                    dados_2025 = pd.read_csv(StringIO(section_2025), sep=';', encoding='utf-8')
+                    
+                    # Adiciona coluna de ano
+                    dados_2024['Ano'] = 2024
+                    dados_2025['Ano'] = 2025
+                    
+                    # Combina os dados
+                    df = pd.concat([dados_2024, dados_2025], ignore_index=True)
+                else:
+                    raise Exception("Seções não encontradas")
+            else:
+                # Fallback: lê como CSV normal e tenta inferir o ano
+                df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
+                
+                # Se não tem coluna Ano, cria uma baseada em algum padrão
+                # Você pode ajustar esta lógica conforme seus dados
+                if 'Data' in df.columns:
+                    df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
+                    df['Ano'] = df['Data'].dt.year
+                elif 'Temporada' in df.columns:
+                    df['Ano'] = df['Temporada'].str.extract('(\d{4})').astype(int)
+                else:
+                    # Assumir que metade é 2024 e metade é 2025
+                    meio = len(df) // 2
+                    df['Ano'] = [2024] * meio + [2025] * (len(df) - meio)
 
         # Verifica colunas obrigatórias
         required_columns = ['Home', 'Away', 'Gols Home']
@@ -51,7 +105,7 @@ def load_data():
                 st.error(f"Coluna obrigatória ausente: {col}")
                 return pd.DataFrame()
 
-        # Ajustes de colunas
+        # Ajustes de colunas (resto do código permanece igual)
         if 'Gols  Away' in df.columns:
             df = df.rename(columns={'Gols  Away': 'Gols Away'})
 
