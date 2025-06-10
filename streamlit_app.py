@@ -49,7 +49,7 @@ def load_data():
         excel_file = "BRA_DADOS_2425_B.xlsx"  # ou .csv, se tiver separado
 
         # Carrega todas as abas do Excel
-        xls = pd.read_excel(excel_file, sheet_name=None)
+        xls = pd.read_csv(excel_file, sheet_name=None)
 
         for nome_aba, df in xls.items():
             ano = 2024 if "24" in nome_aba else 2025
