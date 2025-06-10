@@ -43,10 +43,6 @@ st.markdown("""
 def load_data():
     try:
         df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
-        
-        # Debug: mostra informações básicas
-        print(f"DEBUG: DataFrame carregado com {len(df)} linhas e {len(df.columns)} colunas")
-        print(f"DEBUG: Colunas disponíveis: {list(df.columns)}")
 
         # Verifica colunas obrigatórias
         required_columns = ['Home', 'Away', 'Gols Home']
@@ -55,52 +51,24 @@ def load_data():
                 st.error(f"Coluna obrigatória ausente: {col}")
                 return pd.DataFrame()
 
-        # ESTRATÉGIAS PARA CRIAR COLUNA ANO (tenta várias abordagens)
+        # Remove linhas completamente vazias ou com dados essenciais ausentes
+        df = df.dropna(subset=['Home', 'Away'], how='any')
+        df = df[df['Home'].str.strip() != '']  # Remove linhas com strings vazias
+        df = df[df['Away'].str.strip() != '']
         
-        # Estratégia 1: Verifica se já existe coluna de ano/temporada
-        if 'Ano' in df.columns:
-            print("DEBUG: Coluna 'Ano' já existe")
-            df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce')
-        elif 'Temporada' in df.columns:
-            print("DEBUG: Usando coluna 'Temporada'")
-            df['Ano'] = df['Temporada'].str.extract('(\d{4})').astype(int)
-        elif 'Data' in df.columns:
-            print("DEBUG: Usando coluna 'Data'")
-            df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
-            df['Ano'] = df['Data'].dt.year
-        elif 'Rodada' in df.columns:
-            print("DEBUG: Tentando usar coluna 'Rodada'")
-            # Se a rodada tem padrão como "2024-R1", "2025-R1", etc.
-            if df['Rodada'].astype(str).str.contains('202', na=False).any():
-                df['Ano'] = df['Rodada'].str.extract('(202[4-5])').astype(int)
-            else:
-                # Fallback: divide pela metade
-                meio = len(df) // 2
-                df['Ano'] = [2024] * meio + [2025] * (len(df) - meio)
-        else:
-            print("DEBUG: Usando método de divisão por posição")
-            # Estratégia final: divide pela metade ou por posição específica
-            total_linhas = len(df)
-            
-            # AJUSTE ESTE VALOR conforme seus dados específicos
-            # Se você souber quantos jogos são de 2024, mude aqui:
-            corte_2024_2025 = total_linhas // 2  # ou um número específico como 380
-            
-            df.loc[:corte_2024_2025-1, 'Ano'] = 2024
-            df.loc[corte_2024_2025:, 'Ano'] = 2025
-            
-            print(f"DEBUG: Dividiu em {corte_2024_2025} jogos para 2024 e {total_linhas - corte_2024_2025} para 2025")
-
-        # Verifica se a coluna Ano foi criada corretamente
-        if 'Ano' in df.columns:
-            anos_unicos = df['Ano'].dropna().unique()
-            print(f"DEBUG: Anos criados: {sorted(anos_unicos)}")
-            for ano in sorted(anos_unicos):
-                count = len(df[df['Ano'] == ano])
-                print(f"DEBUG: Ano {ano}: {count} registros")
-        else:
-            print("ERROR: Falha ao criar coluna 'Ano'")
-
+        # Reset do index após remoção de linhas
+        df = df.reset_index(drop=True)
+        
+        # DIVISÃO CORRETA: Primeiros 380 jogos = 2024, restante = 2025
+        total_linhas = len(df)
+        
+        # Cria coluna Ano baseada na posição
+        df['Ano'] = 2024  # Inicializa todos como 2024
+        
+        if total_linhas > 380:
+            # Se há mais de 380 jogos, os que passam de 380 são de 2025
+            df.loc[380:, 'Ano'] = 2025
+        
         # Ajustes de colunas
         if 'Gols  Away' in df.columns:
             df = df.rename(columns={'Gols  Away': 'Gols Away'})
@@ -119,84 +87,11 @@ def load_data():
                 else 'Derrota', axis=1)
             df['Total Gols'] = df['Gols Home'] + df['Gols Away']
 
-        # Remove linhas com dados essenciais ausentes
-        df = df.dropna(subset=['Home', 'Away', 'Ano'])
-        
-        print(f"DEBUG: DataFrame final com {len(df)} linhas após limpeza")
         return df
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados: {e}")
-        print(f"ERROR: {e}")
         return pd.DataFrame()
-
-def calculate_team_stats(df, team, as_home=True):
-    """Calcula estatísticas de um time"""
-    try:
-        if as_home:
-            team_df = df[df['Home'] == team].copy()
-            goals_for = 'Gols Home'
-            goals_against = 'Gols Away'
-            corners_for = 'Corner Home'
-            corners_against = 'Corner Away'
-            result_col = 'Resultado Home'
-        else:
-            team_df = df[df['Away'] == team].copy()
-            goals_for = 'Gols Away'
-            goals_against = 'Gols Home'
-            corners_for = 'Corner Away'
-            corners_against = 'Corner Home'
-            # Inverte o resultado para visitante
-            if 'Resultado Home' in team_df.columns:
-                team_df['Resultado Away'] = team_df['Resultado Home'].map({
-                    'Vitória': 'Derrota',
-                    'Derrota': 'Vitória',
-                    'Empate': 'Empate'
-                })
-                result_col = 'Resultado Away'
-            else:
-                result_col = None
-        
-        if team_df.empty:
-            return {
-                'jogos': 0, 'vitorias': 0, 'empates': 0, 'derrotas': 0,
-                'gols_feitos': 0, 'gols_sofridos': 0,
-                'media_gols_feitos': 0, 'media_gols_sofridos': 0,
-                'escanteios_feitos': 0, 'escanteios_sofridos': 0,
-                'media_escanteios_feitos': 0, 'media_escanteios_sofridos': 0
-            }
-        
-        # Calcula estatísticas básicas
-        stats = {
-            'jogos': len(team_df),
-            'gols_feitos': team_df[goals_for].sum() if goals_for in team_df.columns else 0,
-            'gols_sofridos': team_df[goals_against].sum() if goals_against in team_df.columns else 0,
-            'media_gols_feitos': team_df[goals_for].mean() if goals_for in team_df.columns and not team_df[goals_for].isna().all() else 0,
-            'media_gols_sofridos': team_df[goals_against].mean() if goals_against in team_df.columns and not team_df[goals_against].isna().all() else 0,
-            'escanteios_feitos': team_df[corners_for].sum() if corners_for in team_df.columns else 0,
-            'escanteios_sofridos': team_df[corners_against].sum() if corners_against in team_df.columns else 0,
-            'media_escanteios_feitos': team_df[corners_for].mean() if corners_for in team_df.columns and not team_df[corners_for].isna().all() else 0,
-            'media_escanteios_sofridos': team_df[corners_against].mean() if corners_against in team_df.columns and not team_df[corners_against].isna().all() else 0,
-        }
-        
-        # Calcula resultados se a coluna existe
-        if result_col and result_col in team_df.columns:
-            stats.update({
-                'vitorias': len(team_df[team_df[result_col] == 'Vitória']),
-                'empates': len(team_df[team_df[result_col] == 'Empate']),
-                'derrotas': len(team_df[team_df[result_col] == 'Derrota']),
-            })
-        else:
-            stats.update({
-                'vitorias': 0,
-                'empates': 0,
-                'derrotas': 0,
-            })
-        
-        return stats
-    except Exception as e:
-        st.error(f"Erro ao calcular estatísticas: {str(e)}")
-        return {}
 
 def calculate_implicit_probabilities(home_odd, draw_odd, away_odd):
     """Calcula probabilidades implícitas das odds"""
@@ -570,17 +465,6 @@ def main():
     with st.sidebar:
         st.header("🔧 Configurações")
 
-        # DEBUG: Mostra informações sobre a coluna Ano
-        if 'Ano' in df.columns:
-            anos_disponiveis = df['Ano'].dropna().unique()
-            st.write(f"🔍 DEBUG - Anos encontrados: {sorted(anos_disponiveis)}")
-            st.write(f"🔍 DEBUG - Total por ano:")
-            for ano in sorted(anos_disponiveis):
-                count = len(df[df['Ano'] == ano])
-                st.write(f"   - {ano}: {count} jogos")
-        else:
-            st.error("❌ Coluna 'Ano' ainda não foi criada corretamente")
-
         # Filtro de ano
         if 'Ano' in df.columns:
             available_years = sorted(df['Ano'].dropna().unique())
@@ -597,32 +481,16 @@ def main():
 
         st.info(f"📊 Total de jogos filtrados: {len(df_filtered)}")
 
-        # Lista de times únicos COM VALIDAÇÃO
+        # Lista de times únicos
         try:
             if df_filtered.empty:
-                st.error("❌ Nenhum dado após filtro!")
                 teams = []
             else:
-                # Verifica se as colunas existem
-                if 'Home' not in df_filtered.columns or 'Away' not in df_filtered.columns:
-                    st.error("❌ Colunas 'Home' e 'Away' não encontradas!")
-                    teams = []
-                else:
-                    home_teams = df_filtered['Home'].dropna().unique().tolist()
-                    away_teams = df_filtered['Away'].dropna().unique().tolist()
-                    teams = sorted(list(set(home_teams + away_teams)))
-                    
-                    # DEBUG: Mostra informações sobre os times
-                    st.write(f"🔍 DEBUG - Times encontrados: {len(teams)}")
-                    if len(teams) > 0:
-                        st.write(f"   Primeiros 5: {teams[:5]}")
-                    else:
-                        st.error("❌ Nenhum time encontrado após filtro")
-                        # Mostra dados brutos para debug
-                        st.write("🔍 DEBUG - Dados filtrados:")
-                        st.write(df_filtered[['Home', 'Away']].head() if not df_filtered.empty else "DataFrame vazio")
+                home_teams = df_filtered['Home'].dropna().unique().tolist()
+                away_teams = df_filtered['Away'].dropna().unique().tolist()
+                teams = sorted(list(set(home_teams + away_teams)))
         except Exception as e:
-            st.error(f"❌ Erro ao processar times: {str(e)}")
+            st.error(f"Erro ao processar times: {str(e)}")
             teams = []
 
         st.header("📋 Opções de Análise")
@@ -656,24 +524,18 @@ def main():
         st.error(f"Erro na análise: {str(e)}")
         st.info("Tente selecionar uma opção diferente.")
 
-    # Debug info expandido
-    with st.expander("🔍 Informações de Debug Detalhadas"):
-        st.write("**Colunas do DataFrame:**", list(df.columns))
-        st.write("**Shape do DataFrame original:**", df.shape)
-        st.write("**Shape do DataFrame filtrado:**", df_filtered.shape)
+    # Debug info (só aparece quando expandido)
+    with st.expander("🔍 Informações de Debug"):
+        st.write("Colunas do DataFrame:", list(df.columns))
+        st.write("Shape do DataFrame original:", df.shape)
+        st.write("Shape do DataFrame filtrado:", df_filtered.shape)
         
         if 'Ano' in df.columns:
-            st.write("**Distribuição por ano:**")
+            st.write("Distribuição por ano:")
             st.write(df['Ano'].value_counts().sort_index())
         
-        st.write("**Primeiras linhas do DataFrame filtrado:**")
+        st.write("Primeiras linhas do DataFrame filtrado:")
         st.write(df_filtered.head())
-        
-        if not df_filtered.empty:
-            st.write("**Valores únicos em 'Home':**", df_filtered['Home'].nunique())
-            st.write("**Valores únicos em 'Away':**", df_filtered['Away'].nunique())
-            st.write("**Amostra de times Home:**", df_filtered['Home'].dropna().unique()[:10].tolist())
-            st.write("**Amostra de times Away:**", df_filtered['Away'].dropna().unique()[:10].tolist())
 
 
 # Executa a aplicação
