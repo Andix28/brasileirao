@@ -497,28 +497,218 @@ def _display_statistics_summary(stats, team_home, team_away):
         team_home (str): Nome do time mandante
         team_away (str): Nome do time visitante
     """
-    
+try:
+
     st.subheader("📋 Resumo Estatístico")
+
+   # Calcular métricas avançadas
+        analysis = _calculate_advanced_metrics(stats, team_home, team_away)
+        
+        # Seção 1: Resumo Básico
+        _display_basic_summary(stats, team_home, team_away, analysis)
+        
+        # Seção 2: Análise de Performance
+        _display_performance_analysis(analysis, team_home, team_away)
+        
+        # Seção 3: Análise do Primeiro Tempo
+        _display_first_half_analysis(stats, analysis, team_home, team_away)
+        
+        # Seção 4: Insights e Recomendações
+        _display_insights_and_recommendations(analysis, team_home, team_away)
+        
+    except Exception as e:
+        st.error(f"❌ Erro na análise estatística: {str(e)}")
+        st.info("💡 Verifique se os dados estão completos e tente novamente.")
+
+def _calculate_advanced_metrics(stats, team_home, team_away):
+    """
+    Calcula métricas avançadas para análise profissional.
+    
+    Args:
+        stats (dict): Estatísticas básicas
+        team_home (str): Nome do time mandante
+        team_away (str): Nome do time visitante
+        
+    Returns:
+        dict: Métricas avançadas calculadas
+    """
+    
+    # Converter para int para evitar problemas de formatação
+    home_gols_marcados = int(stats['home']['gols_marcados'])
+    home_gols_sofridos = int(stats['home']['gols_sofridos'])
+    away_gols_marcados = int(stats['away']['gols_marcados'])
+    away_gols_sofridos = int(stats['away']['gols_sofridos'])
+    
+    home_jogos = max(stats['home']['total_jogos'], 1)  # Evitar divisão por zero
+    away_jogos = max(stats['away']['total_jogos'], 1)
+    
+    home_ht_marcados = int(stats['home']['gols_marcados_ht'])
+    home_ht_sofridos = int(stats['home']['gols_sofridos_ht'])
+    away_ht_marcados = int(stats['away']['gols_marcados_ht'])
+    away_ht_sofridos = int(stats['away']['gols_sofridos_ht'])
+    
+    return {
+        # Médias por jogo
+        'home_media_gols': round(home_gols_marcados / home_jogos, 2),
+        'home_media_sofridos': round(home_gols_sofridos / home_jogos, 2),
+        'away_media_gols': round(away_gols_marcados / away_jogos, 2),
+        'away_media_sofridos': round(away_gols_sofridos / away_jogos, 2),
+        
+        # Saldos
+        'home_saldo': home_gols_marcados - home_gols_sofridos,
+        'away_saldo': away_gols_marcados - away_gols_sofridos,
+        
+        # Eficiência no primeiro tempo (%)
+        'home_ht_eficiencia': round((home_ht_marcados / max(home_gols_marcados, 1)) * 100, 1),
+        'away_ht_eficiencia': round((away_ht_marcados / max(away_gols_marcados, 1)) * 100, 1),
+        
+        # Valores absolutos para exibição
+        'home_gols_total': home_gols_marcados,
+        'home_sofridos_total': home_gols_sofridos,
+        'away_gols_total': away_gols_marcados,
+        'away_sofridos_total': away_gols_sofridos,
+        'home_ht_gols': home_ht_marcados,
+        'away_ht_gols': away_ht_marcados,
+        
+        # Comparativos
+        'melhor_ataque': team_home if home_gols_marcados > away_gols_marcados else team_away,
+        'melhor_defesa': team_home if home_gols_sofridos < away_gols_sofridos else team_away,
+        'melhor_ht': team_home if home_ht_marcados > away_ht_marcados else team_away
+    }
+
+
+def _display_basic_summary(stats, team_home, team_away, analysis):
+    """Exibe resumo básico dos times."""
     
     col1, col2 = st.columns(2)
     
     with col1:
+        saldo_icon = "📈" if analysis['home_saldo'] > 0 else "📉" if analysis['home_saldo'] < 0 else "➖"
         st.info(f"""
         **🏠 {team_home} (Como Mandante)**
-        - Jogos analisados: {stats['home']['total_jogos']}
-        - Gols marcados: {stats['home']['gols_marcados']}
-        - Gols sofridos: {stats['home']['gols_sofridos']}
-        - Saldo: {stats['home']['gols_marcados'] - stats['home']['gols_sofridos']:+d}
+        - 🎮 Jogos analisados: **{stats['home']['total_jogos']}**
+        - ⚽ Gols marcados: **{analysis['home_gols_total']}** (média: {analysis['home_media_gols']}/jogo)
+        - 🥅 Gols sofridos: **{analysis['home_sofridos_total']}** (média: {analysis['home_media_sofridos']}/jogo)
+        - {saldo_icon} Saldo de gols: **{analysis['home_saldo']:+d}**
         """)
     
     with col2:
+        saldo_icon = "📈" if analysis['away_saldo'] > 0 else "📉" if analysis['away_saldo'] < 0 else "➖"
         st.info(f"""
         **✈️ {team_away} (Como Visitante)**
-        - Jogos analisados: {stats['away']['total_jogos']}
-        - Gols marcados: {stats['away']['gols_marcados']}
-        - Gols sofridos: {stats['away']['gols_sofridos']}
-        - Saldo: {stats['away']['gols_marcados'] - stats['away']['gols_sofridos']:+d}
+        - 🎮 Jogos analisados: **{stats['away']['total_jogos']}**
+        - ⚽ Gols marcados: **{analysis['away_gols_total']}** (média: {analysis['away_media_gols']}/jogo)
+        - 🥅 Gols sofridos: **{analysis['away_sofridos_total']}** (média: {analysis['away_media_sofridos']}/jogo)
+        - {saldo_icon} Saldo de gols: **{analysis['away_saldo']:+d}**
         """)
+
+
+def _display_performance_analysis(analysis, team_home, team_away):
+    """Exibe análise de performance comparativa."""
+    
+    st.subheader("🎯 Análise de Performance")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if analysis['melhor_ataque'] == team_home:
+            st.success(f"🔥 **Melhor Ataque**: {team_home}\n\n{analysis['home_gols_total']} gols vs {analysis['away_gols_total']} gols")
+        else:
+            st.success(f"🔥 **Melhor Ataque**: {team_away}\n\n{analysis['away_gols_total']} gols vs {analysis['home_gols_total']} gols")
+    
+    with col2:
+        if analysis['melhor_defesa'] == team_home:
+            st.success(f"🛡️ **Melhor Defesa**: {team_home}\n\n{analysis['home_sofridos_total']} gols sofridos vs {analysis['away_sofridos_total']}")
+        else:
+            st.success(f"🛡️ **Melhor Defesa**: {team_away}\n\n{analysis['away_sofridos_total']} gols sofridos vs {analysis['home_sofridos_total']}")
+    
+    with col3:
+        diferenca_saldo = abs(analysis['home_saldo'] - analysis['away_saldo'])
+        if diferenca_saldo > 5:
+            equilibrio = "Desequilibrado"
+            cor = "warning"
+        elif diferenca_saldo > 2:
+            equilibrio = "Moderado"
+            cor = "info"
+        else:
+            equilibrio = "Equilibrado"
+            cor = "success"
+            
+        getattr(st, cor)(f"⚖️ **Confronto**: {equilibrio}\n\nDiferença de saldo: {diferenca_saldo} gols")
+
+
+def _display_first_half_analysis(stats, analysis, team_home, team_away):
+    """Exibe análise específica do primeiro tempo."""
+    
+    st.subheader("🕐 Análise do Primeiro Tempo")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(
+            label=f"🏠 {team_home} - Eficiência 1º Tempo",
+            value=f"{analysis['home_ht_eficiencia']}%",
+            delta=f"{analysis['home_ht_gols']} de {analysis['home_gols_total']} gols"
+        )
+    
+    with col2:
+        st.metric(
+            label=f"✈️ {team_away} - Eficiência 1º Tempo", 
+            value=f"{analysis['away_ht_eficiencia']}%",
+            delta=f"{analysis['away_ht_gols']} de {analysis['away_gols_total']} gols"
+        )
+    
+    # Análise da eficiência do primeiro tempo
+    if analysis['home_ht_eficiencia'] > 60 or analysis['away_ht_eficiencia'] > 60:
+        st.info("💡 **Insight**: Um ou ambos os times demonstram forte início de jogo, marcando mais de 60% dos gols no primeiro tempo.")
+    elif analysis['home_ht_eficiencia'] < 30 and analysis['away_ht_eficiencia'] < 30:
+        st.info("💡 **Insight**: Ambos os times tendem a ser mais efetivos no segundo tempo, com baixa produção inicial.")
+
+
+def _display_insights_and_recommendations(analysis, team_home, team_away):
+    """Exibe insights estratégicos e recomendações."""
+    
+    st.subheader("🧠 Insights Estratégicos")
+    
+    insights = []
+    
+    # Análise de força ofensiva
+    if analysis['home_media_gols'] > 2.0:
+        insights.append(f"🔥 {team_home} possui ataque muito forte como mandante (média de {analysis['home_media_gols']} gols/jogo)")
+    elif analysis['home_media_gols'] < 1.0:
+        insights.append(f"⚠️ {team_home} tem dificuldades ofensivas como mandante (média de {analysis['home_media_gols']} gols/jogo)")
+    
+    if analysis['away_media_gols'] > 1.5:
+        insights.append(f"💪 {team_away} é eficiente jogando fora de casa (média de {analysis['away_media_gols']} gols/jogo)")
+    elif analysis['away_media_gols'] < 0.8:
+        insights.append(f"🚨 {team_away} tem baixo rendimento como visitante (média de {analysis['away_media_gols']} gols/jogo)")
+    
+    # Análise defensiva
+    if analysis['home_media_sofridos'] < 1.0:
+        insights.append(f"🛡️ {team_home} possui defesa sólida em casa (média de {analysis['home_media_sofridos']} gols sofridos/jogo)")
+    elif analysis['home_media_sofridos'] > 2.0:
+        insights.append(f"⚠️ {team_home} tem fragilidade defensiva como mandante")
+    
+    # Recomendações estratégicas
+    st.write("### 📋 Recomendações Estratégicas:")
+    
+    for i, insight in enumerate(insights, 1):
+        st.write(f"**{i}.** {insight}")
+    
+    # Previsão de jogo
+    if analysis['home_gols_total'] > 0 and analysis['away_gols_total'] > 0:
+        st.write("### 🎯 Cenário Provável de Confronto:")
+        
+        total_esperado = round((analysis['home_media_gols'] + analysis['away_media_gols']) / 2, 1)
+        
+        if total_esperado > 2.5:
+            cenario = "🔥 Jogo com muitos gols esperado"
+        elif total_esperado > 1.5:
+            cenario = "⚽ Jogo com gols moderados"
+        else:
+            cenario = "🛡️ Jogo mais truncado e defensivo"
+            
+        st.info(f"{cenario} (média esperada: {total_esperado} gols)")
 
 def show_team_analysis(df, teams):
     """Análise de desempenho de um time específico"""
