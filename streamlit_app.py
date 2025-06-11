@@ -586,30 +586,30 @@ with st.sidebar:
 
     st.success(f"📊 Jogos no filtro: {len(df_filtered)} de {len(df)}")
 
-        # Lista de times únicos
-        try:
-            if df_filtered.empty:
-                teams = []
-            else:
-                home_teams = df_filtered['Home'].dropna().unique().tolist()
-                away_teams = df_filtered['Away'].dropna().unique().tolist()
-                teams = sorted(list(set(home_teams + away_teams)))
-        except Exception as e:
-            st.error(f"Erro ao processar times: {str(e)}")
+    # Lista de times únicos
+    try:
+        if df_filtered.empty:
             teams = []
+        else:
+            home_teams = df_filtered['Home'].dropna().unique().tolist()
+            away_teams = df_filtered['Away'].dropna().unique().tolist()
+            teams = sorted(list(set(home_teams + away_teams)))
+    except Exception as e:
+        st.error(f"Erro ao processar times: {str(e)}")
+        teams = []
 
-        st.header("📋 Opções de Análise")
-        analysis_option = st.selectbox(
-            "Escolha o tipo de análise:",
-            [
-                "1. Análise de Desempenho de Time",
-                "2. Comparação entre Times",
-                "3. Cálculo de Probabilidades Implícitas",
-                "4. Simulação de Escanteios",
-                "5. Predição de Placar (Poisson)",
-                "6. Gráficos Interativos"
-            ]
-        )
+    st.header("📋 Opções de Análise")
+    analysis_option = st.selectbox(
+        "Escolha o tipo de análise:",
+        [
+            "1. Análise de Desempenho de Time",
+            "2. Comparação entre Times",
+            "3. Cálculo de Probabilidades Implícitas",
+            "4. Simulação de Escanteios",
+            "5. Predição de Placar (Poisson)",
+            "6. Gráficos Interativos"
+        ]
+    )
 
     # Conteúdo principal baseado na opção selecionada
     try:
