@@ -570,46 +570,46 @@ def main():
 
     st.success(f"✅ Dados carregados com sucesso! Total de jogos disponíveis: {len(df)}")
 
-# Sidebar para filtros e opções
-with st.sidebar:
-    st.header("🔧 Configurações")
+    # Sidebar para filtros e opções
+    with st.sidebar:
+        st.header("🔧 Configurações")
 
-    # Filtro de ano com multiselect
-    if 'Ano' in df.columns:
-        year_options = sorted(df['Ano'].dropna().unique())
-        selected_years = st.multiselect("📅 Selecione os anos desejados:", year_options, default=year_options)
+        # Filtro de ano com multiselect
+        if 'Ano' in df.columns:
+            year_options = sorted(df['Ano'].dropna().unique())
+            selected_years = st.multiselect("📅 Selecione os anos desejados:", year_options, default=year_options)
 
-        df_filtered = df[df['Ano'].isin(selected_years)].copy()
-    else:
-        st.warning("Coluna 'Ano' não encontrada nos dados.")
-        df_filtered = df.copy()
-
-    st.success(f"📊 Jogos no filtro: {len(df_filtered)} de {len(df)}")
-
-    # Lista de times únicos
-    try:
-        if df_filtered.empty:
-            teams = []
+            df_filtered = df[df['Ano'].isin(selected_years)].copy()
         else:
-            home_teams = df_filtered['Home'].dropna().unique().tolist()
-            away_teams = df_filtered['Away'].dropna().unique().tolist()
-            teams = sorted(list(set(home_teams + away_teams)))
-    except Exception as e:
-        st.error(f"Erro ao processar times: {str(e)}")
-        teams = []
+            st.warning("Coluna 'Ano' não encontrada nos dados.")
+            df_filtered = df.copy()
 
-    st.header("📋 Opções de Análise")
-    analysis_option = st.selectbox(
-        "Escolha o tipo de análise:",
-        [
-            "1. Análise de Desempenho de Time",
-            "2. Comparação entre Times",
-            "3. Cálculo de Probabilidades Implícitas",
-            "4. Simulação de Escanteios",
-            "5. Predição de Placar (Poisson)",
-            "6. Gráficos Interativos"
-        ]
-    )
+        st.success(f"📊 Jogos no filtro: {len(df_filtered)} de {len(df)}")
+
+        # Lista de times únicos
+        try:
+            if df_filtered.empty:
+                teams = []
+            else:
+                home_teams = df_filtered['Home'].dropna().unique().tolist()
+                away_teams = df_filtered['Away'].dropna().unique().tolist()
+                teams = sorted(list(set(home_teams + away_teams)))
+        except Exception as e:
+            st.error(f"Erro ao processar times: {str(e)}")
+            teams = []
+
+        st.header("📋 Opções de Análise")
+        analysis_option = st.selectbox(
+            "Escolha o tipo de análise:",
+            [
+                "1. Análise de Desempenho de Time",
+                "2. Comparação entre Times",
+                "3. Cálculo de Probabilidades Implícitas",
+                "4. Simulação de Escanteios",
+                "5. Predição de Placar (Poisson)",
+                "6. Gráficos Interativos"
+            ]
+        )
 
     # Conteúdo principal baseado na opção selecionada
     try:
@@ -641,7 +641,6 @@ with st.sidebar:
         
         st.write("Primeiras linhas do DataFrame filtrado:")
         st.write(df_filtered.head())
-
 
 # Executa a aplicação
 if __name__ == "__main__":
