@@ -42,64 +42,38 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Tenta ler como arquivo Excel primeiro (com abas)
-        try:
-            # Se for arquivo Excel com abas
-            df_2024 = pd.read_excel("BRA_DADOS_2425_B.xlsx", sheet_name="DADOS24")
-            df_2025 = pd.read_excel("BRA_DADOS_2425_B.xlsx", sheet_name="DADOS25")
-            
-            # Adiciona coluna de ano
-            df_2024['Ano'] = 2024
-            df_2025['Ano'] = 2025
-            
-            # Combina os dataframes
-            df = pd.concat([df_2024, df_2025], ignore_index=True)
-            
-        except:
-            # Se não conseguir ler como Excel, tenta CSV
-            df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
-            
-            # DIVISÃO CORRETA: Primeiros 380 jogos = 2024, restante = 2025
-            total_linhas = len(df)
-            df['Ano'] = 2024  # Inicializa todos como 2024
-            
-            if total_linhas > 380:
-                df.loc[380:, 'Ano'] = 2025
+        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
 
-        # Verifica colunas obrigatórias
-        required_columns = ['Home', 'Away', 'Gols Home']
-        for col in required_columns:
-            if col not in df.columns:
-                st.error(f"Coluna obrigatória ausente: {col}")
-                return pd.DataFrame()
+        # Validação da coluna Ano
+        if 'Ano' not in df.columns:
+            st.error("❌ A coluna 'Ano' é obrigatória para filtrar os dados por período.")
+            return pd.DataFrame()
 
-        # Remove linhas completamente vazias ou com dados essenciais ausentes
-        df = df.dropna(subset=['Home', 'Away'], how='any')
-        df = df[df['Home'].str.strip() != '']
-        df = df[df['Away'].str.strip() != '']
-        
-        # Reset do index após remoção de linhas
-        df = df.reset_index(drop=True)
-        
-        # Ajustes de colunas
+        # Renomear colunas problemáticas, se necessário
         if 'Gols  Away' in df.columns:
             df = df.rename(columns={'Gols  Away': 'Gols Away'})
 
+        # Limpeza básica
+        df = df.dropna(subset=['Home', 'Away', 'Ano'])
+        df = df[df['Home'].str.strip() != '']
+        df = df[df['Away'].str.strip() != '']
+
+        # Conversão de tipos
+        df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce')
         numeric_columns = ['Gols Home', 'Gols Away', 'odd Home', 'odd Draw', 'odd Away',
-                           'Corner Home', 'Corner Away', 'Total Corner Match', 'Ano']
+                           'Corner Home', 'Corner Away', 'Total Corner Match']
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
 
-        # Cria coluna de resultado
-        if 'Gols Home' in df.columns and 'Gols Away' in df.columns:
-            df['Resultado Home'] = df.apply(
-                lambda row: 'Vitória' if row['Gols Home'] > row['Gols Away']
-                else 'Empate' if row['Gols Home'] == row['Gols Away']
-                else 'Derrota', axis=1)
-            df['Total Gols'] = df['Gols Home'] + df['Gols Away']
+        # Coluna Resultado e Total Gols
+        df['Resultado Home'] = df.apply(
+            lambda row: 'Vitória' if row['Gols Home'] > row['Gols Away']
+            else 'Empate' if row['Gols Home'] == row['Gols Away']
+            else 'Derrota', axis=1)
+        df['Total Gols'] = df['Gols Home'] + df['Gols Away']
 
-        return df
+        return df.reset_index(drop=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados: {e}")
@@ -594,27 +568,23 @@ def main():
         st.info("🔍 Verifique também se o arquivo está com o encoding correto.")
         return
 
-    st.success(f"✅ Dados carregados com sucesso! Total de jogos: {len(df)}")
+    st.success(f"✅ Dados carregados com sucesso! Total de jogos disponíveis: {len(df)}")
 
-    # Sidebar para filtros e opções
-    with st.sidebar:
-        st.header("🔧 Configurações")
+# Sidebar para filtros e opções
+with st.sidebar:
+    st.header("🔧 Configurações")
 
-        # Filtro de ano
-        if 'Ano' in df.columns:
-            available_years = sorted(df['Ano'].dropna().unique())
-            year_options = ["Todos os anos"] + [str(int(y)) for y in available_years]
-            year_filter = st.selectbox("📅 Selecione o período:", year_options, index=0)
+    # Filtro de ano com multiselect
+    if 'Ano' in df.columns:
+        year_options = sorted(df['Ano'].dropna().unique())
+        selected_years = st.multiselect("📅 Selecione os anos desejados:", year_options, default=year_options)
 
-            if year_filter != "Todos os anos":
-                df_filtered = df[df['Ano'] == int(year_filter)].copy()
-            else:
-                df_filtered = df.copy()
-        else:
-            st.warning("Coluna 'Ano' não encontrada nos dados.")
-            df_filtered = df.copy()
+        df_filtered = df[df['Ano'].isin(selected_years)].copy()
+    else:
+        st.warning("Coluna 'Ano' não encontrada nos dados.")
+        df_filtered = df.copy()
 
-        st.info(f"📊 Total de jogos filtrados: {len(df_filtered)}")
+    st.success(f"📊 Jogos no filtro: {len(df_filtered)} de {len(df)}")
 
         # Lista de times únicos
         try:
