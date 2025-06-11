@@ -923,7 +923,7 @@ def show_team_comparison(df, teams):
     st.plotly_chart(fig, use_container_width=True)
 
 def show_probability_analysis(df, teams):
-    """Análise Avançada de Probabilidades e Identificação de Valor em Odds"""
+    """Identificação de Valor em Odds"""
     st.header("🎯 Análise Profissional de Valor em Odds")
 
     if not teams:
