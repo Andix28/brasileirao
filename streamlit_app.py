@@ -212,86 +212,313 @@ def predict_score_poisson(home_avg, away_avg, home_def, away_def):
         return (0, 0), 0, 0, 0
 
 def show_interactive_charts(df):
-    """Gráficos comparativos entre mandante e visitante"""
-
+    """
+    Gera gráficos comparativos entre equipes mandante e visitante.
+    
+    Args:
+        df (DataFrame): DataFrame contendo os dados dos jogos
+    """
+    
     st.header("📊 Gráficos Comparativos (Mandante x Visitante)")
-
-    teams = sorted(set(df['Home'].dropna().unique().tolist() + df['Away'].dropna().unique().tolist()))
+    
+    # Verificar se há dados suficientes
+    if df.empty:
+        st.warning("⚠️ Não há dados disponíveis para análise.")
+        return
+    
+    # Obter lista única de times
+    teams = _get_unique_teams(df)
+    
     if len(teams) < 2:
-        st.warning("Não há times suficientes nos dados.")
+        st.warning("⚠️ É necessário pelo menos 2 times diferentes para comparação.")
         return
+    
+    # Interface de seleção de times
+    team_home, team_away = _create_team_selection_interface(teams)
+    
+    if not _validate_team_selection(team_home, team_away):
+        st.warning("⚠️ Por favor, selecione dois times diferentes.")
+        return
+    
+    # Verificar colunas necessárias
+    if not _validate_required_columns(df):
+        return
+    
+    # Calcular estatísticas
+    stats = _calculate_team_statistics(df, team_home, team_away)
+    
+    # Gerar gráficos
+    _generate_comparative_charts(stats, team_home, team_away)
 
+
+def _get_unique_teams(df):
+    """
+    Extrai lista única de times dos dados.
+    
+    Args:
+        df (DataFrame): DataFrame com dados dos jogos
+        
+    Returns:
+        list: Lista ordenada de times únicos
+    """
+    home_teams = df['Home'].dropna().unique().tolist()
+    away_teams = df['Away'].dropna().unique().tolist()
+    all_teams = set(home_teams + away_teams)
+    return sorted(list(all_teams))
+
+
+def _create_team_selection_interface(teams):
+    """
+    Cria interface para seleção de times.
+    
+    Args:
+        teams (list): Lista de times disponíveis
+        
+    Returns:
+        tuple: (team_home, team_away)
+    """
     col1, col2 = st.columns(2)
+    
     with col1:
-        team_home = st.selectbox("🏠 Selecione o Time Mandante:", teams, key="chart_home")
+        team_home = st.selectbox(
+            "🏠 Selecione o Time Mandante:",
+            options=teams,
+            key="chart_home",
+            help="Time que jogará como mandante na comparação"
+        )
+    
     with col2:
-        team_away = st.selectbox("✈️ Selecione o Time Visitante:", teams, key="chart_away")
+        team_away = st.selectbox(
+            "✈️ Selecione o Time Visitante:",
+            options=teams,
+            key="chart_away",
+            help="Time que jogará como visitante na comparação"
+        )
+    
+    return team_home, team_away
 
-    if not team_home or not team_away or team_home == team_away:
-        st.warning("Selecione dois times diferentes.")
-        return
 
-    # Filtrar os jogos
-    home_games = df[df['Home'] == team_home]
-    away_games = df[df['Away'] == team_away]
+def _validate_team_selection(team_home, team_away):
+    """
+    Valida se a seleção de times está correta.
+    
+    Args:
+        team_home (str): Time mandante selecionado
+        team_away (str): Time visitante selecionado
+        
+    Returns:
+        bool: True se seleção válida, False caso contrário
+    """
+    return team_home and team_away and team_home != team_away
 
-    # Garantir que colunas HT existem
-    for col in ['Home Score HT', 'Away Score HT']:
-        if col not in df.columns:
-            st.error(f"Coluna '{col}' não encontrada.")
-            return
 
-    # Cálculos
-    total_gols_feitos_home = home_games['Gols Home'].sum()
-    total_gols_sofridos_home = home_games['Gols Away'].sum()
-    total_gols_feitos_ht_home = home_games['Home Score HT'].sum()
-    total_gols_sofridos_ht_home = home_games['Away Score HT'].sum()
+def _validate_required_columns(df):
+    """
+    Verifica se todas as colunas necessárias estão presentes no DataFrame.
+    
+    Args:
+        df (DataFrame): DataFrame a ser validado
+        
+    Returns:
+        bool: True se todas as colunas existem, False caso contrário
+    """
+    required_columns = ['Home', 'Away', 'Gols Home', 'Gols Away', 'Home Score HT', 'Away Score HT']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    if missing_columns:
+        st.error(f"❌ Colunas obrigatórias não encontradas: {', '.join(missing_columns)}")
+        return False
+    
+    return True
 
-    total_gols_feitos_away = away_games['Gols Away'].sum()
-    total_gols_sofridos_away = away_games['Gols Home'].sum()
-    total_gols_feitos_ht_away = away_games['Away Score HT'].sum()
-    total_gols_sofridos_ht_away = away_games['Home Score HT'].sum()
 
-    # Dados e títulos dos gráficos
-    graficos = [
+def _calculate_team_statistics(df, team_home, team_away):
+    """
+    Calcula estatísticas para os times selecionados.
+    
+    Args:
+        df (DataFrame): DataFrame com dados dos jogos
+        team_home (str): Time mandante
+        team_away (str): Time visitante
+        
+    Returns:
+        dict: Dicionário com estatísticas calculadas
+    """
+    # Filtrar jogos onde cada time atua em sua respectiva condição
+    home_games = df[df['Home'] == team_home].copy()
+    away_games = df[df['Away'] == team_away].copy()
+    
+    # Calcular estatísticas do time mandante (quando joga em casa)
+    home_stats = {
+        'gols_marcados': home_games['Gols Home'].sum(),
+        'gols_sofridos': home_games['Gols Away'].sum(),
+        'gols_marcados_ht': home_games['Home Score HT'].sum(),
+        'gols_sofridos_ht': home_games['Away Score HT'].sum(),
+        'total_jogos': len(home_games)
+    }
+    
+    # Calcular estatísticas do time visitante (quando joga fora)
+    away_stats = {
+        'gols_marcados': away_games['Gols Away'].sum(),
+        'gols_sofridos': away_games['Gols Home'].sum(),
+        'gols_marcados_ht': away_games['Away Score HT'].sum(),
+        'gols_sofridos_ht': away_games['Home Score HT'].sum(),
+        'total_jogos': len(away_games)
+    }
+    
+    return {
+        'home': home_stats,
+        'away': away_stats
+    }
+
+
+def _generate_comparative_charts(stats, team_home, team_away):
+    """
+    Gera todos os gráficos comparativos.
+    
+    Args:
+        stats (dict): Estatísticas calculadas
+        team_home (str): Nome do time mandante
+        team_away (str): Nome do time visitante
+    """
+    
+    # Definir configurações dos gráficos
+    chart_configs = [
         {
-            "titulo": "Total de Gols Marcados",
-            "labels": [team_home, team_away],
-            "valores": [total_gols_feitos_home, total_gols_feitos_away],
-            "cor": ['royalblue', 'darkorange']
+            'title': '⚽ Total de Gols Marcados',
+            'subtitle': f'{team_home} (Mandante) vs {team_away} (Visitante)',
+            'home_value': stats['home']['gols_marcados'],
+            'away_value': stats['away']['gols_marcados'],
+            'y_label': 'Gols Marcados',
+            'color_home': '#1f77b4',
+            'color_away': '#ff7f0e'
         },
         {
-            "titulo": "Total de Gols Sofridos",
-            "labels": [team_home, team_away],
-            "valores": [total_gols_sofridos_home, total_gols_sofridos_away],
-            "cor": ['royalblue', 'darkorange']
+            'title': '🥅 Total de Gols Sofridos',
+            'subtitle': f'{team_home} (Mandante) vs {team_away} (Visitante)',
+            'home_value': stats['home']['gols_sofridos'],
+            'away_value': stats['away']['gols_sofridos'],
+            'y_label': 'Gols Sofridos',
+            'color_home': '#d62728',
+            'color_away': '#ff9896'
         },
         {
-            "titulo": "Gols Marcados no 1º Tempo",
-            "labels": [team_home, team_away],
-            "valores": [total_gols_feitos_ht_home, total_gols_feitos_ht_away],
-            "cor": ['royalblue', 'darkorange']
+            'title': '🕐 Gols Marcados no 1º Tempo',
+            'subtitle': f'{team_home} (Mandante) vs {team_away} (Visitante)',
+            'home_value': stats['home']['gols_marcados_ht'],
+            'away_value': stats['away']['gols_marcados_ht'],
+            'y_label': 'Gols no 1º Tempo',
+            'color_home': '#2ca02c',
+            'color_away': '#98df8a'
         },
         {
-            "titulo": "Gols Sofridos no 1º Tempo",
-            "labels": [team_home, team_away],
-            "valores": [total_gols_sofridos_ht_home, total_gols_sofridos_ht_away],
-            "cor": ['royalblue', 'darkorange']
-        },
+            'title': '🕐 Gols Sofridos no 1º Tempo',
+            'subtitle': f'{team_home} (Mandante) vs {team_away} (Visitante)',
+            'home_value': stats['home']['gols_sofridos_ht'],
+            'away_value': stats['away']['gols_sofridos_ht'],
+            'y_label': 'Gols Sofridos no 1º Tempo',
+            'color_home': '#9467bd',
+            'color_away': '#c5b0d5'
+        }
     ]
+    
+    # Criar layout em colunas para melhor visualização
+    for i in range(0, len(chart_configs), 2):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if i < len(chart_configs):
+                _create_bar_chart(chart_configs[i], team_home, team_away)
+        
+        with col2:
+            if i + 1 < len(chart_configs):
+                _create_bar_chart(chart_configs[i + 1], team_home, team_away)
+    
+    # Exibir resumo estatístico
+    _display_statistics_summary(stats, team_home, team_away)
 
-    for g in graficos:
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            x=g["labels"],
-            y=g["valores"],
-            marker_color=g["cor"],
-            text=g["valores"],
-            textposition="auto"
-        ))
-        fig.update_layout(title=g["titulo"], yaxis_title="Quantidade")
-        st.plotly_chart(fig, use_container_width=True)
 
+def _create_bar_chart(config, team_home, team_away):
+    """
+    Cria um gráfico de barras individual.
+    
+    Args:
+        config (dict): Configurações do gráfico
+        team_home (str): Nome do time mandante
+        team_away (str): Nome do time visitante
+    """
+    
+    fig = go.Figure()
+    
+    # Adicionar barras
+    fig.add_trace(go.Bar(
+        x=[f"{team_home}\n(Mandante)", f"{team_away}\n(Visitante)"],
+        y=[config['home_value'], config['away_value']],
+        marker_color=[config['color_home'], config['color_away']],
+        text=[config['home_value'], config['away_value']],
+        textposition="auto",
+        textfont=dict(size=14, color='white'),
+        hovertemplate='<b>%{x}</b><br>' +
+                     f'{config["y_label"]}: %{{y}}<br>' +
+                     '<extra></extra>'
+    ))
+    
+    # Configurar layout
+    fig.update_layout(
+        title={
+            'text': f"<b>{config['title']}</b><br><sub>{config['subtitle']}</sub>",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 16}
+        },
+        yaxis_title=config['y_label'],
+        xaxis_title="Times",
+        showlegend=False,
+        height=400,
+        margin=dict(t=80, b=50, l=50, r=50),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12)
+    )
+    
+    # Estilizar eixos
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def _display_statistics_summary(stats, team_home, team_away):
+    """
+    Exibe resumo estatístico dos times.
+    
+    Args:
+        stats (dict): Estatísticas calculadas
+        team_home (str): Nome do time mandante
+        team_away (str): Nome do time visitante
+    """
+    
+    st.subheader("📋 Resumo Estatístico")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **🏠 {team_home} (Como Mandante)**
+        - Jogos analisados: {stats['home']['total_jogos']}
+        - Gols marcados: {stats['home']['gols_marcados']}
+        - Gols sofridos: {stats['home']['gols_sofridos']}
+        - Saldo: {stats['home']['gols_marcados'] - stats['home']['gols_sofridos']:+d}
+        """)
+    
+    with col2:
+        st.info(f"""
+        **✈️ {team_away} (Como Visitante)**
+        - Jogos analisados: {stats['away']['total_jogos']}
+        - Gols marcados: {stats['away']['gols_marcados']}
+        - Gols sofridos: {stats['away']['gols_sofridos']}
+        - Saldo: {stats['away']['gols_marcados'] - stats['away']['gols_sofridos']:+d}
+        """)
 
 def show_team_analysis(df, teams):
     """Análise de desempenho de um time específico"""
