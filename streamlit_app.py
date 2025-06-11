@@ -997,8 +997,20 @@ def analyze_team_odds_performance(df, team, position, current_odd):
     if len(team_games) < 10:  # Mínimo fixo de 10 jogos
         return {"error": f"Poucos dados históricos para {team} ({len(team_games)} jogos)"}
     
-    odd_column = f'odd {position}'
-    result_column = f'Resultado {position}'
+    # Mapear colunas corretas baseado na posição
+    if position == "Home":
+        odd_column = 'odd Home'
+        result_column = 'Resultado Home'
+    else:  # position == "Away"
+        odd_column = 'odd Away'
+        # Se não existir Resultado Away, criar baseado no Resultado Home
+        if 'Resultado Away' not in team_games.columns:
+            team_games['Resultado Away'] = team_games['Resultado Home'].map({
+                'Vitória': 'Derrota',
+                'Derrota': 'Vitória', 
+                'Empate': 'Empate'
+            })
+        result_column = 'Resultado Away'
     
     if odd_column not in team_games.columns or result_column not in team_games.columns:
         return {"error": "Colunas necessárias não encontradas no dataset"}
