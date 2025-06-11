@@ -212,29 +212,86 @@ def predict_score_poisson(home_avg, away_avg, home_def, away_def):
         return (0, 0), 0, 0, 0
 
 def show_interactive_charts(df):
-    """Exibe gráficos interativos"""
-    st.header("📊 Gráficos Interativos")
-    
-    if df.empty:
-        st.warning("Nenhum dado disponível para gráficos.")
+    """Gráficos comparativos entre mandante e visitante"""
+
+    st.header("📊 Gráficos Comparativos (Mandante x Visitante)")
+
+    teams = sorted(set(df['Home'].dropna().unique().tolist() + df['Away'].dropna().unique().tolist()))
+    if len(teams) < 2:
+        st.warning("Não há times suficientes nos dados.")
         return
-    
-    # Adiciona coluna de índice se não existir
-    if 'Jogo ID' not in df.columns:
-        df = df.reset_index()
-        df['Jogo ID'] = df.index + 1
-    
-    # Gráfico de gols por rodada
-    if 'Total Gols' in df.columns:
-        fig = px.line(df, x='Jogo ID', y='Total Gols', title='Gols por Jogo')
+
+    col1, col2 = st.columns(2)
+    with col1:
+        team_home = st.selectbox("🏠 Selecione o Time Mandante:", teams, key="chart_home")
+    with col2:
+        team_away = st.selectbox("✈️ Selecione o Time Visitante:", teams, key="chart_away")
+
+    if not team_home or not team_away or team_home == team_away:
+        st.warning("Selecione dois times diferentes.")
+        return
+
+    # Filtrar os jogos
+    home_games = df[df['Home'] == team_home]
+    away_games = df[df['Away'] == team_away]
+
+    # Garantir que colunas HT existem
+    for col in ['Home Score HT', 'Away Score HT']:
+        if col not in df.columns:
+            st.error(f"Coluna '{col}' não encontrada.")
+            return
+
+    # Cálculos
+    total_gols_feitos_home = home_games['Gols Home'].sum()
+    total_gols_sofridos_home = home_games['Gols Away'].sum()
+    total_gols_feitos_ht_home = home_games['Home Score HT'].sum()
+    total_gols_sofridos_ht_home = home_games['Away Score HT'].sum()
+
+    total_gols_feitos_away = away_games['Gols Away'].sum()
+    total_gols_sofridos_away = away_games['Gols Home'].sum()
+    total_gols_feitos_ht_away = away_games['Away Score HT'].sum()
+    total_gols_sofridos_ht_away = away_games['Home Score HT'].sum()
+
+    # Dados e títulos dos gráficos
+    graficos = [
+        {
+            "titulo": "Total de Gols Marcados",
+            "labels": [team_home, team_away],
+            "valores": [total_gols_feitos_home, total_gols_feitos_away],
+            "cor": ['royalblue', 'darkorange']
+        },
+        {
+            "titulo": "Total de Gols Sofridos",
+            "labels": [team_home, team_away],
+            "valores": [total_gols_sofridos_home, total_gols_sofridos_away],
+            "cor": ['royalblue', 'darkorange']
+        },
+        {
+            "titulo": "Gols Marcados no 1º Tempo",
+            "labels": [team_home, team_away],
+            "valores": [total_gols_feitos_ht_home, total_gols_feitos_ht_away],
+            "cor": ['royalblue', 'darkorange']
+        },
+        {
+            "titulo": "Gols Sofridos no 1º Tempo",
+            "labels": [team_home, team_away],
+            "valores": [total_gols_sofridos_ht_home, total_gols_sofridos_ht_away],
+            "cor": ['royalblue', 'darkorange']
+        },
+    ]
+
+    for g in graficos:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=g["labels"],
+            y=g["valores"],
+            marker_color=g["cor"],
+            text=g["valores"],
+            textposition="auto"
+        ))
+        fig.update_layout(title=g["titulo"], yaxis_title="Quantidade")
         st.plotly_chart(fig, use_container_width=True)
-        
-        # Gráfico de distribuição de gols
-        fig2 = px.histogram(df, x='Total Gols', title='Distribuição do Total de Gols por Jogo')
-        st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.info("Dados insuficientes para gráficos interativos.")
-        st.write("Colunas disponíveis:", list(df.columns))
+
 
 def show_team_analysis(df, teams):
     """Análise de desempenho de um time específico"""
