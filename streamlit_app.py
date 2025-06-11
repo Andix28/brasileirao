@@ -303,50 +303,79 @@ def show_team_analysis(df, teams):
             st.plotly_chart(fig, use_container_width=True)
 
 def show_team_comparison(df, teams):
-    """Comparação entre dois times"""
-    st.header("⚔️ Comparação entre Times")
-    
+    """Análise Do Confronto"""
+    st.header("⚔️ Comparação: Mandante vs Visitante")
+
     if len(teams) < 2:
-        st.warning("É necessário ter pelo menos 2 times nos dados.")
+        st.warning("Selecione pelo menos dois times.")
         return
-    
+
     col1, col2 = st.columns(2)
-    
     with col1:
-        team1 = st.selectbox("🏆 Primeiro time:", teams, key="team1")
+        team_home = st.selectbox("🏠 Time Mandante:", teams, key="team1")
     with col2:
-        team2 = st.selectbox("🏆 Segundo time:", teams, key="team2")
-    
-    if team1 and team2 and team1 != team2:
-        # Calcula estatísticas dos dois times
-        team1_home = calculate_team_stats(df, team1, as_home=True)
-        team1_away = calculate_team_stats(df, team1, as_home=False)
-        team2_home = calculate_team_stats(df, team2, as_home=True)
-        team2_away = calculate_team_stats(df, team2, as_home=False)
-        
-        # Estatísticas combinadas
-        team1_total_games = team1_home['jogos'] + team1_away['jogos']
-        team1_total_wins = team1_home['vitorias'] + team1_away['vitorias']
-        team1_avg_goals = (team1_home['media_gols_feitos'] + team1_away['media_gols_feitos']) / 2
-        
-        team2_total_games = team2_home['jogos'] + team2_away['jogos']
-        team2_total_wins = team2_home['vitorias'] + team2_away['vitorias']
-        team2_avg_goals = (team2_home['media_gols_feitos'] + team2_away['media_gols_feitos']) / 2
-        
-        # Comparação
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric(f"Jogos - {team1}", team1_total_games)
-            st.metric(f"Jogos - {team2}", team2_total_games)
-        
-        with col2:
-            st.metric(f"Vitórias - {team1}", team1_total_wins)
-            st.metric(f"Vitórias - {team2}", team2_total_wins)
-        
-        with col3:
-            st.metric(f"Média Gols - {team1}", f"{team1_avg_goals:.2f}")
-            st.metric(f"Média Gols - {team2}", f"{team2_avg_goals:.2f}")
+        team_away = st.selectbox("✈️ Time Visitante:", teams, key="team2")
+
+    if not team_home or not team_away or team_home == team_away:
+        st.warning("Selecione dois times diferentes.")
+        return
+
+    # Estatísticas específicas
+    stats_home = calculate_team_stats(df, team_home, as_home=True)
+    stats_away = calculate_team_stats(df, team_away, as_home=False)
+
+    labels = [
+        "Jogos",
+        "Vitórias",
+        "Empates",
+        "Derrotas",
+        "Gols Marcados/Jogo",
+        "Gols Sofridos/Jogo"
+    ]
+
+    home_values = [
+        stats_home['jogos'],
+        stats_home['vitorias'],
+        stats_home['empates'],
+        stats_home['derrotas'],
+        round(stats_home['media_gols_feitos'], 2),
+        round(stats_home['media_gols_sofridos'], 2)
+    ]
+
+    away_values = [
+        stats_away['jogos'],
+        stats_away['vitorias'],
+        stats_away['empates'],
+        stats_away['derrotas'],
+        round(stats_away['media_gols_feitos'], 2),
+        round(stats_away['media_gols_sofridos'], 2)
+    ]
+
+    # Exibição da Tabela
+    st.subheader("📊 Comparativo Estatístico")
+    df_comparativo = pd.DataFrame({
+        "Métrica": labels,
+        f"{team_home} (Mandante)": home_values,
+        f"{team_away} (Visitante)": away_values
+    })
+
+    st.dataframe(df_comparativo, use_container_width=True)
+
+    # Gráfico de colunas
+    st.subheader("📈 Gráfico Comparativo")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=labels, y=home_values, name=f"{team_home} (Mandante)", marker_color='royalblue'))
+    fig.add_trace(go.Bar(x=labels, y=away_values, name=f"{team_away} (Visitante)", marker_color='darkorange'))
+
+    fig.update_layout(
+        barmode='group',
+        xaxis_title="Métrica",
+        yaxis_title="Valor",
+        legend_title="Times",
+        title=f"Desempenho: {team_home} (Mandante) vs {team_away} (Visitante)"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 def show_probability_analysis(df, teams):
     """Análise de Probabilidades Implícitas comparadas com histórico flexível"""
