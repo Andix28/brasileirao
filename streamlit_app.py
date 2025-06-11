@@ -497,11 +497,10 @@ def _display_statistics_summary(stats, team_home, team_away):
         team_home (str): Nome do time mandante
         team_away (str): Nome do time visitante
     """
-try:
-
-    st.subheader("📋 Resumo Estatístico")
-
-   # Calcular métricas avançadas
+    try:
+        st.subheader("📋 Análise Estatística Detalhada")
+        
+        # Calcular métricas avançadas
         analysis = _calculate_advanced_metrics(stats, team_home, team_away)
         
         # Seção 1: Resumo Básico
@@ -519,6 +518,11 @@ try:
     except Exception as e:
         st.error(f"❌ Erro na análise estatística: {str(e)}")
         st.info("💡 Verifique se os dados estão completos e tente novamente.")
+        # Debug: mostrar valores que causaram erro
+        st.write("Debug - Valores recebidos:")
+        st.write(f"Stats home: {stats.get('home', 'N/A')}")
+        st.write(f"Stats away: {stats.get('away', 'N/A')}")
+
 
 def _calculate_advanced_metrics(stats, team_home, team_away):
     """
@@ -533,19 +537,40 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
         dict: Métricas avançadas calculadas
     """
     
-    # Converter para int para evitar problemas de formatação
-    home_gols_marcados = int(stats['home']['gols_marcados'])
-    home_gols_sofridos = int(stats['home']['gols_sofridos'])
-    away_gols_marcados = int(stats['away']['gols_marcados'])
-    away_gols_sofridos = int(stats['away']['gols_sofridos'])
+    # Função auxiliar para converter valores de forma segura
+    def safe_int(value):
+        try:
+            if pd.isna(value):
+                return 0
+            return int(float(value))  # Converte para float primeiro, depois int
+        except (ValueError, TypeError):
+            return 0
     
-    home_jogos = max(stats['home']['total_jogos'], 1)  # Evitar divisão por zero
-    away_jogos = max(stats['away']['total_jogos'], 1)
+    def safe_float(value):
+        try:
+            if pd.isna(value):
+                return 0.0
+            return float(value)
+        except (ValueError, TypeError):
+            return 0.0
     
-    home_ht_marcados = int(stats['home']['gols_marcados_ht'])
-    home_ht_sofridos = int(stats['home']['gols_sofridos_ht'])
-    away_ht_marcados = int(stats['away']['gols_marcados_ht'])
-    away_ht_sofridos = int(stats['away']['gols_sofridos_ht'])
+    # Converter valores de forma segura
+    home_gols_marcados = safe_int(stats['home']['gols_marcados'])
+    home_gols_sofridos = safe_int(stats['home']['gols_sofridos'])
+    away_gols_marcados = safe_int(stats['away']['gols_marcados'])
+    away_gols_sofridos = safe_int(stats['away']['gols_sofridos'])
+    
+    home_jogos = max(safe_int(stats['home']['total_jogos']), 1)  # Evitar divisão por zero
+    away_jogos = max(safe_int(stats['away']['total_jogos']), 1)
+    
+    home_ht_marcados = safe_int(stats['home']['gols_marcados_ht'])
+    home_ht_sofridos = safe_int(stats['home']['gols_sofridos_ht'])
+    away_ht_marcados = safe_int(stats['away']['gols_marcados_ht'])
+    away_ht_sofridos = safe_int(stats['away']['gols_sofridos_ht'])
+    
+    # Calcular saldos
+    home_saldo = home_gols_marcados - home_gols_sofridos
+    away_saldo = away_gols_marcados - away_gols_sofridos
     
     return {
         # Médias por jogo
@@ -554,9 +579,9 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
         'away_media_gols': round(away_gols_marcados / away_jogos, 2),
         'away_media_sofridos': round(away_gols_sofridos / away_jogos, 2),
         
-        # Saldos
-        'home_saldo': home_gols_marcados - home_gols_sofridos,
-        'away_saldo': away_gols_marcados - away_gols_sofridos,
+        # Saldos (garantindo que são inteiros)
+        'home_saldo': home_saldo,
+        'away_saldo': away_saldo,
         
         # Eficiência no primeiro tempo (%)
         'home_ht_eficiencia': round((home_ht_marcados / max(home_gols_marcados, 1)) * 100, 1),
@@ -569,6 +594,8 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
         'away_sofridos_total': away_gols_sofridos,
         'home_ht_gols': home_ht_marcados,
         'away_ht_gols': away_ht_marcados,
+        'home_jogos': home_jogos,
+        'away_jogos': away_jogos,
         
         # Comparativos
         'melhor_ataque': team_home if home_gols_marcados > away_gols_marcados else team_away,
@@ -583,23 +610,45 @@ def _display_basic_summary(stats, team_home, team_away, analysis):
     col1, col2 = st.columns(2)
     
     with col1:
-        saldo_icon = "📈" if analysis['home_saldo'] > 0 else "📉" if analysis['home_saldo'] < 0 else "➖"
+        # Determinar ícone do saldo sem usar formatação problemática
+        saldo_home = analysis['home_saldo']
+        if saldo_home > 0:
+            saldo_icon = "📈"
+            saldo_text = f"+{saldo_home}"
+        elif saldo_home < 0:
+            saldo_icon = "📉"
+            saldo_text = str(saldo_home)
+        else:
+            saldo_icon = "➖"
+            saldo_text = "0"
+            
         st.info(f"""
         **🏠 {team_home} (Como Mandante)**
-        - 🎮 Jogos analisados: **{stats['home']['total_jogos']}**
+        - 🎮 Jogos analisados: **{analysis['home_jogos']}**
         - ⚽ Gols marcados: **{analysis['home_gols_total']}** (média: {analysis['home_media_gols']}/jogo)
         - 🥅 Gols sofridos: **{analysis['home_sofridos_total']}** (média: {analysis['home_media_sofridos']}/jogo)
-        - {saldo_icon} Saldo de gols: **{analysis['home_saldo']:+d}**
+        - {saldo_icon} Saldo de gols: **{saldo_text}**
         """)
     
     with col2:
-        saldo_icon = "📈" if analysis['away_saldo'] > 0 else "📉" if analysis['away_saldo'] < 0 else "➖"
+        # Determinar ícone do saldo sem usar formatação problemática
+        saldo_away = analysis['away_saldo']
+        if saldo_away > 0:
+            saldo_icon = "📈"
+            saldo_text = f"+{saldo_away}"
+        elif saldo_away < 0:
+            saldo_icon = "📉"
+            saldo_text = str(saldo_away)
+        else:
+            saldo_icon = "➖"
+            saldo_text = "0"
+            
         st.info(f"""
         **✈️ {team_away} (Como Visitante)**
-        - 🎮 Jogos analisados: **{stats['away']['total_jogos']}**
+        - 🎮 Jogos analisados: **{analysis['away_jogos']}**
         - ⚽ Gols marcados: **{analysis['away_gols_total']}** (média: {analysis['away_media_gols']}/jogo)
         - 🥅 Gols sofridos: **{analysis['away_sofridos_total']}** (média: {analysis['away_media_sofridos']}/jogo)
-        - {saldo_icon} Saldo de gols: **{analysis['away_saldo']:+d}**
+        - {saldo_icon} Saldo de gols: **{saldo_text}**
         """)
 
 
@@ -689,11 +738,19 @@ def _display_insights_and_recommendations(analysis, team_home, team_away):
     elif analysis['home_media_sofridos'] > 2.0:
         insights.append(f"⚠️ {team_home} tem fragilidade defensiva como mandante")
     
-    # Recomendações estratégicas
-    st.write("### 📋 Recomendações Estratégicas:")
+    # Análise comparativa de eficiência
+    if analysis['home_ht_eficiencia'] > analysis['away_ht_eficiencia'] + 20:
+        insights.append(f"⚡ {team_home} é muito mais eficiente no primeiro tempo ({analysis['home_ht_eficiencia']}% vs {analysis['away_ht_eficiencia']}%)")
+    elif analysis['away_ht_eficiencia'] > analysis['home_ht_eficiencia'] + 20:
+        insights.append(f"⚡ {team_away} é muito mais eficiente no primeiro tempo ({analysis['away_ht_eficiencia']}% vs {analysis['home_ht_eficiencia']}%)")
     
-    for i, insight in enumerate(insights, 1):
-        st.write(f"**{i}.** {insight}")
+    # Mostrar insights se houver algum
+    if insights:
+        st.write("### 📋 Recomendações Estratégicas:")
+        for i, insight in enumerate(insights, 1):
+            st.write(f"**{i}.** {insight}")
+    else:
+        st.info("📊 Times apresentam performance equilibrada nos critérios analisados.")
     
     # Previsão de jogo
     if analysis['home_gols_total'] > 0 and analysis['away_gols_total'] > 0:
@@ -703,12 +760,26 @@ def _display_insights_and_recommendations(analysis, team_home, team_away):
         
         if total_esperado > 2.5:
             cenario = "🔥 Jogo com muitos gols esperado"
+            cor_cenario = "success"
         elif total_esperado > 1.5:
             cenario = "⚽ Jogo com gols moderados"
+            cor_cenario = "info"
         else:
             cenario = "🛡️ Jogo mais truncado e defensivo"
+            cor_cenario = "warning"
             
-        st.info(f"{cenario} (média esperada: {total_esperado} gols)")
+        getattr(st, cor_cenario)(f"{cenario} (média esperada: {total_esperado} gols)")
+        
+        # Adicionar contexto sobre vantagem de campo
+        if analysis['home_gols_total'] > 0:
+            vantagem_casa = round((analysis['home_media_gols'] / max(analysis['away_media_gols'], 0.1)) * 100 - 100, 1)
+            if abs(vantagem_casa) > 20:
+                if vantagem_casa > 0:
+                    st.info(f"🏠 **Vantagem do Mandante**: {team_home} marca {vantagem_casa:+.1f}% mais gols em casa")
+                else:
+                    st.info(f"✈️ **Eficiência do Visitante**: {team_away} supera expectativa visitante em {abs(vantagem_casa):.1f}%")
+    else:
+        st.warning("⚠️ Dados insuficientes para projeção de confronto.")
 
 def show_team_analysis(df, teams):
     """Análise de desempenho de um time específico"""
