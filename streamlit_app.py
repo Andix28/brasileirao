@@ -42,7 +42,7 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='utf-8')
+        df = pd.read_csv("BRA_DADOS_2425_B.csv", sep=';', encoding='latin1')
 
         # Validação da coluna Ano
         if 'Ano' not in df.columns:
