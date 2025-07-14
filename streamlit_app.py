@@ -1330,6 +1330,81 @@ def display_draw_analysis(analysis, current_odd, prob_implicita):
 
 def show_corner_simulation(df, teams):
     """Simulação de escanteios com base nas médias"""
+    st.header("🚩 Análise de Escanteios")
+    
+    if not teams:
+        st.warning("Nenhum time disponível.")
+        return
+    
+    # Abas para diferentes análises
+    tab1, tab2 = st.tabs(["🎯 Simulador de Jogo", "📊 Classificação Geral"])
+    
+    with tab1:
+        st.subheader("🚩 Simulação de Escanteios por Jogo")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            home_team = st.selectbox("🏠 Time Mandante:", teams, key="corner_home")
+        with col2:
+            away_team = st.selectbox("✈️ Time Visitante:", teams, key="corner_away")
+
+        if home_team == away_team:
+            st.warning("Por favor, selecione dois times diferentes.")
+            return
+
+        if st.button("🚩 Simular Escanteios do Jogo", key="simulate_game"):
+            # Calcula estatísticas de escanteios
+            home_stats = calculate_team_stats(df, home_team, as_home=True)
+            away_stats = calculate_team_stats(df, away_team, as_home=False)
+
+            if home_stats['jogos'] < 3 or away_stats['jogos'] < 3:
+                st.warning("Dados insuficientes para simular escanteios com confiança.")
+                return
+
+            # Médias esperadas
+            corner_home = (home_stats['media_escanteios_feitos'] + away_stats['media_escanteios_sofridos']) / 2
+            corner_away = (away_stats['media_escanteios_feitos'] + home_stats['media_escanteios_sofridos']) / 2
+            total_corners = corner_home + corner_away
+
+            st.subheader("📊 Resultado da Simulação")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("🏠 Escanteios Mandante", f"{corner_home:.1f}")
+            with col2:
+                st.metric("✈️ Escanteios Visitante", f"{corner_away:.1f}")
+            with col3:
+                st.metric("📦 Total Esperado", f"{total_corners:.1f}")
+
+            # Distribuição de probabilidade para número total de escanteios
+            if total_corners > 0:
+                st.subheader("📈 Distribuição de Probabilidades (Total de Escanteios)")
+                corners_range = range(0, 21)
+                probabilities = [poisson.pmf(total, total_corners) * 100 for total in corners_range]
+                
+                fig = go.Figure()
+                fig.add_trace(go.Bar(
+                    x=list(corners_range), 
+                    y=probabilities,
+                    marker_color='#1f77b4',
+                    text=[f"{p:.1f}%" for p in probabilities],
+                    textposition='auto'
+                ))
+                fig.update_layout(
+                    title="Distribuição Poisson do Total de Escanteios",
+                    xaxis_title="Total de Escanteios no Jogo",
+                    yaxis_title="Probabilidade (%)",
+                    showlegend=False,
+                    height=400
+                )
+                st.plotly_chart(fig, use_container_width=True)
+    
+    with tab2:
+        # Chama a nova função de classificação
+        show_corner_classification(df, teams)
+
+
+def show_corner_simulation(df, teams):
+    """Simulação de escanteios com base nas médias"""
     st.header("🚩 Simulação de Escanteios por Time")
 
     if not teams:
@@ -1346,7 +1421,7 @@ def show_corner_simulation(df, teams):
         st.warning("Por favor, selecione dois times diferentes.")
         return
 
-    if st.button("🚩 Simular Escanteios"):
+    if st.button("🚩 Simulador de Escanteios"):
         # Calcula estatísticas de escanteios
         home_stats = calculate_team_stats(df, home_team, as_home=True)
         away_stats = calculate_team_stats(df, away_team, as_home=False)
