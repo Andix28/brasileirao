@@ -1546,7 +1546,7 @@ def main():
         # Seção de Opções de Análise
         st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
         
-        # Criando colunas para as opções
+        # Criando colunas para as opções - MODIFICADO para acomodar 7 opções
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -1559,6 +1559,13 @@ def main():
             st.markdown('<div class="option-card">', unsafe_allow_html=True)
             if st.button("🎯 Comparação de Times", key="comparacao", help="Compare o desempenho entre dois times"):
                 st.session_state.selected_analysis = "2. Comparação entre Times"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # NOVA - 7ª opção adicionada aqui
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("🚩 Análise de Escanteios", key="corner_analysis", help="Análise e simulação de escanteios"):
+                st.session_state.selected_analysis = "7. Análise de Escanteios"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -1596,137 +1603,27 @@ def main():
         
         col_filter1, col_filter2, col_filter3 = st.columns([1, 2, 1])
         
-        with col_filter2:
-            # Filtro de ano atualizado
-            if 'Ano' in df.columns:
-                year_options = sorted(df['Ano'].dropna().unique())
-                
-                # Filtro mais elegante para anos
-                st.markdown('<div class="year-selector">', unsafe_allow_html=True)
-                
-                # Verificar se 2024 e 2025 estão disponíveis
-                available_years = [year for year in [2024, 2025] if year in year_options]
-                
-                if available_years:
-                    selected_years = st.multiselect(
-                        "Selecione as temporadas:",
-                        options=available_years,
-                        default=available_years,
-                        help="Escolha as temporadas para análise"
-                    )
-                else:
-                    selected_years = st.multiselect(
-                        "Selecione as temporadas:",
-                        options=year_options,
-                        default=year_options,
-                        help="Escolha as temporadas para análise"
-                    )
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Filtro dos dados
-                df_filtered = df[df['Ano'].isin(selected_years)].copy()
-            else:
-                st.warning("Coluna 'Ano' não encontrada nos dados.")
-                df_filtered = df.copy()
-                selected_years = []
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Informações sobre os dados filtrados
-        if not df_filtered.empty:
-            st.success(f"✅ Dados carregados: {len(df_filtered)} jogos nas temporadas selecionadas")
-        else:
-            st.warning("⚠️ Nenhum dado encontrado para os filtros selecionados")
-        
-        # Botão para continuar (apenas visual, a seleção já redireciona)
-        st.markdown("---")
-        col_info1, col_info2, col_info3 = st.columns([1, 1, 1])
-        with col_info2:
-            st.info("👆 Clique em uma das opções de análise acima para começar!")
-        
-        return  # Para aqui se não foi selecionada nenhuma análise
-
-    # Sidebar para filtros e opções (quando uma análise foi selecionada)
-    with st.sidebar:
-        st.header("🔧 Configurações")
-        
-        # Botão para voltar à seleção
-        if st.button("⬅️ Voltar à Seleção", key="voltar"):
-            st.session_state.selected_analysis = None
-            st.rerun()
-        
-        st.markdown("---")
-        
-        # Filtro de ano com multiselect
-        if 'Ano' in df.columns:
-            year_options = sorted(df['Ano'].dropna().unique())
-            available_years = [year for year in [2024, 2025] if year in year_options]
-            
-            if available_years:
-                selected_years = st.multiselect(
-                    "📅 Selecione os anos:",
-                    options=available_years,
-                    default=available_years
-                )
-            else:
-                selected_years = st.multiselect(
-                    "📅 Selecione os anos:",
-                    options=year_options,
-                    default=year_options
-                )
-
-            df_filtered = df[df['Ano'].isin(selected_years)].copy()
-        else:
-            st.warning("Coluna 'Ano' não encontrada nos dados.")
-            df_filtered = df.copy()
-
-        st.success(f"📊 Jogos no filtro: {len(df_filtered)} de {len(df)}")
-
-        # Lista de times únicos
-        try:
-            if df_filtered.empty:
-                teams = []
-            else:
-                home_teams = df_filtered['Home'].dropna().unique().tolist()
-                away_teams = df_filtered['Away'].dropna().unique().tolist()
-                teams = sorted(list(set(home_teams + away_teams)))
-        except Exception as e:
-            st.error(f"Erro ao processar times: {str(e)}")
-            teams = []
-
-        st.header("📋 Análise Selecionada")
-        st.info(f"🎯 {st.session_state.selected_analysis}")
-        
-        # Mostrar informações dos times disponíveis
-        if teams:
-            st.success(f"🏆 {len(teams)} times disponíveis")
-        else:
-            st.warning("⚠️ Nenhum time encontrado nos dados filtrados")
-
-    # Conteúdo principal baseado na opção selecionada
-    if st.session_state.selected_analysis:
-        analysis_option = st.session_state.selected_analysis
-        
-        try:
-            if analysis_option.startswith("1."):
-                show_team_analysis(df_filtered, teams)
-            elif analysis_option.startswith("2."):
-                show_team_comparison(df_filtered, teams)
-            elif analysis_option.startswith("3."):
-                show_probability_analysis(df_filtered, teams)
-            elif analysis_option.startswith("4."):
-                show_corner_simulation(df_filtered, teams)
-            elif analysis_option.startswith("5."):
-                show_score_prediction(df_filtered, teams)
-            elif analysis_option.startswith("6."):
-                show_interactive_charts(df_filtered)
-        except Exception as e:
-            st.error(f"Erro na análise: {str(e)}")
-            st.info("Tente selecionar uma opção diferente.")
-            if st.button("🔄 Resetar Seleção"):
-                st.session_state.selected_analysis = None
-                st.rerun()
+    # IMPORTANTE: Adicionar também no sistema de roteamento das análises
+    # Certifique-se de que existe um elif para tratar a 7ª opção:
+    
+    # Exemplo de como deve estar o roteamento (adicione onde apropriado):
+    """
+    if st.session_state.selected_analysis == "1. Análise de Desempenho de Time":
+        show_team_performance(df, teams)
+    elif st.session_state.selected_analysis == "2. Comparação entre Times":
+        show_team_comparison(df, teams)
+    elif st.session_state.selected_analysis == "3. Cálculo de Probabilidades Implícitas":
+        show_probability_calculation(df, teams)
+    elif st.session_state.selected_analysis == "4. Simulação de Escanteios":
+        show_corner_simulation(df, teams)
+    elif st.session_state.selected_analysis == "5. Predição de Placar (Poisson)":
+        show_poisson_prediction(df, teams)
+    elif st.session_state.selected_analysis == "6. Gráficos Interativos":
+        show_interactive_charts(df, teams)
+    elif st.session_state.selected_analysis == "7. Análise de Escanteios":
+        # CHAMAR SUA FUNÇÃO DAS LINHAS 1331-1403 AQUI
+        show_corner_analysis(df, teams)  # ou o nome da sua função
+    """
 
     # Debug info (só aparece quando expandido)
     with st.expander("🔍 Informações de Debug"):
