@@ -9,32 +9,105 @@ from scipy.stats import poisson
 import warnings
 warnings.filterwarnings('ignore')
 
-# Configuração da página
+# Configuração da página atualizada
 st.set_page_config(
-    page_title="⚽ Análise de Futebol",
+    page_title="⚽ Análise & Estatística Brasileirão",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizado
+# CSS personalizado atualizado
 st.markdown("""
 <style>
     .main-header {
         font-size: 3rem;
-        color: #1f77b4;
+        color: #1f4e79;
         text-align: center;
         margin-bottom: 2rem;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
+    
+    .subtitle {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
     .stSelectbox label {
         font-size: 1.1rem;
         font-weight: bold;
     }
+    
     .metric-card {
         background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
+        border-left: 4px solid #1f4e79;
+    }
+    
+    .analysis-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin: 2rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .filter-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        border-left: 4px solid #1f4e79;
+    }
+    
+    .option-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .option-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1f4e79;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .year-selector {
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .start-button {
+        background: linear-gradient(45deg, #1f4e79, #2d5aa0);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .start-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1370,8 +1443,9 @@ def show_score_prediction(df, teams):
             st.write(f"{i}. {team_home} {h} x {a} {team_away} — {p*100:.2f}%")
 
 def main():
-    # Título principal
-    st.markdown('<h1 class="main-header">⚽ Sistema de Análise de Futebol</h1>', unsafe_allow_html=True)
+    # Título principal atualizado
+    st.markdown('<h1 class="main-header">⚽ Análise & Estatística Brasileirão</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Sistema completo de análise estatística do Campeonato Brasileiro</p>', unsafe_allow_html=True)
 
     # Carrega os dados
     with st.spinner("Carregando dados..."):
@@ -1385,14 +1459,147 @@ def main():
 
     st.success(f"✅ Dados carregados com sucesso! Total de jogos disponíveis: {len(df)}")
 
-    # Sidebar para filtros e opções
+    # Interface principal melhorada
+    # Verificar se já foi selecionada uma análise
+    if 'selected_analysis' not in st.session_state:
+        st.session_state.selected_analysis = None
+    
+    # Container principal para seleção de análise
+    if st.session_state.selected_analysis is None:
+        st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
+        
+        # Seção de Opções de Análise
+        st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
+        
+        # Criando colunas para as opções
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("🏆 Análise de Desempenho", key="desempenho", help="Análise detalhada do desempenho de um time"):
+                st.session_state.selected_analysis = "1. Análise de Desempenho de Time"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("🎯 Comparação de Times", key="comparacao", help="Compare o desempenho entre dois times"):
+                st.session_state.selected_analysis = "2. Comparação entre Times"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("📈 Probabilidades", key="probabilidades", help="Cálculo de probabilidades implícitas"):
+                st.session_state.selected_analysis = "3. Cálculo de Probabilidades Implícitas"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("⚽ Simulação Escanteios", key="escanteios", help="Análise e simulação de escanteios"):
+                st.session_state.selected_analysis = "4. Simulação de Escanteios"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("🔮 Predição de Placar", key="predicao", help="Predição usando distribuição de Poisson"):
+                st.session_state.selected_analysis = "5. Predição de Placar (Poisson)"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('<div class="option-card">', unsafe_allow_html=True)
+            if st.button("📊 Gráficos Interativos", key="graficos", help="Visualizações interativas dos dados"):
+                st.session_state.selected_analysis = "6. Gráficos Interativos"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Filtros de Ano - Seção centralizada
+        st.markdown('<div class="filter-container">', unsafe_allow_html=True)
+        st.markdown('<h3 class="section-header">📅 Filtros de Temporada</h3>', unsafe_allow_html=True)
+        
+        col_filter1, col_filter2, col_filter3 = st.columns([1, 2, 1])
+        
+        with col_filter2:
+            # Filtro de ano atualizado
+            if 'Ano' in df.columns:
+                year_options = sorted(df['Ano'].dropna().unique())
+                
+                # Filtro mais elegante para anos
+                st.markdown('<div class="year-selector">', unsafe_allow_html=True)
+                
+                # Verificar se 2024 e 2025 estão disponíveis
+                available_years = [year for year in [2024, 2025] if year in year_options]
+                
+                if available_years:
+                    selected_years = st.multiselect(
+                        "Selecione as temporadas:",
+                        options=available_years,
+                        default=available_years,
+                        help="Escolha as temporadas para análise"
+                    )
+                else:
+                    selected_years = st.multiselect(
+                        "Selecione as temporadas:",
+                        options=year_options,
+                        default=year_options,
+                        help="Escolha as temporadas para análise"
+                    )
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Filtro dos dados
+                df_filtered = df[df['Ano'].isin(selected_years)].copy()
+            else:
+                st.warning("Coluna 'Ano' não encontrada nos dados.")
+                df_filtered = df.copy()
+                selected_years = []
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Informações sobre os dados filtrados
+        if not df_filtered.empty:
+            st.success(f"✅ Dados carregados: {len(df_filtered)} jogos nas temporadas selecionadas")
+        else:
+            st.warning("⚠️ Nenhum dado encontrado para os filtros selecionados")
+        
+        # Botão para continuar (apenas visual, a seleção já redireciona)
+        st.markdown("---")
+        col_info1, col_info2, col_info3 = st.columns([1, 1, 1])
+        with col_info2:
+            st.info("👆 Clique em uma das opções de análise acima para começar!")
+        
+        return  # Para aqui se não foi selecionada nenhuma análise
+
+    # Sidebar para filtros e opções (quando uma análise foi selecionada)
     with st.sidebar:
         st.header("🔧 Configurações")
-
+        
+        # Botão para voltar à seleção
+        if st.button("⬅️ Voltar à Seleção", key="voltar"):
+            st.session_state.selected_analysis = None
+            st.rerun()
+        
+        st.markdown("---")
+        
         # Filtro de ano com multiselect
         if 'Ano' in df.columns:
             year_options = sorted(df['Ano'].dropna().unique())
-            selected_years = st.multiselect("📅 Selecione os anos desejados:", year_options, default=year_options)
+            available_years = [year for year in [2024, 2025] if year in year_options]
+            
+            if available_years:
+                selected_years = st.multiselect(
+                    "📅 Selecione os anos:",
+                    options=available_years,
+                    default=available_years
+                )
+            else:
+                selected_years = st.multiselect(
+                    "📅 Selecione os anos:",
+                    options=year_options,
+                    default=year_options
+                )
 
             df_filtered = df[df['Ano'].isin(selected_years)].copy()
         else:
@@ -1413,49 +1620,53 @@ def main():
             st.error(f"Erro ao processar times: {str(e)}")
             teams = []
 
-        st.header("📋 Opções de Análise")
-        analysis_option = st.selectbox(
-            "Escolha o tipo de análise:",
-            [
-                "1. Análise de Desempenho de Time",
-                "2. Comparação entre Times",
-                "3. Cálculo de Probabilidades Implícitas",
-                "4. Simulação de Escanteios",
-                "5. Predição de Placar (Poisson)",
-                "6. Gráficos Interativos"
-            ]
-        )
+        st.header("📋 Análise Selecionada")
+        st.info(f"🎯 {st.session_state.selected_analysis}")
+        
+        # Mostrar informações dos times disponíveis
+        if teams:
+            st.success(f"🏆 {len(teams)} times disponíveis")
+        else:
+            st.warning("⚠️ Nenhum time encontrado nos dados filtrados")
 
     # Conteúdo principal baseado na opção selecionada
-    try:
-        if analysis_option.startswith("1."):
-            show_team_analysis(df_filtered, teams)
-        elif analysis_option.startswith("2."):
-            show_team_comparison(df_filtered, teams)
-        elif analysis_option.startswith("3."):
-            show_probability_analysis(df_filtered, teams)
-        elif analysis_option.startswith("4."):
-            show_corner_simulation(df_filtered, teams)
-        elif analysis_option.startswith("5."):
-            show_score_prediction(df_filtered, teams)
-        elif analysis_option.startswith("6."):
-            show_interactive_charts(df_filtered)
-    except Exception as e:
-        st.error(f"Erro na análise: {str(e)}")
-        st.info("Tente selecionar uma opção diferente.")
+    if st.session_state.selected_analysis:
+        analysis_option = st.session_state.selected_analysis
+        
+        try:
+            if analysis_option.startswith("1."):
+                show_team_analysis(df_filtered, teams)
+            elif analysis_option.startswith("2."):
+                show_team_comparison(df_filtered, teams)
+            elif analysis_option.startswith("3."):
+                show_probability_analysis(df_filtered, teams)
+            elif analysis_option.startswith("4."):
+                show_corner_simulation(df_filtered, teams)
+            elif analysis_option.startswith("5."):
+                show_score_prediction(df_filtered, teams)
+            elif analysis_option.startswith("6."):
+                show_interactive_charts(df_filtered)
+        except Exception as e:
+            st.error(f"Erro na análise: {str(e)}")
+            st.info("Tente selecionar uma opção diferente.")
+            if st.button("🔄 Resetar Seleção"):
+                st.session_state.selected_analysis = None
+                st.rerun()
 
     # Debug info (só aparece quando expandido)
     with st.expander("🔍 Informações de Debug"):
         st.write("Colunas do DataFrame:", list(df.columns))
         st.write("Shape do DataFrame original:", df.shape)
-        st.write("Shape do DataFrame filtrado:", df_filtered.shape)
+        if 'df_filtered' in locals():
+            st.write("Shape do DataFrame filtrado:", df_filtered.shape)
         
         if 'Ano' in df.columns:
             st.write("Distribuição por ano:")
             st.write(df['Ano'].value_counts().sort_index())
         
-        st.write("Primeiras linhas do DataFrame filtrado:")
-        st.write(df_filtered.head())
+        if 'df_filtered' in locals():
+            st.write("Primeiras linhas do DataFrame filtrado:")
+            st.write(df_filtered.head())
 
 # Executa a aplicação
 if __name__ == "__main__":
