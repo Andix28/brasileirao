@@ -1328,7 +1328,7 @@ def display_draw_analysis(analysis, current_odd, prob_implicita):
     else:
         st.warning("Dados insuficientes para análise de empates")
 
-def show_corner_simulation(df, teams):
+def show_corner_analysis(df, teams):
     """Simulação de escanteios com base nas médias"""
     st.header("🚩 Análise de Escanteios")
     
@@ -1400,7 +1400,32 @@ def show_corner_simulation(df, teams):
     
     with tab2:
         # Chama a nova função de classificação
-        show_corner_classification(df, teams)
+                show_corner_classification(df, teams)
+        
+def show_corner_classification(df, teams):
+            """Exibe classificação geral de escanteios por time"""
+            st.subheader("📊 Classificação Geral de Escanteios")
+            # Calcula médias de escanteios feitos e sofridos como mandante e visitante
+            stats_list = []
+            for team in teams:
+                home_stats = calculate_team_stats(df, team, as_home=True)
+                away_stats = calculate_team_stats(df, team, as_home=False)
+                total_jogos = home_stats['jogos'] + away_stats['jogos']
+                media_feitos = (
+                    home_stats['escanteios_feitos'] + away_stats['escanteios_feitos']
+                ) / total_jogos if total_jogos > 0 else 0
+                media_sofridos = (
+                    home_stats['escanteios_sofridos'] + away_stats['escanteios_sofridos']
+                ) / total_jogos if total_jogos > 0 else 0
+                stats_list.append({
+                    "Time": team,
+                    "Média Escanteios Feitos": round(media_feitos, 2),
+                    "Média Escanteios Sofridos": round(media_sofridos, 2),
+                    "Jogos Analisados": total_jogos
+                })
+            df_stats = pd.DataFrame(stats_list)
+            df_stats = df_stats.sort_values(by="Média Escanteios Feitos", ascending=False)
+            st.dataframe(df_stats, use_container_width=True)
 
 
 def show_corner_simulation(df, teams):
@@ -1629,16 +1654,9 @@ def main():
     with st.expander("🔍 Informações de Debug"):
         st.write("Colunas do DataFrame:", list(df.columns))
         st.write("Shape do DataFrame original:", df.shape)
-        if 'df_filtered' in locals():
-            st.write("Shape do DataFrame filtrado:", df_filtered.shape)
-        
         if 'Ano' in df.columns:
             st.write("Distribuição por ano:")
             st.write(df['Ano'].value_counts().sort_index())
-        
-        if 'df_filtered' in locals():
-            st.write("Primeiras linhas do DataFrame filtrado:")
-            st.write(df_filtered.head())
 
 # Executa a aplicação
 if __name__ == "__main__":
