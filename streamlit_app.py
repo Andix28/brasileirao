@@ -944,34 +944,50 @@ def display_odds_analysis(analysis, current_odd, prob_implicita):
 # Função para analisar empates
 def analyze_draw_performance(df, team_home, team_away, current_odd):
     # Filtra jogos entre os dois times
-    games = df[((df['Home'] == team_home) & (df['Away'] == team_away)) | ((df['Home'] == team_away) & (df['Away'] == team_home))].copy()
+    games = df[((df['Home'] == team_home) & (df['Away'] == team_away)) | 
+               ((df['Home'] == team_away) & (df['Away'] == team_home))].copy()
+    
     if len(games) < 10:
         return {"error": "Dados insuficientes para análise de empates"}
+    
     if 'odd Draw' not in games.columns or 'Resultado Home' not in games.columns:
         return {"error": "Colunas necessárias não encontradas para análise de empates"}
+    
     games = games.dropna(subset=['odd Draw', 'Resultado Home'])
+    
+    # CORREÇÃO: Adicionar indentação correta
     if games.empty:
-    return {"error": "Nenhum jogo encontrado entre estes times"}
+        return {"error": "Nenhum jogo encontrado entre estes times"}
+    
     if len(games) < 5:
-    return {"error": "Dados insuficientes após limpeza para análise de empates"}
+        return {"error": "Dados insuficientes após limpeza para análise de empates"}
+    
     faixas = []
+    
+    # Faixa 1: Empate Provável
     limite1 = current_odd * 0.8
     faixa1 = games[games['odd Draw'] <= limite1]
     if len(faixa1) >= 3:
         faixas.append(("Empate Provável", f"≤ {limite1:.2f}", faixa1))
+    
+    # Faixa 2: Situação Atual
     limite2 = current_odd * 1.2
     faixa2 = games[(games['odd Draw'] > limite1) & (games['odd Draw'] <= limite2)]
     if len(faixa2) >= 3:
         faixas.append(("Situação Atual", f"{limite1:.2f} - {limite2:.2f}", faixa2))
+    
+    # Faixa 3: Empate Improvável
     faixa3 = games[games['odd Draw'] > limite2]
     if len(faixa3) >= 3:
         faixas.append(("Empate Improvável", f"> {limite2:.2f}", faixa3))
+    
     resultados = []
     for nome, range_str, dados in faixas:
         total = len(dados)
         empates = len(dados[dados['Resultado Home'] == 'Empate'])
         perc_empate = (empates / total) * 100 if total > 0 else 0
         odd_media = dados['odd Draw'].mean()
+        
         resultados.append({
             'categoria': nome,
             'range': range_str,
@@ -981,6 +997,7 @@ def analyze_draw_performance(df, team_home, team_away, current_odd):
             'odd_media': odd_media,
             'is_current': (limite1 < current_odd <= limite2) and (nome == "Situação Atual")
         })
+    
     return {
         'current_odd': current_odd,
         'total_games': len(games),
