@@ -310,14 +310,17 @@ def show_interactive_charts(df):
         st.warning("⚠️ Por favor, selecione dois times diferentes.")
         return
     
-    # Verificar colunas necessárias
+# Verificar colunas necessárias
     if not validate_required_columns(df):
         return
-# Calcular estatísticas
-stats = calculate_team_statistics(df, team_home, team_away)
+    
+    # CORREÇÃO: Adicionar indentação correta (4 espaços)
+    # Calcular estatísticas
+    stats = calculate_team_statistics(df, team_home, team_away)
+    
+    # Gerar gráficos
+    generate_comparative_charts(stats, team_home, team_away)
 
-# Gerar gráficos
-generate_comparative_charts(stats, team_home, team_away)
 
 def get_unique_teams(df):
     """
@@ -333,6 +336,7 @@ def get_unique_teams(df):
     away_teams = df['Away'].dropna().unique().tolist()
     all_teams = set(home_teams + away_teams)
     return sorted(list(all_teams))
+
 
 def create_team_selection_interface(teams):
     """
