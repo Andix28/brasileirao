@@ -298,37 +298,34 @@ def show_interactive_charts(df):
         return
     
     # Obter lista única de times
-    teams = _get_unique_teams(df)
-    
-    if len(teams) < 2:
-        st.warning("⚠️ É necessário pelo menos 2 times diferentes para comparação.")
-        return
-    
-    # Interface de seleção de times
-    team_home, team_away = _create_team_selection_interface(teams)
-    
-    if not _validate_team_selection(team_home, team_away):
-        st.warning("⚠️ Por favor, selecione dois times diferentes.")
-        return
-    
-    # Verificar colunas necessárias
-    if not _validate_required_columns(df):
-        return
-    
-    # Calcular estatísticas
-    stats = _calculate_team_statistics(df, team_home, team_away)
-    
-    # Gerar gráficos
-    _generate_comparative_charts(stats, team_home, team_away)
+teams = get_unique_teams(df)
+if len(teams) < 2:
+    st.warning("⚠️ É necessário pelo menos 2 times diferentes para comparação.")
+    return
 
+# Interface de seleção de times
+team_home, team_away = create_team_selection_interface(teams)
+if not validate_team_selection(team_home, team_away):
+    st.warning("⚠️ Por favor, selecione dois times diferentes.")
+    return
 
-def _get_unique_teams(df):
+# Verificar colunas necessárias
+if not validate_required_columns(df):
+    return
+
+# Calcular estatísticas
+stats = calculate_team_statistics(df, team_home, team_away)
+
+# Gerar gráficos
+generate_comparative_charts(stats, team_home, team_away)
+
+def get_unique_teams(df):
     """
     Extrai lista única de times dos dados.
     
     Args:
         df (DataFrame): DataFrame com dados dos jogos
-        
+    
     Returns:
         list: Lista ordenada de times únicos
     """
@@ -337,14 +334,13 @@ def _get_unique_teams(df):
     all_teams = set(home_teams + away_teams)
     return sorted(list(all_teams))
 
-
-def _create_team_selection_interface(teams):
+def create_team_selection_interface(teams):
     """
     Cria interface para seleção de times.
     
     Args:
         teams (list): Lista de times disponíveis
-        
+    
     Returns:
         tuple: (team_home, team_away)
     """
@@ -368,28 +364,26 @@ def _create_team_selection_interface(teams):
     
     return team_home, team_away
 
-
-def _validate_team_selection(team_home, team_away):
+def validate_team_selection(team_home, team_away):
     """
     Valida se a seleção de times está correta.
     
     Args:
         team_home (str): Time mandante selecionado
         team_away (str): Time visitante selecionado
-        
+    
     Returns:
         bool: True se seleção válida, False caso contrário
     """
     return team_home and team_away and team_home != team_away
 
-
-def _validate_required_columns(df):
+def validate_required_columns(df):
     """
     Verifica se todas as colunas necessárias estão presentes no DataFrame.
     
     Args:
         df (DataFrame): DataFrame a ser validado
-        
+    
     Returns:
         bool: True se todas as colunas existem, False caso contrário
     """
@@ -403,7 +397,7 @@ def _validate_required_columns(df):
     return True
 
 
-def _calculate_team_statistics(df, team_home, team_away):
+def calculate_team_statistics(df, team_home, team_away):
     """
     Calcula estatísticas para os times selecionados.
     
@@ -442,8 +436,7 @@ def _calculate_team_statistics(df, team_home, team_away):
         'away': away_stats
     }
 
-
-def _generate_comparative_charts(stats, team_home, team_away):
+def generate_comparative_charts(stats, team_home, team_away):
     """
     Gera todos os gráficos comparativos.
     
@@ -499,17 +492,16 @@ def _generate_comparative_charts(stats, team_home, team_away):
         
         with col1:
             if i < len(chart_configs):
-                _create_bar_chart(chart_configs[i], team_home, team_away)
+                create_bar_chart(chart_configs[i], team_home, team_away)
         
         with col2:
             if i + 1 < len(chart_configs):
-                _create_bar_chart(chart_configs[i + 1], team_home, team_away)
+                create_bar_chart(chart_configs[i + 1], team_home, team_away)
     
     # Exibir resumo estatístico
-    _display_statistics_summary(stats, team_home, team_away)
+    display_statistics_summary(stats, team_home, team_away)
 
-
-def _create_bar_chart(config, team_home, team_away):
+def create_bar_chart(config, team_home, team_away):
     """
     Cria um gráfico de barras individual.
     
@@ -558,16 +550,15 @@ def _create_bar_chart(config, team_home, team_away):
     
     st.plotly_chart(fig, use_container_width=True)
 
-
-def _display_statistics_summary(stats, team_home, team_away):
+def display_statistics_summary(stats, team_home, team_away):
     """
     Exibe resumo estatístico dos times.
     """
     try:
         st.subheader("📋 Análise Estatística Detalhada")
-        analysis = _calculate_advanced_metrics(stats, team_home, team_away)
-        _display_basic_summary(stats, team_home, team_away, analysis)
-        _display_first_half_analysis(stats, analysis, team_home, team_away)
+        analysis = calculate_advanced_metrics(stats, team_home, team_away)
+        display_basic_summary(stats, team_home, team_away, analysis)
+        display_first_half_analysis(stats, analysis, team_home, team_away)
     except Exception as e:
         st.error(f"❌ Erro na análise estatística: {str(e)}")
         st.info("💡 Verifique se os dados estão completos e tente novamente.")
@@ -575,8 +566,7 @@ def _display_statistics_summary(stats, team_home, team_away):
         st.write(f"Stats home: {stats.get('home', 'N/A')}")
         st.write(f"Stats away: {stats.get('away', 'N/A')}")
 
-
-def _calculate_advanced_metrics(stats, team_home, team_away):
+def calculate_advanced_metrics(stats, team_home, team_away):
     """
     Calcula métricas avançadas para análise profissional.
     
@@ -653,7 +643,7 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
     }
 
 
-def _display_basic_summary(stats, team_home, team_away, analysis):
+def display_basic_summary(stats, team_home, team_away, analysis):
     """Exibe resumo básico dos times."""
     
     col1, col2 = st.columns(2)
@@ -701,7 +691,7 @@ def _display_basic_summary(stats, team_home, team_away, analysis):
         """)
 
 
-def _display_first_half_analysis(stats, analysis, team_home, team_away):
+def display_first_half_analysis(stats, analysis, team_home, team_away):
     """Exibe análise específica do primeiro tempo."""
     st.subheader("🕐 Análise do Primeiro Tempo")
     col1, col2 = st.columns(2)
@@ -720,83 +710,77 @@ def _display_first_half_analysis(stats, analysis, team_home, team_away):
 
     # Estatísticas detalhadas
     st.subheader("📈 Estatísticas Detalhadas")
-
-    # Calcular estatísticas detalhadas dos times
-    home_stats = calculate_team_stats(stats.get('df', None), team_home, as_home=True) if 'df' in stats else calculate_team_stats(pd.DataFrame(), team_home, as_home=True)
-    away_stats = calculate_team_stats(stats.get('df', None), team_away, as_home=False) if 'df' in stats else calculate_team_stats(pd.DataFrame(), team_away, as_home=False)
-
+    
+    # Usar os dados já calculados em stats
     col1, col2 = st.columns(2)
-
     with col1:
-        st.write("**Como Mandante:**")
-        st.write(f"Jogos: {home_stats['jogos']}")
-        st.write(f"Vitórias: {home_stats['vitorias']}")
-        st.write(f"Empates: {home_stats['empates']}")
-        st.write(f"Derrotas: {home_stats['derrotas']}")
-        st.write(f"Gols/Jogo: {home_stats['media_gols_feitos']:.2f}")
-        st.write(f"Gols Sofridos/Jogo: {home_stats['media_gols_sofridos']:.2f}")
-
+        st.write("**🏠 Como Mandante:**")
+        st.write(f"Jogos: {analysis['home_jogos']}")
+        st.write(f"Gols Marcados: {analysis['home_gols_total']}")
+        st.write(f"Gols Sofridos: {analysis['home_sofridos_total']}")
+        st.write(f"Gols/Jogo: {analysis['home_media_gols']:.2f}")
+        st.write(f"Gols Sofridos/Jogo: {analysis['home_media_sofridos']:.2f}")
+        st.write(f"Saldo de Gols: {analysis['home_saldo']}")
+        
     with col2:
-        st.write("**Como Visitante:**")
-        st.write(f"Jogos: {away_stats['jogos']}")
-        st.write(f"Vitórias: {away_stats['vitorias']}")
-        st.write(f"Empates: {away_stats['empates']}")
-        st.write(f"Derrotas: {away_stats['derrotas']}")
-        st.write(f"Gols/Jogo: {away_stats['media_gols_feitos']:.2f}")
-        st.write(f"Gols Sofridos/Jogo: {away_stats['media_gols_sofridos']:.2f}")
+        st.write("**✈️ Como Visitante:**")
+        st.write(f"Jogos: {analysis['away_jogos']}")
+        st.write(f"Gols Marcados: {analysis['away_gols_total']}")
+        st.write(f"Gols Sofridos: {analysis['away_sofridos_total']}")
+        st.write(f"Gols/Jogo: {analysis['away_media_gols']:.2f}")
+        st.write(f"Gols Sofridos/Jogo: {analysis['away_media_sofridos']:.2f}")
+        st.write(f"Saldo de Gols: {analysis['away_saldo']}")
 
-
-    # Remover gráfico de pizza e variáveis não definidas para evitar erro
 
 def show_team_comparison(df, teams):
     """Análise Do Confronto"""
     st.header("⚔️ Comparação: Mandante vs Visitante")
-
+    
     if len(teams) < 2:
         st.warning("Selecione pelo menos dois times.")
         return
-
+        
     col1, col2 = st.columns(2)
     with col1:
         team_home = st.selectbox("🏠 Time Mandante:", teams, key="team1")
     with col2:
         team_away = st.selectbox("✈️ Time Visitante:", teams, key="team2")
-
+        
     if not team_home or not team_away or team_home == team_away:
         st.warning("Selecione dois times diferentes.")
         return
-
-    # Estatísticas específicas
-    stats_home = calculate_team_stats(df, team_home, as_home=True)
-    stats_away = calculate_team_stats(df, team_away, as_home=False)
-
+    
+    # Calcular estatísticas usando a função existente
+    stats = calculate_team_statistics(df, team_home, team_away)
+    analysis = calculate_advanced_metrics(stats, team_home, team_away)
+    
     labels = [
         "Jogos",
-        "Vitórias",
-        "Empates",
-        "Derrotas",
+        "Gols Marcados",
+        "Gols Sofridos",
+        "Saldo de Gols",
         "Gols Marcados/Jogo",
         "Gols Sofridos/Jogo"
     ]
-
+    
     home_values = [
-        stats_home['jogos'],
-        stats_home['vitorias'],
-        stats_home['empates'],
-        stats_home['derrotas'],
-        round(stats_home['media_gols_feitos'], 2),
-        round(stats_home['media_gols_sofridos'], 2)
+        analysis['home_jogos'],
+        analysis['home_gols_total'],
+        analysis['home_sofridos_total'],
+        analysis['home_saldo'],
+        analysis['home_media_gols'],
+        analysis['home_media_sofridos']
     ]
-
+    
     away_values = [
-        stats_away['jogos'],
-        stats_away['vitorias'],
-        stats_away['empates'],
-        stats_away['derrotas'],
-        round(stats_away['media_gols_feitos'], 2),
-        round(stats_away['media_gols_sofridos'], 2)
+        analysis['away_jogos'],
+        analysis['away_gols_total'],
+        analysis['away_sofridos_total'],
+        analysis['away_saldo'],
+        analysis['away_media_gols'],
+        analysis['away_media_sofridos']
     ]
-
+    
     # Exibição da Tabela
     st.subheader("📊 Comparativo Estatístico")
     df_comparativo = pd.DataFrame({
@@ -804,15 +788,24 @@ def show_team_comparison(df, teams):
         f"{team_home} (Mandante)": home_values,
         f"{team_away} (Visitante)": away_values
     })
-
     st.dataframe(df_comparativo, use_container_width=True)
-
+    
     # Gráfico de colunas
     st.subheader("📈 Gráfico Comparativo")
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=labels, y=home_values, name=f"{team_home} (Mandante)", marker_color='royalblue'))
-    fig.add_trace(go.Bar(x=labels, y=away_values, name=f"{team_away} (Visitante)", marker_color='darkorange'))
-
+    fig.add_trace(go.Bar(
+        x=labels, 
+        y=home_values, 
+        name=f"{team_home} (Mandante)", 
+        marker_color='royalblue'
+    ))
+    fig.add_trace(go.Bar(
+        x=labels, 
+        y=away_values, 
+        name=f"{team_away} (Visitante)", 
+        marker_color='darkorange'
+    ))
+    
     fig.update_layout(
         barmode='group',
         xaxis_title="Métrica",
@@ -820,13 +813,16 @@ def show_team_comparison(df, teams):
         legend_title="Times",
         title=f"Desempenho: {team_home} (Mandante) vs {team_away} (Visitante)"
     )
-
     st.plotly_chart(fig, use_container_width=True)
 
 def show_probability_analysis(df, teams):
     """Análise de Valor baseada no Histórico de Performance por Faixas de Odds"""
     st.header("🎯 Análise de Valor - Histórico vs Odds Atuais")
-
+    
+    if df is None or df.empty:
+        st.error("Dados não disponíveis para análise.")
+        return
+        
     if not teams:
         st.warning("Nenhum time disponível.")
         return
@@ -908,8 +904,9 @@ def display_odds_analysis(analysis, current_odd, prob_implicita):
                 'Taxa de Vitória': f"{faixa.get('perc_vitoria', 0):.1f}%",
                 'Odd Média': f"{faixa.get('odd_media', 0):.2f}"
             })
-            if melhor_performance is None or faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0):
-                melhor_performance = faixa
+            if (melhor_performance is None or 
+    faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0)):
+    melhor_performance = faixa.copy() 
             if faixa.get('is_current', False):
                 situacao_atual = faixa
         df_display = pd.DataFrame(df_display)
@@ -942,8 +939,10 @@ def analyze_draw_performance(df, team_home, team_away, current_odd):
     if 'odd Draw' not in games.columns or 'Resultado Home' not in games.columns:
         return {"error": "Colunas necessárias não encontradas para análise de empates"}
     games = games.dropna(subset=['odd Draw', 'Resultado Home'])
+    if games.empty:
+    return {"error": "Nenhum jogo encontrado entre estes times"}
     if len(games) < 5:
-        return {"error": "Dados insuficientes após limpeza para análise de empates"}
+    return {"error": "Dados insuficientes após limpeza para análise de empates"}
     faixas = []
     limite1 = current_odd * 0.8
     faixa1 = games[games['odd Draw'] <= limite1]
@@ -969,7 +968,7 @@ def analyze_draw_performance(df, team_home, team_away, current_odd):
             'empates': empates,
             'perc_empate': perc_empate,
             'odd_media': odd_media,
-            'is_current': limite1 < current_odd <= limite2 if nome == "Situação Atual" else False
+            'is_current': (limite1 < current_odd <= limite2) and (nome == "Situação Atual")
         })
     return {
         'current_odd': current_odd,
@@ -1105,63 +1104,10 @@ def analyze_team_odds_performance(df, team, position, current_odd):
             'odd_media': odd_media,
             'is_current': nome == "Situação Atual"
         })
-
     return {
         'team': team,
         'total_games': len(team_games),
         'current_odd': current_odd,
-        'faixas': resultados
-    }
-    
-    return {
-        'team': team,
-        'total_games': len(team_games),
-        'current_odd': current_odd,
-        'faixas': resultados
-    }
-    if len(games) < 20:
-        return {"error": "Dados insuficientes para análise de empates"}
-    
-    # Definir faixas baseadas na odd atual do empate
-    faixas = []
-    
-    # Empate mais provável (odds baixas)
-    limite1 = current_odd * 0.8
-    faixa1 = games[games['odd Draw'] <= limite1]
-    if len(faixa1) >= 5:
-        faixas.append(("Empate Provável", f"≤ {limite1:.2f}", faixa1))
-    
-    # Situação similar
-    limite2 = current_odd * 1.2
-    faixa2 = games[(games['odd Draw'] > limite1) & (games['odd Draw'] <= limite2)]
-    if len(faixa2) >= 3:
-        faixas.append(("Situação Atual", f"{limite1:.2f} - {limite2:.2f}", faixa2))
-    
-    # Empate menos provável
-    faixa3 = games[games['odd Draw'] > limite2]
-    if len(faixa3) >= 5:
-        faixas.append(("Empate Improvável", f"> {limite2:.2f}", faixa3))
-    
-    resultados = []
-    for nome, range_str, dados in faixas:
-        total = len(dados)
-        empates = len(dados[dados['Resultado Home'] == 'Empate'])
-        perc_empate = (empates / total) * 100 if total > 0 else 0
-        odd_media = dados['odd Draw'].mean()
-        
-        resultados.append({
-            'categoria': nome,
-            'range': range_str,
-            'total': total,
-            'empates': empates,
-            'perc_empate': perc_empate,
-            'odd_media': odd_media,
-            'is_current': limite1 < current_odd <= limite2 if nome == "Situação Atual" else False
-        })
-    
-    return {
-        'current_odd': current_odd,
-        'total_games': len(games),
         'faixas': resultados
     }
 
@@ -1456,84 +1402,111 @@ def main():
         df = df[df['Ano'] == ano_selecionado]
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Inicializa lista de times com segurança
-    if 'Home' in df.columns and 'Away' in df.columns:
+    # Inicializa lista de times de forma segura
+    if ('Home' in df.columns) and ('Away' in df.columns):
         home_teams = df['Home'].dropna().astype(str).str.strip()
         away_teams = df['Away'].dropna().astype(str).str.strip()
         teams = sorted(set(home_teams) | set(away_teams))
     else:
         teams = []
 
-    # Inicializa estado da análise
+    # Inicializa seleção de análise
     if 'selected_analysis' not in st.session_state:
         st.session_state.selected_analysis = None
 
-    # Mostra menu de seleção de análise
+    # Seleção de análise
     if st.session_state.selected_analysis is None:
         st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
         st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
-
-        def selecionar(analise):
-            st.session_state.selected_analysis = analise
-            st.rerun()
-
+        
         with col1:
-            if st.button("🏆 Desempenho", key="desempenho"): selecionar("1. Análise de Desempenho de Time")
-            if st.button("🎯 Comparação", key="comparacao"): selecionar("2. Comparação entre Times")
-            if st.button("🚩 Escanteios", key="corner_analysis"): selecionar("7. Análise de Escanteios")
+            if st.button("🏆 Análise de Desempenho", key="desempenho"):
+                st.session_state.selected_analysis = "1. Análise de Desempenho de Time"
+                st.rerun()
+            if st.button("🎯 Comparação de Times", key="comparacao"):
+                st.session_state.selected_analysis = "2. Comparação entre Times"
+                st.rerun()
+            if st.button("🚩 Análise de Escanteios", key="corner_analysis"):
+                st.session_state.selected_analysis = "7. Análise de Escanteios"
+                st.rerun()
 
         with col2:
-            if st.button("📈 Probabilidades", key="probabilidades"): selecionar("3. Cálculo de Probabilidades Implícitas")
-            if st.button("⚽ Simulação de Escanteios", key="escanteios"): selecionar("4. Simulação de Escanteios")
+            if st.button("📈 Probabilidades", key="probabilidades"):
+                st.session_state.selected_analysis = "3. Cálculo de Probabilidades Implícitas"
+                st.rerun()
+            if st.button("⚽ Simulação Escanteios", key="escanteios"):
+                st.session_state.selected_analysis = "4. Simulação de Escanteios"
+                st.rerun()
 
         with col3:
-            if st.button("🔮 Predição de Placar", key="predicao"): selecionar("5. Predição de Placar (Poisson)")
-            if st.button("📊 Gráficos Interativos", key="graficos"): selecionar("6. Gráficos Interativos")
-
+            if st.button("🔮 Predição de Placar", key="predicao"):
+                st.session_state.selected_analysis = "5. Predição de Placar (Poisson)"
+                st.rerun()
+            if st.button("📊 Gráficos Interativos", key="graficos"):
+                st.session_state.selected_analysis = "6. Gráficos Interativos"
+                st.rerun()
+        
         st.markdown('</div>', unsafe_allow_html=True)
-        return  # Evita que o restante da página carregue antes de selecionar
 
-    # Roteamento após seleção
-    analysis = st.session_state.selected_analysis
-    if analysis == "1. Análise de Desempenho de Time":
-        show_team_performance(df, teams)
-    elif analysis == "2. Comparação entre Times":
-        show_team_comparison(df, teams)
-    elif analysis == "3. Cálculo de Probabilidades Implícitas":
-        show_probability_analysis(df, teams)
-    elif analysis == "4. Simulação de Escanteios":
-        show_corner_simulation(df, teams)
-    elif analysis == "5. Predição de Placar (Poisson)":
-        show_score_prediction(df, teams)
-    elif analysis == "6. Gráficos Interativos":
-        show_interactive_charts(df)
-    elif analysis == "7. Análise de Escanteios":
-        show_corner_analysis(df, teams)
     else:
-        st.error("Opção inválida.")
+        # BOTÃO VOLTAR (sempre no topo quando uma análise está selecionada)
+        if st.button("🏠 Voltar ao Menu Principal", key="voltar_menu"):
+            st.session_state.selected_analysis = None
+            st.rerun()
+        
+        st.markdown("---")
+        
+        # Roteamento das opções de análise
+        try:
+            if st.session_state.selected_analysis == "1. Análise de Desempenho de Time":
+                show_team_performance(df, teams)
+            elif st.session_state.selected_analysis == "2. Comparação entre Times":
+                show_team_comparison(df, teams)
+            elif st.session_state.selected_analysis == "3. Cálculo de Probabilidades Implícitas":
+                show_probability_analysis(df, teams)
+            elif st.session_state.selected_analysis == "4. Simulação de Escanteios":
+                show_corner_simulation(df, teams)
+            elif st.session_state.selected_analysis == "5. Predição de Placar (Poisson)":
+                show_score_prediction(df, teams)
+            elif st.session_state.selected_analysis == "6. Gráficos Interativos":
+                show_interactive_charts(df)
+            elif st.session_state.selected_analysis == "7. Análise de Escanteios":
+                show_corner_analysis(df, teams)
+            else:
+                st.error("Opção de análise inválida.")
+        except Exception as e:
+            st.error(f"❌ Erro ao carregar análise: {str(e)}")
+            st.info("🔄 Clique em 'Voltar ao Menu Principal' para tentar novamente.")
 
-    # Área de debug
+    # Debug info
     with st.expander("🔍 Informações de Debug"):
         st.write("Colunas do DataFrame:", list(df.columns))
-        st.write("Total de jogos:", len(df))
+        st.write("Shape do DataFrame original:", df.shape)
+        st.write("Número de times encontrados:", len(teams))
         if 'Ano' in df.columns:
-            st.write("Distribuição por ano:", df['Ano'].value_counts().sort_index())
+            st.write("Distribuição por ano:")
+            st.write(df['Ano'].value_counts().sort_index())
 
 def show_team_performance(df, teams):
     """Exibe análise de desempenho de um time selecionado."""
     st.header("🏆 Análise de Desempenho de Time")
+    
     if not teams:
         st.warning("Nenhum time disponível.")
         return
+        
     team = st.selectbox("Selecione o time para análise:", teams, key="team_performance")
     if not team:
         st.warning("Selecione um time.")
         return
+        
     stats_home = calculate_team_stats(df, team, as_home=True)
     stats_away = calculate_team_stats(df, team, as_home=False)
+    
     st.subheader(f"📊 Estatísticas de {team}")
     col1, col2 = st.columns(2)
+    
     with col1:
         st.write("**Como Mandante:**")
         st.write(f"Jogos: {stats_home['jogos']}")
@@ -1544,6 +1517,7 @@ def show_team_performance(df, teams):
         st.write(f"Gols Sofridos/Jogo: {stats_home['media_gols_sofridos']:.2f}")
         st.write(f"Escanteios/Jogo: {stats_home['media_escanteios_feitos']:.2f}")
         st.write(f"Escanteios Sofridos/Jogo: {stats_home['media_escanteios_sofridos']:.2f}")
+        
     with col2:
         st.write("**Como Visitante:**")
         st.write(f"Jogos: {stats_away['jogos']}")
@@ -1554,3 +1528,24 @@ def show_team_performance(df, teams):
         st.write(f"Gols Sofridos/Jogo: {stats_away['media_gols_sofridos']:.2f}")
         st.write(f"Escanteios/Jogo: {stats_away['media_escanteios_feitos']:.2f}")
         st.write(f"Escanteios Sofridos/Jogo: {stats_away['media_escanteios_sofridos']:.2f}")
+
+# FUNÇÕES PLACEHOLDER PARA AS QUE FALTAM
+def show_team_comparison(df, teams):
+    st.header("🎯 Comparação entre Times")
+    st.info("🚧 Função em desenvolvimento")
+
+def show_probability_analysis(df, teams):
+    st.header("📈 Cálculo de Probabilidades Implícitas")
+    st.info("🚧 Função em desenvolvimento")
+
+def show_interactive_charts(df):
+    st.header("📊 Gráficos Interativos")
+    st.info("🚧 Função em desenvolvimento")
+
+def show_corner_analysis(df, teams):
+    st.header("🚩 Análise de Escanteios")
+    st.info("🚧 Função em desenvolvimento")
+
+# CHAMADA DA MAIN (adicionar no final do arquivo)
+if __name__ == "__main__":
+    main()
