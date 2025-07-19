@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from scipy.stats import poisson
 import warnings
 warnings.filterwarnings('ignore')
@@ -564,34 +562,15 @@ def _create_bar_chart(config, team_home, team_away):
 def _display_statistics_summary(stats, team_home, team_away):
     """
     Exibe resumo estatístico dos times.
-    
-    Args:
-        stats (dict): Estatísticas calculadas
-        team_home (str): Nome do time mandante
-        team_away (str): Nome do time visitante
     """
     try:
         st.subheader("📋 Análise Estatística Detalhada")
-        
-        # Calcular métricas avançadas
         analysis = _calculate_advanced_metrics(stats, team_home, team_away)
-        
-        # Seção 1: Resumo Básico
         _display_basic_summary(stats, team_home, team_away, analysis)
-        
-        # Seção 2: Análise de Performance
-        _display_performance_analysis(analysis, team_home, team_away)
-        
-        # Seção 3: Análise do Primeiro Tempo
         _display_first_half_analysis(stats, analysis, team_home, team_away)
-        
-        # Seção 4: Insights e Recomendações
-        _display_insights_and_recommendations(analysis, team_home, team_away)
-        
     except Exception as e:
         st.error(f"❌ Erro na análise estatística: {str(e)}")
         st.info("💡 Verifique se os dados estão completos e tente novamente.")
-        # Debug: mostrar valores que causaram erro
         st.write("Debug - Valores recebidos:")
         st.write(f"Stats home: {stats.get('home', 'N/A')}")
         st.write(f"Stats away: {stats.get('away', 'N/A')}")
@@ -626,7 +605,7 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
             return float(value)
         except (ValueError, TypeError):
             return 0.0
-    
+
     # Converter valores de forma segura
     home_gols_marcados = safe_int(stats['home']['gols_marcados'])
     home_gols_sofridos = safe_int(stats['home']['gols_sofridos'])
@@ -637,29 +616,26 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
     away_jogos = max(safe_int(stats['away']['total_jogos']), 1)
     
     home_ht_marcados = safe_int(stats['home']['gols_marcados_ht'])
-    home_ht_sofridos = safe_int(stats['home']['gols_sofridos_ht'])
     away_ht_marcados = safe_int(stats['away']['gols_marcados_ht'])
-    away_ht_sofridos = safe_int(stats['away']['gols_sofridos_ht'])
-    
-    # Calcular saldos
+
+    # Saldos de gols
     home_saldo = home_gols_marcados - home_gols_sofridos
     away_saldo = away_gols_marcados - away_gols_sofridos
-    
+
     return {
-        # Médias por jogo
         'home_media_gols': round(home_gols_marcados / home_jogos, 2),
         'home_media_sofridos': round(home_gols_sofridos / home_jogos, 2),
         'away_media_gols': round(away_gols_marcados / away_jogos, 2),
         'away_media_sofridos': round(away_gols_sofridos / away_jogos, 2),
-        
+
         # Saldos (garantindo que são inteiros)
         'home_saldo': home_saldo,
         'away_saldo': away_saldo,
-        
+
         # Eficiência no primeiro tempo (%)
         'home_ht_eficiencia': round((home_ht_marcados / max(home_gols_marcados, 1)) * 100, 1),
         'away_ht_eficiencia': round((away_ht_marcados / max(away_gols_marcados, 1)) * 100, 1),
-        
+
         # Valores absolutos para exibição
         'home_gols_total': home_gols_marcados,
         'home_sofridos_total': home_gols_sofridos,
@@ -669,7 +645,7 @@ def _calculate_advanced_metrics(stats, team_home, team_away):
         'away_ht_gols': away_ht_marcados,
         'home_jogos': home_jogos,
         'away_jogos': away_jogos,
-        
+
         # Comparativos
         'melhor_ataque': team_home if home_gols_marcados > away_gols_marcados else team_away,
         'melhor_defesa': team_home if home_gols_sofridos < away_gols_sofridos else team_away,
@@ -725,200 +701,51 @@ def _display_basic_summary(stats, team_home, team_away, analysis):
         """)
 
 
-def _display_performance_analysis(analysis, team_home, team_away):
-    """Exibe análise de performance comparativa."""
-    
-    st.subheader("🎯 Análise de Performance")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if analysis['melhor_ataque'] == team_home:
-            st.success(f"🔥 **Melhor Ataque**: {team_home}\n\n{analysis['home_gols_total']} gols vs {analysis['away_gols_total']} gols")
-        else:
-            st.success(f"🔥 **Melhor Ataque**: {team_away}\n\n{analysis['away_gols_total']} gols vs {analysis['home_gols_total']} gols")
-    
-    with col2:
-        if analysis['melhor_defesa'] == team_home:
-            st.success(f"🛡️ **Melhor Defesa**: {team_home}\n\n{analysis['home_sofridos_total']} gols sofridos vs {analysis['away_sofridos_total']}")
-        else:
-            st.success(f"🛡️ **Melhor Defesa**: {team_away}\n\n{analysis['away_sofridos_total']} gols sofridos vs {analysis['home_sofridos_total']}")
-    
-    with col3:
-        diferenca_saldo = abs(analysis['home_saldo'] - analysis['away_saldo'])
-        if diferenca_saldo > 5:
-            equilibrio = "Desequilibrado"
-            cor = "warning"
-        elif diferenca_saldo > 2:
-            equilibrio = "Moderado"
-            cor = "info"
-        else:
-            equilibrio = "Equilibrado"
-            cor = "success"
-            
-        getattr(st, cor)(f"⚖️ **Confronto**: {equilibrio}\n\nDiferença de saldo: {diferenca_saldo} gols")
-
-
 def _display_first_half_analysis(stats, analysis, team_home, team_away):
     """Exibe análise específica do primeiro tempo."""
-    
     st.subheader("🕐 Análise do Primeiro Tempo")
-    
     col1, col2 = st.columns(2)
-    
     with col1:
         st.metric(
             label=f"🏠 {team_home} - Eficiência 1º Tempo",
             value=f"{analysis['home_ht_eficiencia']}%",
             delta=f"{analysis['home_ht_gols']} de {analysis['home_gols_total']} gols"
         )
-    
     with col2:
         st.metric(
-            label=f"✈️ {team_away} - Eficiência 1º Tempo", 
+            label=f"✈️ {team_away} - Eficiência 1º Tempo",
             value=f"{analysis['away_ht_eficiencia']}%",
             delta=f"{analysis['away_ht_gols']} de {analysis['away_gols_total']} gols"
         )
-    
-    # Análise da eficiência do primeiro tempo
-    if analysis['home_ht_eficiencia'] > 60 or analysis['away_ht_eficiencia'] > 60:
-        st.info("💡 **Insight**: Um ou ambos os times demonstram forte início de jogo, marcando mais de 60% dos gols no primeiro tempo.")
-    elif analysis['home_ht_eficiencia'] < 30 and analysis['away_ht_eficiencia'] < 30:
-        st.info("💡 **Insight**: Ambos os times tendem a ser mais efetivos no segundo tempo, com baixa produção inicial.")
 
+    # Estatísticas detalhadas
+    st.subheader("📈 Estatísticas Detalhadas")
 
-def _display_insights_and_recommendations(analysis, team_home, team_away):
-    """Exibe insights estratégicos e recomendações."""
-    
-    st.subheader("🧠 Insights Estratégicos")
-    
-    insights = []
-    
-    # Análise de força ofensiva
-    if analysis['home_media_gols'] > 2.0:
-        insights.append(f"🔥 {team_home} possui ataque muito forte como mandante (média de {analysis['home_media_gols']} gols/jogo)")
-    elif analysis['home_media_gols'] < 1.0:
-        insights.append(f"⚠️ {team_home} tem dificuldades ofensivas como mandante (média de {analysis['home_media_gols']} gols/jogo)")
-    
-    if analysis['away_media_gols'] > 1.5:
-        insights.append(f"💪 {team_away} é eficiente jogando fora de casa (média de {analysis['away_media_gols']} gols/jogo)")
-    elif analysis['away_media_gols'] < 0.8:
-        insights.append(f"🚨 {team_away} tem baixo rendimento como visitante (média de {analysis['away_media_gols']} gols/jogo)")
-    
-    # Análise defensiva
-    if analysis['home_media_sofridos'] < 1.0:
-        insights.append(f"🛡️ {team_home} possui defesa sólida em casa (média de {analysis['home_media_sofridos']} gols sofridos/jogo)")
-    elif analysis['home_media_sofridos'] > 2.0:
-        insights.append(f"⚠️ {team_home} tem fragilidade defensiva como mandante")
-    
-    # Análise comparativa de eficiência
-    if analysis['home_ht_eficiencia'] > analysis['away_ht_eficiencia'] + 20:
-        insights.append(f"⚡ {team_home} é muito mais eficiente no primeiro tempo ({analysis['home_ht_eficiencia']}% vs {analysis['away_ht_eficiencia']}%)")
-    elif analysis['away_ht_eficiencia'] > analysis['home_ht_eficiencia'] + 20:
-        insights.append(f"⚡ {team_away} é muito mais eficiente no primeiro tempo ({analysis['away_ht_eficiencia']}% vs {analysis['home_ht_eficiencia']}%)")
-    
-    # Mostrar insights se houver algum
-    if insights:
-        st.write("### 📋 Recomendações Estratégicas:")
-        for i, insight in enumerate(insights, 1):
-            st.write(f"**{i}.** {insight}")
-    else:
-        st.info("📊 Times apresentam performance equilibrada nos critérios analisados.")
-    
-    # Previsão de jogo
-    if analysis['home_gols_total'] > 0 and analysis['away_gols_total'] > 0:
-        st.write("### 🎯 Cenário Provável de Confronto:")
-        
-        total_esperado = round((analysis['home_media_gols'] + analysis['away_media_gols']) / 2, 1)
-        
-        if total_esperado > 2.5:
-            cenario = "🔥 Jogo com muitos gols esperado"
-            cor_cenario = "success"
-        elif total_esperado > 1.5:
-            cenario = "⚽ Jogo com gols moderados"
-            cor_cenario = "info"
-        else:
-            cenario = "🛡️ Jogo mais truncado e defensivo"
-            cor_cenario = "warning"
-            
-        getattr(st, cor_cenario)(f"{cenario} (média esperada: {total_esperado} gols)")
-        
-        # Adicionar contexto sobre vantagem de campo
-        if analysis['home_gols_total'] > 0:
-            vantagem_casa = round((analysis['home_media_gols'] / max(analysis['away_media_gols'], 0.1)) * 100 - 100, 1)
-            if abs(vantagem_casa) > 20:
-                if vantagem_casa > 0:
-                    st.info(f"🏠 **Vantagem do Mandante**: {team_home} marca {vantagem_casa:+.1f}% mais gols em casa")
-                else:
-                    st.info(f"✈️ **Eficiência do Visitante**: {team_away} supera expectativa visitante em {abs(vantagem_casa):.1f}%")
-    else:
-        st.warning("⚠️ Dados insuficientes para projeção de confronto.")
+    # Calcular estatísticas detalhadas dos times
+    home_stats = calculate_team_stats(stats.get('df', None), team_home, as_home=True) if 'df' in stats else calculate_team_stats(pd.DataFrame(), team_home, as_home=True)
+    away_stats = calculate_team_stats(stats.get('df', None), team_away, as_home=False) if 'df' in stats else calculate_team_stats(pd.DataFrame(), team_away, as_home=False)
 
-def show_team_analysis(df, teams):
-    """Análise de desempenho de um time específico"""
-    st.header("📊 Análise de Desempenho de Time")
-    
-    if not teams:
-        st.warning("Nenhum time encontrado nos dados.")
-        return
-    
-    selected_team = st.selectbox("🏆 Selecione o time:", teams)
-    
-    if selected_team:
-        # Estatísticas como mandante e visitante
-        home_stats = calculate_team_stats(df, selected_team, as_home=True)
-        away_stats = calculate_team_stats(df, selected_team, as_home=False)
-        
-        # Combine estatísticas
-        total_games = home_stats.get('jogos', 0) + away_stats.get('jogos', 0)
-        total_wins = home_stats.get('vitorias', 0) + away_stats.get('vitorias', 0)
-        total_draws = home_stats.get('empates', 0) + away_stats.get('empates', 0)
-        total_losses = home_stats.get('derrotas', 0) + away_stats.get('derrotas', 0)
-        
-        # Métricas principais
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("🎮 Total de Jogos", total_games)
-        with col2:
-            st.metric("🏆 Vitórias", total_wins)
-        with col3:
-            st.metric("🤝 Empates", total_draws)
-        with col4:
-            st.metric("❌ Derrotas", total_losses)
-        
-        # Estatísticas detalhadas
-        st.subheader("📈 Estatísticas Detalhadas")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.write("**Como Mandante:**")
-            st.write(f"Jogos: {home_stats['jogos']}")
-            st.write(f"Vitórias: {home_stats['vitorias']}")
-            st.write(f"Empates: {home_stats['empates']}")
-            st.write(f"Derrotas: {home_stats['derrotas']}")
-            st.write(f"Gols/Jogo: {home_stats['media_gols_feitos']:.2f}")
-            st.write(f"Gols Sofridos/Jogo: {home_stats['media_gols_sofridos']:.2f}")
-        
-        with col2:
-            st.write("**Como Visitante:**")
-            st.write(f"Jogos: {away_stats['jogos']}")
-            st.write(f"Vitórias: {away_stats['vitorias']}")
-            st.write(f"Empates: {away_stats['empates']}")
-            st.write(f"Derrotas: {away_stats['derrotas']}")
-            st.write(f"Gols/Jogo: {away_stats['media_gols_feitos']:.2f}")
-            st.write(f"Gols Sofridos/Jogo: {away_stats['media_gols_sofridos']:.2f}")
-        
-        # Gráfico de pizza dos resultados
-        if total_games > 0:
-            fig = px.pie(
-                values=[total_wins, total_draws, total_losses],
-                names=['Vitórias', 'Empates', 'Derrotas'],
-                title=f"Distribuição de Resultados - {selected_team}",
-                color_discrete_sequence=['#2E8B57', '#FFD700', '#DC143C']
-            )
-            st.plotly_chart(fig, use_container_width=True)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("**Como Mandante:**")
+        st.write(f"Jogos: {home_stats['jogos']}")
+        st.write(f"Vitórias: {home_stats['vitorias']}")
+        st.write(f"Empates: {home_stats['empates']}")
+        st.write(f"Derrotas: {home_stats['derrotas']}")
+        st.write(f"Gols/Jogo: {home_stats['media_gols_feitos']:.2f}")
+        st.write(f"Gols Sofridos/Jogo: {home_stats['media_gols_sofridos']:.2f}")
+
+    with col2:
+        st.write("**Como Visitante:**")
+        st.write(f"Jogos: {away_stats['jogos']}")
+        st.write(f"Vitórias: {away_stats['vitorias']}")
+        st.write(f"Empates: {away_stats['empates']}")
+        st.write(f"Derrotas: {away_stats['derrotas']}")
+        st.write(f"Gols/Jogo: {away_stats['media_gols_feitos']:.2f}")
+        st.write(f"Gols Sofridos/Jogo: {away_stats['media_gols_sofridos']:.2f}")
+
+    # Remover gráfico de pizza e variáveis não definidas para evitar erro
 
 def show_team_comparison(df, teams):
     """Análise Do Confronto"""
@@ -1025,7 +852,6 @@ def show_probability_analysis(df, teams):
         odd_away = st.number_input("✈️ Odd Visitante:", min_value=1.01, value=3.30, step=0.01, format="%.2f")
 
     if st.button("🔍 Analisar Valor nas Odds", type="primary"):
-        
         # Probabilidades implícitas
         prob_home_imp = (1 / odd_home) * 100
         prob_draw_imp = (1 / odd_draw) * 100  
@@ -1045,14 +871,14 @@ def show_probability_analysis(df, teams):
         # Análise do Mandante
         st.subheader(f"🏠 Análise Histórica - {team_home} (Mandante)")
         home_analysis = analyze_team_odds_performance(df, team_home, "Home", odd_home)
-        display_odds_analysis(home_analysis, "Mandante", odd_home, prob_home_imp)
+        display_odds_analysis(home_analysis, odd_home, prob_home_imp)
 
         st.divider()
 
         # Análise do Visitante  
         st.subheader(f"✈️ Análise Histórica - {team_away} (Visitante)")
         away_analysis = analyze_team_odds_performance(df, team_away, "Away", odd_away)
-        display_odds_analysis(away_analysis, "Visitante", odd_away, prob_away_imp)
+        display_odds_analysis(away_analysis, odd_away, prob_away_imp)
 
         st.divider()
 
@@ -1060,6 +886,134 @@ def show_probability_analysis(df, teams):
         st.subheader("🤝 Análise do Empate")
         draw_analysis = analyze_draw_performance(df, team_home, team_away, odd_draw)
         display_draw_analysis(draw_analysis, odd_draw, prob_draw_imp)
+
+# Função para exibir análise de odds do time
+def display_odds_analysis(analysis, current_odd, prob_implicita):
+    if "error" in analysis:
+        st.warning(f"⚠️ {analysis['error']}")
+        return
+    st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
+    st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
+    if analysis['faixas']:
+        df_display = []
+        melhor_performance = None
+        situacao_atual = None
+        for faixa in analysis['faixas']:
+            df_display.append({
+                'Situação': faixa['categoria'],
+                'Faixa de Odds': faixa['range'],
+                'Jogos': faixa['total'],
+                'Vitórias': faixa.get('vitorias', 0),
+                'Taxa de Vitória': f"{faixa.get('perc_vitoria', 0):.1f}%",
+                'Odd Média': f"{faixa.get('odd_media', 0):.2f}"
+            })
+            if melhor_performance is None or faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0):
+                melhor_performance = faixa
+            if faixa.get('is_current', False):
+                situacao_atual = faixa
+        df_display = pd.DataFrame(df_display)
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        st.subheader("💡 Análise de Valor")
+        if situacao_atual:
+            valor = situacao_atual.get('perc_vitoria', 0) - prob_implicita
+            st.metric(
+                "Taxa Histórica na Faixa Atual",
+                f"{situacao_atual.get('perc_vitoria', 0):.1f}%",
+                delta=f"{valor:+.1f}% vs mercado"
+            )
+            if valor > 5:
+                st.success(f"✅ **VALOR POSITIVO**: Histórico sugere {valor:.1f}% mais chance de vitória que o mercado indica!")
+            elif valor < -5:
+                st.error(f"⚠️ **VALOR NEGATIVO**: Histórico sugere {abs(valor):.1f}% menos chance de vitória que o mercado indica!")
+            else:
+                st.info("⚖️ **ODD EQUILIBRADA**: Probabilidades alinhadas com histórico")
+        if melhor_performance:
+            st.info(f"📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} - {melhor_performance.get('perc_vitoria', 0):.1f}% de vitórias (Odds {melhor_performance['range']})")
+    else:
+        st.warning("Não foi possível criar faixas de análise com os dados disponíveis")
+
+# Função para analisar empates
+def analyze_draw_performance(df, team_home, team_away, current_odd):
+    # Filtra jogos entre os dois times
+    games = df[((df['Home'] == team_home) & (df['Away'] == team_away)) | ((df['Home'] == team_away) & (df['Away'] == team_home))].copy()
+    if len(games) < 10:
+        return {"error": "Dados insuficientes para análise de empates"}
+    if 'odd Draw' not in games.columns or 'Resultado Home' not in games.columns:
+        return {"error": "Colunas necessárias não encontradas para análise de empates"}
+    games = games.dropna(subset=['odd Draw', 'Resultado Home'])
+    if len(games) < 5:
+        return {"error": "Dados insuficientes após limpeza para análise de empates"}
+    faixas = []
+    limite1 = current_odd * 0.8
+    faixa1 = games[games['odd Draw'] <= limite1]
+    if len(faixa1) >= 3:
+        faixas.append(("Empate Provável", f"≤ {limite1:.2f}", faixa1))
+    limite2 = current_odd * 1.2
+    faixa2 = games[(games['odd Draw'] > limite1) & (games['odd Draw'] <= limite2)]
+    if len(faixa2) >= 3:
+        faixas.append(("Situação Atual", f"{limite1:.2f} - {limite2:.2f}", faixa2))
+    faixa3 = games[games['odd Draw'] > limite2]
+    if len(faixa3) >= 3:
+        faixas.append(("Empate Improvável", f"> {limite2:.2f}", faixa3))
+    resultados = []
+    for nome, range_str, dados in faixas:
+        total = len(dados)
+        empates = len(dados[dados['Resultado Home'] == 'Empate'])
+        perc_empate = (empates / total) * 100 if total > 0 else 0
+        odd_media = dados['odd Draw'].mean()
+        resultados.append({
+            'categoria': nome,
+            'range': range_str,
+            'total': total,
+            'empates': empates,
+            'perc_empate': perc_empate,
+            'odd_media': odd_media,
+            'is_current': limite1 < current_odd <= limite2 if nome == "Situação Atual" else False
+        })
+    return {
+        'current_odd': current_odd,
+        'total_games': len(games),
+        'faixas': resultados
+    }
+
+# Função para exibir análise de empates
+def display_draw_analysis(analysis, current_odd, prob_implicita):
+    if "error" in analysis:
+        st.warning(f"⚠️ {analysis['error']}")
+        return
+    st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
+    st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
+    if analysis['faixas']:
+        df_display = []
+        situacao_atual = None
+        for faixa in analysis['faixas']:
+            df_display.append({
+                'Situação': faixa['categoria'],
+                'Faixa de Odds': faixa['range'],
+                'Jogos': faixa['total'],
+                'Empates': faixa['empates'],
+                'Taxa de Empate': f"{faixa['perc_empate']:.1f}%",
+                'Odd Média': f"{faixa['odd_media']:.2f}"
+            })
+            if faixa.get('is_current', False):
+                situacao_atual = faixa
+        df_display = pd.DataFrame(df_display)
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        if situacao_atual:
+            valor = situacao_atual['perc_empate'] - prob_implicita
+            st.metric(
+                "Taxa Histórica de Empate", 
+                f"{situacao_atual['perc_empate']:.1f}%",
+                delta=f"{valor:+.1f}% vs mercado"
+            )
+            if valor > 3:
+                st.success(f"✅ **VALOR NO EMPATE**: Histórico sugere {valor:.1f}% mais chance de empate!")
+            elif valor < -3:
+                st.error(f"⚠️ **EMPATE SUPERVALORIZADO**: {abs(valor):.1f}% menos provável historicamente!")
+            else:
+                st.info("⚖️ **ODD DE EMPATE EQUILIBRADA**")
+    else:
+        st.warning("Dados insuficientes para análise de empates")
 
 def analyze_team_odds_performance(df, team, position, current_odd):
     """Analisa performance do time em diferentes faixas de odds"""
@@ -1133,22 +1087,30 @@ def analyze_team_odds_performance(df, team, position, current_odd):
         vitorias = len(dados[dados[result_column] == 'Vitória'])
         empates = len(dados[dados[result_column] == 'Empate'])
         derrotas = len(dados[dados[result_column] == 'Derrota'])
-        
+
         perc_vitoria = (vitorias / total) * 100 if total > 0 else 0
         perc_empate = (empates / total) * 100 if total > 0 else 0
         odd_media = dados[odd_column].mean()
-        
+
         resultados.append({
             'categoria': nome,
             'range': range_str,
             'total': total,
             'vitorias': vitorias,
+            'empates': empates,
+            'derrotas': derrotas,
             'perc_vitoria': perc_vitoria,
             'perc_empate': perc_empate,
             'odd_media': odd_media,
-            'cor': cor,
-            'is_current': limite2 < current_odd <= limite3 if nome == "Situação Atual" else False
+            'is_current': nome == "Situação Atual"
         })
+
+    return {
+        'team': team,
+        'total_games': len(team_games),
+        'current_odd': current_odd,
+        'faixas': resultados
+    }
     
     return {
         'team': team,
@@ -1156,22 +1118,6 @@ def analyze_team_odds_performance(df, team, position, current_odd):
         'current_odd': current_odd,
         'faixas': resultados
     }
-
-def analyze_draw_performance(df, team_home, team_away, current_odd):
-    """Analisa performance de empates envolvendo os times"""
-    
-    # Jogos envolvendo qualquer um dos times
-    games = df[
-        (df['Home'] == team_home) | (df['Away'] == team_home) |
-        (df['Home'] == team_away) | (df['Away'] == team_away)
-    ].copy()
-    
-    if len(games) < 20:
-        return {"error": "Poucos dados para análise de empates"}
-    
-    # Remover valores nulos na coluna de odd do empate
-    games = games.dropna(subset=['odd Draw', 'Resultado Home'])
-    
     if len(games) < 20:
         return {"error": "Dados insuficientes para análise de empates"}
     
@@ -1218,115 +1164,59 @@ def analyze_draw_performance(df, team_home, team_away, current_odd):
         'faixas': resultados
     }
 
-def display_odds_analysis(analysis, position, current_odd, prob_implicita):
+def display_odds_analysis_victory(analysis, current_odd, prob_implicita):
     """Exibe análise de odds do time"""
-    
     if "error" in analysis:
         st.warning(f"⚠️ {analysis['error']}")
         return
-    
+
     st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
     st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
-    
-    # Tabela com as faixas
+
     if analysis['faixas']:
         df_display = []
         melhor_performance = None
         situacao_atual = None
-        
+
         for faixa in analysis['faixas']:
             df_display.append({
                 'Situação': faixa['categoria'],
                 'Faixa de Odds': faixa['range'],
                 'Jogos': faixa['total'],
-                'Vitórias': faixa['vitorias'],
-                'Taxa de Vitória': f"{faixa['perc_vitoria']:.1f}%",
-                'Odd Média': f"{faixa['odd_media']:.2f}"
+                'Vitórias': faixa.get('vitorias', 0),
+                'Taxa de Vitória': f"{faixa.get('perc_vitoria', 0):.1f}%",
+                'Odd Média': f"{faixa.get('odd_media', 0):.2f}"
             })
-            
-            # Identificar melhor performance e situação atual
-            if melhor_performance is None or faixa['perc_vitoria'] > melhor_performance['perc_vitoria']:
+
+            if melhor_performance is None or faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0):
                 melhor_performance = faixa
-            
-            if faixa['is_current']:
+
+            if faixa.get('is_current', False):
                 situacao_atual = faixa
-        
-        # Exibir tabela
+
         df_display = pd.DataFrame(df_display)
         st.dataframe(df_display, use_container_width=True, hide_index=True)
-        
-        # Análise de valor
+
         st.subheader("💡 Análise de Valor")
-        
         if situacao_atual:
-            valor = situacao_atual['perc_vitoria'] - prob_implicita
+            valor = situacao_atual.get('perc_vitoria', 0) - prob_implicita
             st.metric(
-                "Taxa Histórica na Faixa Atual", 
-                f"{situacao_atual['perc_vitoria']:.1f}%",
+                "Taxa Histórica na Faixa Atual",
+                f"{situacao_atual.get('perc_vitoria', 0):.1f}%",
                 delta=f"{valor:+.1f}% vs mercado"
             )
-            
+
             if valor > 5:
                 st.success(f"✅ **VALOR POSITIVO**: Histórico sugere {valor:.1f}% mais chance de vitória que o mercado indica!")
             elif valor < -5:
                 st.error(f"⚠️ **VALOR NEGATIVO**: Histórico sugere {abs(valor):.1f}% menos chance de vitória que o mercado indica!")
             else:
                 st.info("⚖️ **ODD EQUILIBRADA**: Probabilidades alinhadas com histórico")
-        
-        # Insight sobre melhor performance
+
         if melhor_performance:
-            st.info(f"📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} - {melhor_performance['perc_vitoria']:.1f}% de vitórias (Odds {melhor_performance['range']})")
-    
+            st.info(f"📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} - {melhor_performance.get('perc_vitoria', 0):.1f}% de vitórias (Odds {melhor_performance['range']})")
     else:
         st.warning("Não foi possível criar faixas de análise com os dados disponíveis")
-
-def display_draw_analysis(analysis, current_odd, prob_implicita):
-    """Exibe análise de empates"""
-    
-    if "error" in analysis:
-        st.warning(f"⚠️ {analysis['error']}")
-        return
-    
-    st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
-    st.write(f"**Odd atual do empate:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
-    
-    if analysis['faixas']:
-        df_display = []
-        situacao_atual = None
-        
-        for faixa in analysis['faixas']:
-            df_display.append({
-                'Situação': faixa['categoria'],
-                'Faixa de Odds': faixa['range'],
-                'Jogos': faixa['total'],
-                'Empates': faixa['empates'],
-                'Taxa de Empate': f"{faixa['perc_empate']:.1f}%",
-                'Odd Média': f"{faixa['odd_media']:.2f}"
-            })
-            
-            if faixa['is_current']:
-                situacao_atual = faixa
-        
-        df_display = pd.DataFrame(df_display)
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
-        
-        # Análise de valor para empate
-        if situacao_atual:
-            valor = situacao_atual['perc_empate'] - prob_implicita
-            st.metric(
-                "Taxa Histórica de Empate", 
-                f"{situacao_atual['perc_empate']:.1f}%",
-                delta=f"{valor:+.1f}% vs mercado"
-            )
-            
-            if valor > 3:
-                st.success(f"✅ **VALOR NO EMPATE**: Histórico sugere {valor:.1f}% mais chance de empate!")
-            elif valor < -3:
-                st.error(f"⚠️ **EMPATE SUPERVALORIZADO**: {abs(valor):.1f}% menos provável historicamente!")
-            else:
-                st.info("⚖️ **ODD DE EMPATE EQUILIBRADA**")
-    else:
-        st.warning("Dados insuficientes para análise de empates")
 
 def show_corner_analysis(df, teams):
     """Simulação de escanteios com base nas médias"""
@@ -1638,7 +1528,7 @@ def main():
     elif st.session_state.selected_analysis == "2. Comparação entre Times":
         show_team_comparison(df, teams)
     elif st.session_state.selected_analysis == "3. Cálculo de Probabilidades Implícitas":
-        show_probability_calculation(df, teams)
+        st.columns([1, 2, 1])
     elif st.session_state.selected_analysis == "4. Simulação de Escanteios":
         show_corner_simulation(df, teams)
     elif st.session_state.selected_analysis == "5. Predição de Placar (Poisson)":
