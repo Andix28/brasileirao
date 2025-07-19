@@ -297,22 +297,22 @@ def show_interactive_charts(df):
         st.warning("⚠️ Não há dados disponíveis para análise.")
         return
     
+    # CORREÇÃO: Adicionar indentação correta (4 espaços)
     # Obter lista única de times
-teams = get_unique_teams(df)
-if len(teams) < 2:
-    st.warning("⚠️ É necessário pelo menos 2 times diferentes para comparação.")
-    return
-
-# Interface de seleção de times
-team_home, team_away = create_team_selection_interface(teams)
-if not validate_team_selection(team_home, team_away):
-    st.warning("⚠️ Por favor, selecione dois times diferentes.")
-    return
-
-# Verificar colunas necessárias
-if not validate_required_columns(df):
-    return
-
+    teams = get_unique_teams(df)
+    if len(teams) < 2:
+        st.warning("⚠️ É necessário pelo menos 2 times diferentes para comparação.")
+        return
+    
+    # Interface de seleção de times
+    team_home, team_away = create_team_selection_interface(teams)
+    if not validate_team_selection(team_home, team_away):
+        st.warning("⚠️ Por favor, selecione dois times diferentes.")
+        return
+    
+    # Verificar colunas necessárias
+    if not validate_required_columns(df):
+        return
 # Calcular estatísticas
 stats = calculate_team_statistics(df, team_home, team_away)
 
