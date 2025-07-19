@@ -1444,110 +1444,81 @@ def main():
     if df.empty:
         st.error("❌ Não foi possível carregar os dados.")
         st.info("📁 Certifique-se de que o arquivo está na raiz do repositório.")
-        st.info("🔍 Verifique também se o arquivo está com o encoding correto.")
         return
 
-    st.success(f"✅ Dados carregados com sucesso! Total de jogos disponíveis: {len(df)}")
-
-    # Filtros de temporada (sempre visível no topo)
+    # Filtro de ano no topo (sempre visível)
     st.markdown('<div class="filter-container">', unsafe_allow_html=True)
     st.markdown('<h3 class="section-header">📅 Filtros de Temporada</h3>', unsafe_allow_html=True)
-    col_filter2 = st.columns([1, 2, 1])[1]
-    with col_filter2:
+    col_filter = st.columns([1, 2, 1])[1]
+    with col_filter:
         anos = sorted(df['Ano'].dropna().unique())
         ano_selecionado = st.selectbox("Selecione o Ano:", anos, key="ano_selecionado")
         df = df[df['Ano'] == ano_selecionado]
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Inicializa lista de times de forma segura
-    if ('Home' in df.columns) and ('Away' in df.columns):
+    # Inicializa lista de times com segurança
+    if 'Home' in df.columns and 'Away' in df.columns:
         home_teams = df['Home'].dropna().astype(str).str.strip()
         away_teams = df['Away'].dropna().astype(str).str.strip()
         teams = sorted(set(home_teams) | set(away_teams))
     else:
         teams = []
 
-    # Inicializa seleção de análise
+    # Inicializa estado da análise
     if 'selected_analysis' not in st.session_state:
         st.session_state.selected_analysis = None
 
-    # Seleção de análise
+    # Mostra menu de seleção de análise
     if st.session_state.selected_analysis is None:
         st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
         st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
+
+        def selecionar(analise):
+            st.session_state.selected_analysis = analise
+            st.rerun()
+
         with col1:
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("🏆 Análise de Desempenho", key="desempenho"):
-                st.session_state.selected_analysis = "1. Análise de Desempenho de Time"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("🎯 Comparação de Times", key="comparacao"):
-                st.session_state.selected_analysis = "2. Comparação entre Times"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("🚩 Análise de Escanteios", key="corner_analysis"):
-                st.session_state.selected_analysis = "7. Análise de Escanteios"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            if st.button("🏆 Desempenho", key="desempenho"): selecionar("1. Análise de Desempenho de Time")
+            if st.button("🎯 Comparação", key="comparacao"): selecionar("2. Comparação entre Times")
+            if st.button("🚩 Escanteios", key="corner_analysis"): selecionar("7. Análise de Escanteios")
+
         with col2:
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("📈 Probabilidades", key="probabilidades"):
-                st.session_state.selected_analysis = "3. Cálculo de Probabilidades Implícitas"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("⚽ Simulação Escanteios", key="escanteios"):
-                st.session_state.selected_analysis = "4. Simulação de Escanteios"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            if st.button("📈 Probabilidades", key="probabilidades"): selecionar("3. Cálculo de Probabilidades Implícitas")
+            if st.button("⚽ Simulação de Escanteios", key="escanteios"): selecionar("4. Simulação de Escanteios")
+
         with col3:
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("🔮 Predição de Placar", key="predicao"):
-                st.session_state.selected_analysis = "5. Predição de Placar (Poisson)"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('<div class="option-card">', unsafe_allow_html=True)
-            if st.button("📊 Gráficos Interativos", key="graficos"):
-                st.session_state.selected_analysis = "6. Gráficos Interativos"
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            if st.button("🔮 Predição de Placar", key="predicao"): selecionar("5. Predição de Placar (Poisson)")
+            if st.button("📊 Gráficos Interativos", key="graficos"): selecionar("6. Gráficos Interativos")
 
-        # Filtros de Ano - Seção centralizada
-        st.markdown('<div class="filter-container">', unsafe_allow_html=True)
-        st.markdown('<h3 class="section-header">📅 Filtros de Temporada</h3>', unsafe_allow_html=True)
-        col_filter1, col_filter2, col_filter3 = st.columns([1, 2, 1])
         st.markdown('</div>', unsafe_allow_html=True)
+        return  # Evita que o restante da página carregue antes de selecionar
 
+    # Roteamento após seleção
+    analysis = st.session_state.selected_analysis
+    if analysis == "1. Análise de Desempenho de Time":
+        show_team_performance(df, teams)
+    elif analysis == "2. Comparação entre Times":
+        show_team_comparison(df, teams)
+    elif analysis == "3. Cálculo de Probabilidades Implícitas":
+        show_probability_analysis(df, teams)
+    elif analysis == "4. Simulação de Escanteios":
+        show_corner_simulation(df, teams)
+    elif analysis == "5. Predição de Placar (Poisson)":
+        show_score_prediction(df, teams)
+    elif analysis == "6. Gráficos Interativos":
+        show_interactive_charts(df)
+    elif analysis == "7. Análise de Escanteios":
+        show_corner_analysis(df, teams)
     else:
-        # Roteamento das opções de análise
-        if st.session_state.selected_analysis == "1. Análise de Desempenho de Time":
-            show_team_performance(df, teams)
-        elif st.session_state.selected_analysis == "2. Comparação entre Times":
-            show_team_comparison(df, teams)
-        elif st.session_state.selected_analysis == "3. Cálculo de Probabilidades Implícitas":
-            show_probability_analysis(df, teams)
-        elif st.session_state.selected_analysis == "4. Simulação de Escanteios":
-            show_corner_simulation(df, teams)
-        elif st.session_state.selected_analysis == "5. Predição de Placar (Poisson)":
-            show_score_prediction(df, teams)
-        elif st.session_state.selected_analysis == "6. Gráficos Interativos":
-            show_interactive_charts(df)
-        elif st.session_state.selected_analysis == "7. Análise de Escanteios":
-            show_corner_analysis(df, teams)
-        else:
-            st.error("Opção de análise inválida.")
+        st.error("Opção inválida.")
 
-    # Debug info
+    # Área de debug
     with st.expander("🔍 Informações de Debug"):
         st.write("Colunas do DataFrame:", list(df.columns))
-        st.write("Shape do DataFrame original:", df.shape)
+        st.write("Total de jogos:", len(df))
         if 'Ano' in df.columns:
-            st.write("Distribuição por ano:")
-            st.write(df['Ano'].value_counts().sort_index())
+            st.write("Distribuição por ano:", df['Ano'].value_counts().sort_index())
 
 def show_team_performance(df, teams):
     """Exibe análise de desempenho de um time selecionado."""
