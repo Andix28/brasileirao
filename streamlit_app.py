@@ -889,12 +889,15 @@ def display_odds_analysis(analysis, current_odd, prob_implicita):
     if "error" in analysis:
         st.warning(f"⚠️ {analysis['error']}")
         return
+    
     st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
     st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
+    
     if analysis['faixas']:
         df_display = []
         melhor_performance = None
         situacao_atual = None
+        
         for faixa in analysis['faixas']:
             df_display.append({
                 'Situação': faixa['categoria'],
@@ -904,14 +907,20 @@ def display_odds_analysis(analysis, current_odd, prob_implicita):
                 'Taxa de Vitória': f"{faixa.get('perc_vitoria', 0):.1f}%",
                 'Odd Média': f"{faixa.get('odd_media', 0):.2f}"
             })
+            
+            # CORREÇÃO: Adicionar indentação correta
             if (melhor_performance is None or 
-    faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0)):
-    melhor_performance = faixa.copy() 
+                faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0)):
+                melhor_performance = faixa.copy()
+            
             if faixa.get('is_current', False):
                 situacao_atual = faixa
+        
         df_display = pd.DataFrame(df_display)
         st.dataframe(df_display, use_container_width=True, hide_index=True)
+        
         st.subheader("💡 Análise de Valor")
+        
         if situacao_atual:
             valor = situacao_atual.get('perc_vitoria', 0) - prob_implicita
             st.metric(
@@ -919,12 +928,14 @@ def display_odds_analysis(analysis, current_odd, prob_implicita):
                 f"{situacao_atual.get('perc_vitoria', 0):.1f}%",
                 delta=f"{valor:+.1f}% vs mercado"
             )
+            
             if valor > 5:
                 st.success(f"✅ **VALOR POSITIVO**: Histórico sugere {valor:.1f}% mais chance de vitória que o mercado indica!")
             elif valor < -5:
                 st.error(f"⚠️ **VALOR NEGATIVO**: Histórico sugere {abs(valor):.1f}% menos chance de vitória que o mercado indica!")
             else:
                 st.info("⚖️ **ODD EQUILIBRADA**: Probabilidades alinhadas com histórico")
+        
         if melhor_performance:
             st.info(f"📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} - {melhor_performance.get('perc_vitoria', 0):.1f}% de vitórias (Odds {melhor_performance['range']})")
     else:
