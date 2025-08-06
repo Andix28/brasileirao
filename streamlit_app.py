@@ -1561,23 +1561,7 @@ def show_team_performance(df, teams):
         st.write(f"Escanteios/Jogo: {stats_away['media_escanteios_feitos']:.2f}")
         st.write(f"Escanteios Sofridos/Jogo: {stats_away['media_escanteios_sofridos']:.2f}")
 
-# FUNÇÕES PLACEHOLDER PARA AS QUE FALTAM
-def show_team_comparison(df, teams):
-    st.header("🎯 Comparação entre Times")
-    st.info("🚧 Função em desenvolvimento")
-
-def show_probability_analysis(df, teams):
-    st.header("📈 Cálculo de Probabilidades Implícitas")
-    st.info("🚧 Função em desenvolvimento")
-
-def show_interactive_charts(df):
-    st.header("📊 Gráficos Interativos")
-    st.info("🚧 Função em desenvolvimento")
-
-def show_corner_analysis(df, teams):
-    st.header("🚩 Análise de Escanteios")
-    st.info("🚧 Função em desenvolvimento")
-
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
