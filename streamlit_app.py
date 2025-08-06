@@ -1053,7 +1053,7 @@ def analyze_team_odds_performance(df, team, position, current_odd):
     # Filtrar jogos do time na posição
     team_games = df[df[position] == team].copy()
     
-    if len(team_games) < 10:  # Mínimo fixo de 10 jogos
+    if len(team_games) < 5:  # Reduzido de 10 para 5 jogos
         return {"error": f"Poucos dados históricos para {team} ({len(team_games)} jogos)"}
     
     # Mapear colunas corretas baseado na posição
@@ -1077,7 +1077,7 @@ def analyze_team_odds_performance(df, team, position, current_odd):
     # Remover valores nulos
     team_games = team_games.dropna(subset=[odd_column, result_column])
     
-    if len(team_games) < 10:
+    if len(team_games) < 5:  # Reduzido de 10 para 5 jogos
         return {"error": f"Dados insuficientes após limpeza para {team}"}
     
     # Definir faixas de odds baseadas na odd atual
@@ -1086,31 +1086,31 @@ def analyze_team_odds_performance(df, team, position, current_odd):
     # Faixa 1: Muito favorito (odds baixas)
     limite1 = current_odd * 0.7  # 30% abaixo da odd atual
     faixa1 = team_games[team_games[odd_column] <= limite1]
-    if len(faixa1) >= 5:
-        faixas.append(("Muito Favorito", f"≤ {limite1:.2f}", faixa1, "green"))
+    if len(faixa1) >= 3:  # Reduzido de 5 para 3
+        faixas.append(("Muito Favorito", f"≤ {limite1:.2f}", faixa1, "#2E8B57"))  # Verde escuro
     
     # Faixa 2: Favorito moderado
     limite2 = current_odd * 0.9  # 10% abaixo da odd atual
     faixa2 = team_games[(team_games[odd_column] > limite1) & (team_games[odd_column] <= limite2)]
-    if len(faixa2) >= 5:
-        faixas.append(("Favorito Moderado", f"{limite1:.2f} - {limite2:.2f}", faixa2, "lightgreen"))
+    if len(faixa2) >= 3:  # Reduzido de 5 para 3
+        faixas.append(("Favorito Moderado", f"{limite1:.2f} - {limite2:.2f}", faixa2, "#32CD32"))  # Verde claro
     
     # Faixa 3: Situação similar à atual
     limite3 = current_odd * 1.1  # 10% acima da odd atual
     faixa3 = team_games[(team_games[odd_column] > limite2) & (team_games[odd_column] <= limite3)]
-    if len(faixa3) >= 3:
-        faixas.append(("Situação Atual", f"{limite2:.2f} - {limite3:.2f}", faixa3, "yellow"))
+    if len(faixa3) >= 2:  # Reduzido de 3 para 2
+        faixas.append(("Situação Atual", f"{limite2:.2f} - {limite3:.2f}", faixa3, "#FFD700"))  # Dourado
     
     # Faixa 4: Menos favorito
     limite4 = current_odd * 1.3  # 30% acima da odd atual
     faixa4 = team_games[(team_games[odd_column] > limite3) & (team_games[odd_column] <= limite4)]
-    if len(faixa4) >= 5:
-        faixas.append(("Menos Favorito", f"{limite3:.2f} - {limite4:.2f}", faixa4, "orange"))
+    if len(faixa4) >= 3:  # Reduzido de 5 para 3
+        faixas.append(("Menos Favorito", f"{limite3:.2f} - {limite4:.2f}", faixa4, "#FF8C00"))  # Laranja
     
     # Faixa 5: Azarão
     faixa5 = team_games[team_games[odd_column] > limite4]
-    if len(faixa5) >= 5:
-        faixas.append(("Azarão", f"> {limite4:.2f}", faixa5, "red"))
+    if len(faixa5) >= 3:  # Reduzido de 5 para 3
+        faixas.append(("Azarão", f"> {limite4:.2f}", faixa5, "#DC143C"))  # Vermelho
     
     # Calcular estatísticas para cada faixa
     resultados = []
@@ -1122,6 +1122,7 @@ def analyze_team_odds_performance(df, team, position, current_odd):
 
         perc_vitoria = (vitorias / total) * 100 if total > 0 else 0
         perc_empate = (empates / total) * 100 if total > 0 else 0
+        perc_derrota = (derrotas / total) * 100 if total > 0 else 0
         odd_media = dados[odd_column].mean()
 
         resultados.append({
@@ -1133,69 +1134,236 @@ def analyze_team_odds_performance(df, team, position, current_odd):
             'derrotas': derrotas,
             'perc_vitoria': perc_vitoria,
             'perc_empate': perc_empate,
+            'perc_derrota': perc_derrota,
             'odd_media': odd_media,
-            'is_current': nome == "Situação Atual"
+            'is_current': nome == "Situação Atual",
+            'cor': cor
         })
     return {
         'team': team,
+        'position': position,
         'total_games': len(team_games),
         'current_odd': current_odd,
         'faixas': resultados
     }
 
 def display_odds_analysis_victory(analysis, current_odd, prob_implicita):
-    """Exibe análise de odds do time"""
+    """Exibe análise de odds do time com design moderno"""
     if "error" in analysis:
-        st.warning(f"⚠️ {analysis['error']}")
+        st.error(f"⚠️ {analysis['error']}")
         return
 
-    st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
-    st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
+    # Header com informações principais
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="📊 Total de Jogos",
+            value=analysis['total_games'],
+            help="Quantidade total de jogos analisados"
+        )
+    
+    with col2:
+        st.metric(
+            label="🎯 Odd Atual",
+            value=f"{current_odd:.2f}",
+            help="Odd oferecida pela casa de apostas"
+        )
+    
+    with col3:
+        st.metric(
+            label="📈 Prob. Implícita",
+            value=f"{prob_implicita:.1f}%",
+            help="Probabilidade implícita da odd atual"
+        )
+
+    st.divider()
 
     if analysis['faixas']:
-        df_display = []
-        melhor_performance = None
-        situacao_atual = None
-
+        # Título da seção
+        st.subheader("🏆 Performance por Faixa de Odds")
+        
+        # Cards modernos para cada faixa
         for faixa in analysis['faixas']:
-            df_display.append({
-                'Situação': faixa['categoria'],
-                'Faixa de Odds': faixa['range'],
-                'Jogos': faixa['total'],
-                'Vitórias': faixa.get('vitorias', 0),
-                'Taxa de Vitória': f"{faixa.get('perc_vitoria', 0):.1f}%",
-                'Odd Média': f"{faixa.get('odd_media', 0):.2f}"
-            })
+            with st.container():
+                # Criar um card estilizado
+                card_color = faixa['cor']
+                is_current = faixa.get('is_current', False)
+                border_style = "border-left: 4px solid #FFD700;" if is_current else f"border-left: 4px solid {card_color};"
+                
+                st.markdown(f"""
+                <div style="
+                    background-color: rgba(255, 255, 255, 0.05);
+                    padding: 20px;
+                    border-radius: 10px;
+                    margin: 10px 0;
+                    {border_style}
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                ">
+                    <h4 style="margin: 0 0 10px 0; color: {card_color};">
+                        {'🎯 ' if is_current else '📊 '}{faixa['categoria']}
+                        {' (SITUAÇÃO ATUAL)' if is_current else ''}
+                    </h4>
+                    <p style="margin: 5px 0; color: #666;">Faixa de Odds: {faixa['range']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Métricas da faixa
+                col1, col2, col3, col4, col5 = st.columns(5)
+                
+                with col1:
+                    st.metric("Jogos", faixa['total'])
+                
+                with col2:
+                    st.metric(
+                        "Vitórias", 
+                        faixa['vitorias'],
+                        delta=f"{faixa['perc_vitoria']:.1f}%"
+                    )
+                
+                with col3:
+                    st.metric(
+                        "Empates", 
+                        faixa['empates'],
+                        delta=f"{faixa['perc_empate']:.1f}%"
+                    )
+                
+                with col4:
+                    st.metric(
+                        "Derrotas", 
+                        faixa['derrotas'],
+                        delta=f"{faixa['perc_derrota']:.1f}%"
+                    )
+                
+                with col5:
+                    st.metric("Odd Média", f"{faixa['odd_media']:.2f}")
+                
+                # Gráfico de barras horizontal para visualizar percentuais
+                import plotly.express as px
+                import plotly.graph_objects as go
+                
+                fig = go.Figure()
+                
+                fig.add_trace(go.Bar(
+                    name='Vitórias',
+                    y=['Resultado'],
+                    x=[faixa['perc_vitoria']],
+                    orientation='h',
+                    marker_color='#2E8B57',
+                    text=f"{faixa['perc_vitoria']:.1f}%",
+                    textposition='inside'
+                ))
+                
+                fig.add_trace(go.Bar(
+                    name='Empates',
+                    y=['Resultado'],
+                    x=[faixa['perc_empate']],
+                    orientation='h',
+                    marker_color='#FFD700',
+                    text=f"{faixa['perc_empate']:.1f}%",
+                    textposition='inside'
+                ))
+                
+                fig.add_trace(go.Bar(
+                    name='Derrotas',
+                    y=['Resultado'],
+                    x=[faixa['perc_derrota']],
+                    orientation='h',
+                    marker_color='#DC143C',
+                    text=f"{faixa['perc_derrota']:.1f}%",
+                    textposition='inside'
+                ))
+                
+                fig.update_layout(
+                    barmode='stack',
+                    height=100,
+                    showlegend=False,
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    xaxis=dict(range=[0, 100], visible=False),
+                    yaxis=dict(visible=False),
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)'
+                )
+                
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                
+                st.markdown("---")
 
-            if melhor_performance is None or faixa.get('perc_vitoria', 0) > melhor_performance.get('perc_vitoria', 0):
-                melhor_performance = faixa
-
-            if faixa.get('is_current', False):
-                situacao_atual = faixa
-
-        df_display = pd.DataFrame(df_display)
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
-
-        st.subheader("💡 Análise de Valor")
+        # Análise de Valor - Seção destacada
+        st.subheader("💡 Análise de Valor da Aposta")
+        
+        situacao_atual = next((f for f in analysis['faixas'] if f.get('is_current', False)), None)
+        melhor_performance = max(analysis['faixas'], key=lambda x: x.get('perc_vitoria', 0))
+        
         if situacao_atual:
             valor = situacao_atual.get('perc_vitoria', 0) - prob_implicita
-            st.metric(
-                "Taxa Histórica na Faixa Atual",
-                f"{situacao_atual.get('perc_vitoria', 0):.1f}%",
-                delta=f"{valor:+.1f}% vs mercado"
-            )
-
+            
+            # Card de valor destacado
             if valor > 5:
-                st.success(f"✅ **VALOR POSITIVO**: Histórico sugere {valor:.1f}% mais chance de vitória que o mercado indica!")
+                valor_cor = "#2E8B57"
+                valor_icon = "✅"
+                valor_texto = "VALOR POSITIVO"
+                valor_descricao = f"O histórico sugere {valor:.1f}% mais chances de vitória do que o mercado indica!"
             elif valor < -5:
-                st.error(f"⚠️ **VALOR NEGATIVO**: Histórico sugere {abs(valor):.1f}% menos chance de vitória que o mercado indica!")
+                valor_cor = "#DC143C"
+                valor_icon = "⚠️"
+                valor_texto = "VALOR NEGATIVO"
+                valor_descricao = f"O histórico sugere {abs(valor):.1f}% menos chances de vitória do que o mercado indica!"
             else:
-                st.info("⚖️ **ODD EQUILIBRADA**: Probabilidades alinhadas com histórico")
+                valor_cor = "#FFD700"
+                valor_icon = "⚖️"
+                valor_texto = "ODD EQUILIBRADA"
+                valor_descricao = "As probabilidades estão alinhadas com o histórico do time!"
+            
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, {valor_cor}22, {valor_cor}11);
+                padding: 25px;
+                border-radius: 15px;
+                border: 2px solid {valor_cor};
+                margin: 20px 0;
+                text-align: center;
+            ">
+                <h3 style="color: {valor_cor}; margin: 0 0 10px 0;">
+                    {valor_icon} {valor_texto}
+                </h3>
+                <p style="font-size: 18px; margin: 10px 0; color: #333;">
+                    {valor_descricao}
+                </p>
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
+                    <div>
+                        <strong>Taxa Histórica:</strong><br>
+                        <span style="font-size: 24px; color: {valor_cor};">
+                            {situacao_atual.get('perc_vitoria', 0):.1f}%
+                        </span>
+                    </div>
+                    <div>
+                        <strong>Prob. Mercado:</strong><br>
+                        <span style="font-size: 24px;">
+                            {prob_implicita:.1f}%
+                        </span>
+                    </div>
+                    <div>
+                        <strong>Diferença:</strong><br>
+                        <span style="font-size: 24px; color: {valor_cor};">
+                            {valor:+.1f}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        if melhor_performance:
-            st.info(f"📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} - {melhor_performance.get('perc_vitoria', 0):.1f}% de vitórias (Odds {melhor_performance['range']})")
+        # Informação sobre melhor performance
+        st.info(f"""
+        📊 **Melhor Performance Histórica**: {melhor_performance['categoria']} 
+        
+        • Taxa de vitória: **{melhor_performance.get('perc_vitoria', 0):.1f}%**
+        • Faixa de odds: **{melhor_performance['range']}**
+        • Jogos analisados: **{melhor_performance['total']}**
+        """)
+        
     else:
-        st.warning("Não foi possível criar faixas de análise com os dados disponíveis")
+        st.warning("⚠️ Não foi possível criar faixas de análise com os dados disponíveis. Tente com um time que possui mais histórico de jogos.")
 
 def show_corner_analysis(df, teams):
     """Simulação de escanteios com base nas médias"""
@@ -1564,4 +1732,5 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
