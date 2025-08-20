@@ -1710,25 +1710,4 @@ def show_team_performance(df, teams):
 
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
-    main()aldo_text = "0"
-            
-        st.info(f"""
-        **🏠 {team_home} (Como Mandante)**
-        - 🎮 Jogos analisados: **{analysis['home_jogos']}**
-        - ⚽ Gols marcados: **{analysis['home_gols_total']}** (média: {analysis['home_media_gols']}/jogo)
-        - 🥅 Gols sofridos: **{analysis['home_sofridos_total']}** (média: {analysis['home_media_sofridos']}/jogo)
-        - {saldo_icon} Saldo de gols: **{saldo_text}**
-        """)
-    
-    with col2:
-        # Determinar ícone do saldo sem usar formatação problemática
-        saldo_away = analysis['away_saldo']
-        if saldo_away > 0:
-            saldo_icon = "📈"
-            saldo_text = f"+{saldo_away}"
-        elif saldo_away < 0:
-            saldo_icon = "📉"
-            saldo_text = str(saldo_away)
-        else:
-            saldo_icon = "➖"
-            s
+    main()
