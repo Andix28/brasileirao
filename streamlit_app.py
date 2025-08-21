@@ -1655,6 +1655,160 @@ def predict_score_with_odds(df, team_home, team_away, odd_home, odd_draw, odd_aw
         'stats_away': away_stats
     }
 
+def calculate_team_stats_advanced(df, team_name):
+    """Calcula estatísticas avançadas do time separando jogos como mandante e visitante"""
+    
+    # Jogos como mandante
+    home_games = df[df['mandante'] == team_name].copy()
+    if len(home_games) > 0:
+        gols_marcados_casa = home_games['gols_mandante'].mean()
+        gols_sofridos_casa = home_games['gols_visitante'].mean()
+        jogos_casa = len(home_games)
+    else:
+        gols_marcados_casa = 0
+        gols_sofridos_casa = 0
+        jogos_casa = 0
+    
+    # Jogos como visitante
+    away_games = df[df['visitante'] == team_name].copy()
+    if len(away_games) > 0:
+        gols_marcados_fora = away_games['gols_visitante'].mean()
+        gols_sofridos_fora = away_games['gols_mandante'].mean()
+        jogos_fora = len(away_games)
+    else:
+        gols_marcados_fora = 0
+        gols_sofridos_fora = 0
+        jogos_fora = 0
+    
+    return {
+        'gols_marcados_casa': gols_marcados_casa,
+        'gols_sofridos_casa': gols_sofridos_casa,
+        'gols_marcados_fora': gols_marcados_fora,
+        'gols_sofridos_fora': gols_sofridos_fora,
+        'jogos_casa': jogos_casa,
+        'jogos_fora': jogos_fora,
+        'total_jogos': jogos_casa + jogos_fora
+    }
+
+def convert_odds_to_probabilities(odd_home, odd_draw, odd_away):
+    """Converte odds para probabilidades implícitas normalizadas"""
+    
+    # Calcula probabilidades implícitas
+    prob_home_raw = 1 / odd_home if odd_home > 0 else 0
+    prob_draw_raw = 1 / odd_draw if odd_draw > 0 else 0
+    prob_away_raw = 1 / odd_away if odd_away > 0 else 0
+    
+    # Normaliza as probabilidades
+    total_prob = prob_home_raw + prob_draw_raw + prob_away_raw
+    
+    if total_prob > 0:
+        prob_home = prob_home_raw / total_prob
+        prob_draw = prob_draw_raw / total_prob
+        prob_away = prob_away_raw / total_prob
+    else:
+        prob_home = prob_draw = prob_away = 1/3
+    
+    return prob_home, prob_draw, prob_away
+
+def calculate_goal_expectations(home_stats, away_stats):
+    """Calcula expectativa inicial de gols baseada nas médias históricas"""
+    
+    # Expectativa inicial do mandante: média entre gols marcados em casa e gols sofridos pelo visitante fora
+    if home_stats['jogos_casa'] > 0 and away_stats['jogos_fora'] > 0:
+        expectativa_mandante = (home_stats['gols_marcados_casa'] + away_stats['gols_sofridos_fora']) / 2
+    elif home_stats['jogos_casa'] > 0:
+        expectativa_mandante = home_stats['gols_marcados_casa']
+    elif away_stats['jogos_fora'] > 0:
+        expectativa_mandante = away_stats['gols_sofridos_fora']
+    else:
+        expectativa_mandante = 1.0  # Valor padrão
+    
+    # Expectativa inicial do visitante: média entre gols marcados fora e gols sofridos pelo mandante em casa
+    if away_stats['jogos_fora'] > 0 and home_stats['jogos_casa'] > 0:
+        expectativa_visitante = (away_stats['gols_marcados_fora'] + home_stats['gols_sofridos_casa']) / 2
+    elif away_stats['jogos_fora'] > 0:
+        expectativa_visitante = away_stats['gols_marcados_fora']
+    elif home_stats['jogos_casa'] > 0:
+        expectativa_visitante = home_stats['gols_sofridos_casa']
+    else:
+        expectativa_visitante = 1.0  # Valor padrão
+    
+    return expectativa_mandante, expectativa_visitante
+
+def adjust_expectations_with_odds(exp_home, exp_away, prob_home, prob_draw, prob_away):
+    """Ajusta as expectativas de gols usando as probabilidades das odds"""
+    
+    # Fator de ajuste baseado nas probabilidades
+    # Quanto maior a probabilidade de vitória, maior o fator de ajuste
+    fator_mandante = 0.8 + (prob_home * 0.6)  # Varia de 0.8 a 1.4
+    fator_visitante = 0.8 + (prob_away * 0.6)  # Varia de 0.8 a 1.4
+    
+    # Aplica os fatores de ajuste
+    exp_home_corrigida = exp_home * fator_mandante
+    exp_away_corrigida = exp_away * fator_visitante
+    
+    return exp_home_corrigida, exp_away_corrigida
+
+def generate_score_matrix(exp_home, exp_away):
+    """Gera matriz de probabilidades para placares de 0x0 até 5x5"""
+    
+    matrix = []
+    total_prob = 0
+    
+    for h in range(6):
+        row = []
+        for a in range(6):
+            prob = poisson.pmf(h, exp_home) * poisson.pmf(a, exp_away)
+            row.append(prob)
+            total_prob += prob
+        matrix.append(row)
+    
+    return np.array(matrix), total_prob
+
+def find_most_probable_score(matrix):
+    """Encontra o placar mais provável na matriz"""
+    max_prob_idx = np.unravel_index(np.argmax(matrix), matrix.shape)
+    return max_prob_idx, matrix[max_prob_idx]
+
+def predict_score_with_odds(df, team_home, team_away, odd_home, odd_draw, odd_away):
+    """Realiza predição completa seguindo o modelo estatístico"""
+    
+    # 1. Calcula estatísticas dos times
+    home_stats = calculate_team_stats_advanced(df, team_home)
+    away_stats = calculate_team_stats_advanced(df, team_away)
+    
+    # 2. Converte odds em probabilidades
+    prob_home, prob_draw, prob_away = convert_odds_to_probabilities(odd_home, odd_draw, odd_away)
+    
+    # 3. Calcula expectativas iniciais de gols
+    exp_home, exp_away = calculate_goal_expectations(home_stats, away_stats)
+    
+    # 4. Corrige expectativas com as odds
+    exp_home_final, exp_away_final = adjust_expectations_with_odds(
+        exp_home, exp_away, prob_home, prob_draw, prob_away
+    )
+    
+    # 5. Gera matriz de probabilidades
+    matrix, total_prob = generate_score_matrix(exp_home_final, exp_away_final)
+    
+    # 6. Encontra placar mais provável
+    most_prob_score, max_probability = find_most_probable_score(matrix)
+    
+    # 7. Calcula placar esperado (arredondamento)
+    expected_score = (round(exp_home_final), round(exp_away_final))
+    
+    return {
+        'expectativa_home': exp_home_final,
+        'expectativa_away': exp_away_final,
+        'placar_mais_provavel': most_prob_score,
+        'probabilidade_max': max_probability,
+        'placar_esperado': expected_score,
+        'matriz_probabilidades': matrix,
+        'probabilidades_odds': (prob_home, prob_draw, prob_away),
+        'stats_home': home_stats,
+        'stats_away': away_stats
+    }
+
 def show_advanced_score_prediction(df, teams):
     """Interface principal para predição com odds"""
     st.header("🎯 Predição Avançada com Odds")
@@ -1803,6 +1957,10 @@ def show_advanced_score_prediction(df, teams):
                 st.write(f"• Gols marcados fora: {away_stats['gols_marcados_fora']:.2f}/jogo")
                 st.write(f"• Gols sofridos fora: {away_stats['gols_sofridos_fora']:.2f}/jogo")
 
+# Função com nome compatível para substituir a original
+def show_score_prediction(df, teams):
+    """Função compatível - chama a nova predição avançada"""
+    show_advanced_score_prediction(df, teams)
 
 def main():
     st.markdown('<h1 class="main-header">⚽ Análise & Estatística Brasileirão</h1>', unsafe_allow_html=True)
@@ -1957,4 +2115,5 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
