@@ -2210,8 +2210,44 @@ def main():
     col_filter = st.columns([1, 2, 1])[1]
     with col_filter:
         anos = sorted(df['Ano'].dropna().unique())
-        ano_selecionado = st.selectbox("Selecione o Ano:", anos, key="ano_selecionado")
-        df = df[df['Ano'] == ano_selecionado]
+        
+        # Criação das opções de filtro
+        opcoes_anos = []
+        
+        # Adiciona anos individuais
+        for ano in anos:
+            opcoes_anos.append(f"{ano}")
+        
+        # Adiciona opção para ambos os anos (se existirem 2024 e 2025)
+        if 2024 in anos and 2025 in anos:
+            opcoes_anos.append("2024 + 2025 (Combinados)")
+        
+        # Se houver mais de 2 anos, adiciona opção "Todos os Anos"
+        if len(anos) > 1:
+            opcoes_anos.append("Todos os Anos")
+        
+        ano_selecionado = st.selectbox(
+            "Selecione a Temporada:", 
+            opcoes_anos, 
+            key="ano_selecionado",
+            help="Escolha um ano específico, combinação de anos ou todos os anos disponíveis"
+        )
+        
+        # Aplicação do filtro baseado na seleção
+        df_original = df.copy()  # Mantém cópia dos dados originais
+        
+        if ano_selecionado == "2024 + 2025 (Combinados)":
+            df = df[df['Ano'].isin([2024, 2025])]
+            st.info("📊 Analisando dados combinados de 2024 e 2025")
+        elif ano_selecionado == "Todos os Anos":
+            # Mantém todos os dados
+            st.info(f"📊 Analisando dados de todos os anos: {', '.join(map(str, sorted(anos)))}")
+        else:
+            # Filtro por ano específico
+            ano_num = int(ano_selecionado)
+            df = df[df['Ano'] == ano_num]
+            st.info(f"📊 Analisando dados de {ano_num}")
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Inicializa lista de times de forma segura
@@ -2222,6 +2258,25 @@ def main():
     else:
         teams = []
 
+    # Exibe estatísticas do filtro aplicado
+    if not df.empty:
+        col_stat1, col_stat2, col_stat3 = st.columns(3)
+        with col_stat1:
+            st.metric("🏟️ Total de Jogos", len(df))
+        with col_stat2:
+            st.metric("⚽ Times Únicos", len(teams))
+        with col_stat3:
+            if ano_selecionado == "2024 + 2025 (Combinados)":
+                jogos_2024 = len(df[df['Ano'] == 2024])
+                jogos_2025 = len(df[df['Ano'] == 2025])
+                st.metric("📈 Distribuição", f"2024: {jogos_2024} | 2025: {jogos_2025}")
+            elif ano_selecionado == "Todos os Anos":
+                st.metric("📅 Período", f"{min(anos)} - {max(anos)}")
+            else:
+                total_gols = df['Gols Home'].sum() + df['Gols  Away'].sum()
+                media_gols = total_gols / len(df) if len(df) > 0 else 0
+                st.metric("⚽ Média Gols/Jogo", f"{media_gols:.2f}")
+
     # Inicializa seleção de análise
     if 'selected_analysis' not in st.session_state:
         st.session_state.selected_analysis = None
@@ -2230,6 +2285,23 @@ def main():
     if st.session_state.selected_analysis is None:
         st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
         st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
+        
+        # Adiciona informação sobre o filtro ativo
+        if ano_selecionado == "2024 + 2025 (Combinados)":
+            st.markdown(
+                '<div style="background-color: #e8f4fd; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #1f77b4;">'
+                '<strong>🔄 Modo Combinado Ativo:</strong> As análises incluirão dados de 2024 e 2025 juntos'
+                '</div>', 
+                unsafe_allow_html=True
+            )
+        elif ano_selecionado == "Todos os Anos":
+            st.markdown(
+                '<div style="background-color: #f0f8e8; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #28a745;">'
+                f'<strong>📊 Análise Completa:</strong> Incluindo todos os anos disponíveis ({", ".join(map(str, sorted(anos)))})'
+                '</div>', 
+                unsafe_allow_html=True
+            )
+        
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -2263,9 +2335,18 @@ def main():
 
     else:
         # BOTÃO VOLTAR (sempre no topo quando uma análise está selecionada)
-        if st.button("🏠 Voltar ao Menu Principal", key="voltar_menu"):
-            st.session_state.selected_analysis = None
-            st.rerun()
+        col_back, col_filter_info = st.columns([1, 3])
+        with col_back:
+            if st.button("🏠 Voltar ao Menu Principal", key="voltar_menu"):
+                st.session_state.selected_analysis = None
+                st.rerun()
+        with col_filter_info:
+            if ano_selecionado == "2024 + 2025 (Combinados)":
+                st.info(f"🔄 Analisando: {ano_selecionado} | {len(df)} jogos")
+            elif ano_selecionado == "Todos os Anos":
+                st.info(f"📊 Analisando: {ano_selecionado} | {len(df)} jogos")
+            else:
+                st.info(f"📅 Analisando: {ano_selecionado} | {len(df)} jogos")
         
         st.markdown("---")
         
@@ -2293,12 +2374,16 @@ def main():
 
     # Debug info
     with st.expander("🔍 Informações de Debug"):
-        st.write("Colunas do DataFrame:", list(df.columns))
-        st.write("Shape do DataFrame original:", df.shape)
-        st.write("Número de times encontrados:", len(teams))
+        st.write("**Filtro Aplicado:**", ano_selecionado)
+        st.write("**Colunas do DataFrame:**", list(df.columns))
+        st.write("**Shape do DataFrame filtrado:**", df.shape)
+        st.write("**Shape do DataFrame original:**", df_original.shape)
+        st.write("**Número de times encontrados:**", len(teams))
         if 'Ano' in df.columns:
-            st.write("Distribuição por ano:")
+            st.write("**Distribuição por ano (filtrado):**")
             st.write(df['Ano'].value_counts().sort_index())
+            st.write("**Distribuição por ano (original):**")
+            st.write(df_original['Ano'].value_counts().sort_index())
 
 def show_team_performance(df, teams):
     """Exibe análise de desempenho de um time selecionado."""
@@ -2344,6 +2429,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
