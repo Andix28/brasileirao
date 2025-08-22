@@ -7,6 +7,169 @@ from scipy.stats import poisson
 import warnings
 warnings.filterwarnings('ignore')
 
+# ====== SISTEMA DE LOGOS DOS TIMES ======
+def get_team_logos():
+    """Retorna dicionário com URLs dos logos dos times"""
+    return {
+        "Vasco": "https://logodetimes.com/wp-content/uploads/vasco-da-gama.png",
+        "Fortaleza": "https://logodetimes.com/wp-content/uploads/fortaleza.png",
+        "Internacional": "https://logodetimes.com/wp-content/uploads/internacional.png",
+        "Fluminense": "https://logodetimes.com/wp-content/uploads/fluminense.png",
+        "Santos": "https://logodetimes.com/wp-content/uploads/santos.png",
+        "Cuiaba": "https://logodetimes.com/wp-content/uploads/cuiaba.png",
+        "Bragantino": "https://logodetimes.com/wp-content/uploads/red-bull-bragantino.png",
+        "Red Bull Bragantino": "https://logodetimes.com/wp-content/uploads/red-bull-bragantino.png",
+        "Bragantino": "https://logodetimes.com/wp-content/uploads/red-bull-bragantino.png",
+        "Botafogo": "https://logodetimes.com/wp-content/uploads/botafogo.png",
+        "Cruzeiro": "https://logodetimes.com/wp-content/uploads/cruzeiro.png",
+        "Bahia": "https://logodetimes.com/wp-content/uploads/bahia.png",
+        "Athletico PR": "https://logodetimes.com/wp-content/uploads/athletico-paranaense.png",
+        "Athletico-PR": "https://logodetimes.com/wp-content/uploads/athletico-paranaense.png",
+        "A. Paranaense": "https://logodetimes.com/wp-content/uploads/athletico-paranaense.png",
+        "Atletico MG": "https://logodetimes.com/wp-content/uploads/atletico-mineiro.png",
+        "Atlético-MG": "https://logodetimes.com/wp-content/uploads/atletico-mineiro.png",
+        "A. Mineiro": "https://logodetimes.com/wp-content/uploads/atletico-mineiro.png",
+        "Sao Paulo": "https://logodetimes.com/wp-content/uploads/sao-paulo.png",
+        "São Paulo": "https://logodetimes.com/wp-content/uploads/sao-paulo.png",
+        "Gremio": "https://logodetimes.com/wp-content/uploads/gremio.png",
+        "Grêmio": "https://logodetimes.com/wp-content/uploads/gremio.png",
+        "Flamengo": "https://logodetimes.com/wp-content/uploads/flamengo.png",
+        "Corinthians": "https://logodetimes.com/wp-content/uploads/corinthians.png",
+        "Ceara": "https://logodetimes.com/wp-content/uploads/ceara.png",
+        "Ceará": "https://logodetimes.com/wp-content/uploads/ceara.png",
+        "Vitoria": "https://logodetimes.com/wp-content/uploads/vitoria.png",
+        "Vitória": "https://logodetimes.com/wp-content/uploads/vitoria.png",
+        "Sport": "https://logodetimes.com/wp-content/uploads/sport-recife.png",
+        "Sport Recife": "https://logodetimes.com/wp-content/uploads/sport-recife.png",
+        "Mirassol": "https://logodetimes.com/wp-content/uploads/mirassol.png",
+        "Atletico GO": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
+        "Atlético-GO": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
+        "A. Goianiense": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
+        "Criciuma": "https://logodetimes.com/wp-content/uploads/criciuma.png",
+        "Criciúma": "https://logodetimes.com/wp-content/uploads/criciuma.png",
+        "Juventude": "https://logodetimes.com/wp-content/uploads/juventude-rs.png",
+        "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png"
+    }
+
+def display_team_with_logo(team_name, logo_size=(25, 25), show_name=True):
+    """
+    Retorna HTML com logo do time ao lado do nome
+    """
+    team_logos = get_team_logos()
+    logo_url = team_logos.get(team_name, None)
+    
+    if logo_url:
+        if show_name:
+            html = f"""
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="{logo_url}" 
+                     style="width: {logo_size[0]}px; height: {logo_size[1]}px; border-radius: 3px;"
+                     onerror="this.style.display='none';">
+                <span style="font-weight: 500;">{team_name}</span>
+            </div>
+            """
+        else:
+            html = f"""
+            <img src="{logo_url}" 
+                 style="width: {logo_size[0]}px; height: {logo_size[1]}px; border-radius: 3px;"
+                 onerror="this.style.display='none';"
+                 title="{team_name}">
+            """
+        return html
+    else:
+        # Fallback: apenas emoji + nome se logo não encontrado
+        return f"⚽ {team_name}" if show_name else "⚽"
+
+def create_team_selectbox_with_logo(label, teams, key):
+    """
+    Cria selectbox normal mas exibe o resultado com logo
+    """
+    selected_team = st.selectbox(label, teams, key=key)
+    
+    if selected_team:
+        # Exibe o time selecionado com logo logo abaixo do selectbox
+        st.markdown(display_team_with_logo(selected_team, (30, 30)), unsafe_allow_html=True)
+    
+    return selected_team
+
+def display_match_result_with_logos(team_home, score_home, team_away, score_away):
+    """
+    Exibe resultado de partida com logos dos dois times
+    """
+    html = f"""
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            {display_team_with_logo(team_home, (35, 35), show_name=False)}
+            <span style="font-weight: bold; font-size: 1.2em;">{team_home}</span>
+        </div>
+        
+        <div style="background: linear-gradient(45deg, #1f4e79, #2d5aa0); color: white; 
+                    padding: 8px 16px; border-radius: 10px; font-weight: bold; font-size: 1.3em;">
+            {score_home} x {score_away}
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: bold; font-size: 1.2em;">{team_away}</span>
+            {display_team_with_logo(team_away, (35, 35), show_name=False)}
+        </div>
+    </div>
+    """
+    return html
+
+def display_team_vs_team(team_home, team_away):
+    """
+    Exibe confronto entre dois times com logos
+    """
+    html = f"""
+    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 15px 0;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            {display_team_with_logo(team_home, (40, 40), show_name=False)}
+            <span style="font-weight: bold; font-size: 1.3em;">{team_home}</span>
+        </div>
+        
+        <div style="font-size: 1.5em; font-weight: bold; color: #1f4e79;">
+            VS
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: bold; font-size: 1.3em;">{team_away}</span>
+            {display_team_with_logo(team_away, (40, 40), show_name=False)}
+        </div>
+    </div>
+    """
+    return html
+
+def display_team_stats_header(team_name):
+    """
+    Exibe cabeçalho de estatísticas com logo do time
+    """
+    html = f"""
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+        {display_team_with_logo(team_name, (50, 50), show_name=False)}
+        <h3 style="margin: 0; color: #1f4e79;">Estatísticas de {team_name}</h3>
+    </div>
+    """
+    return html
+
+def display_ranking_team(position, team_name, stats_text=""):
+    """
+    Exibe time em ranking com posição, logo e estatísticas
+    """
+    # Emoji para posições
+    position_emoji = "🥇" if position == 1 else "🥈" if position == 2 else "🥉" if position == 3 else f"{position}°"
+    
+    html = f"""
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px; 
+                background-color: {'#fff3cd' if position <= 3 else '#f8f9fa'}; 
+                border-radius: 8px; margin-bottom: 5px;">
+        <span style="font-size: 1.2em; font-weight: bold; min-width: 35px;">{position_emoji}</span>
+        {display_team_with_logo(team_name, (30, 30), show_name=False)}
+        <span style="font-weight: 500; font-size: 1.1em;">{team_name}</span>
+        {f'<span style="margin-left: auto; color: #666;">{stats_text}</span>' if stats_text else ''}
+    </div>
+    """
+    return html
+
 # Configuração da página atualizada
 st.set_page_config(
     page_title="⚽ Análise & Estatística Brasileirão",
@@ -1964,23 +2127,31 @@ def predict_score_with_odds(df, team_home, team_away, odd_home, odd_draw, odd_aw
     }
 
 def show_advanced_score_prediction(df, teams):
-    """Interface principal para predição com odds"""
+    """Interface principal para predição com odds - COM LOGOS"""
     st.header("🎯 Predição Avançada com Odds")
     
     if not teams or len(teams) < 2:
         st.warning("É necessário pelo menos 2 times no dataset.")
         return
     
-    # Seleção de times
+    # Seleção de times com logos
     col1, col2 = st.columns(2)
     with col1:
-        team_home = st.selectbox("🏠 Time Mandante:", teams, key="advanced_home")
+        st.markdown("### 🏠 Time Mandante")
+        team_home = create_team_selectbox_with_logo("", teams, "advanced_home")
     with col2:
-        team_away = st.selectbox("✈️ Time Visitante:", teams, key="advanced_away")
+        st.markdown("### ✈️ Time Visitante")
+        team_away = create_team_selectbox_with_logo("", teams, "advanced_away")
     
     if team_home == team_away:
         st.warning("Por favor, selecione dois times diferentes.")
         return
+    
+    # Exibe confronto selecionado
+    if team_home and team_away:
+        st.markdown("---")
+        st.markdown("#### 🆚 Confronto Selecionado")
+        st.markdown(display_team_vs_team(team_home, team_away), unsafe_allow_html=True)
     
     # Input das odds
     st.subheader("📊 Odds do Confronto")
@@ -2004,40 +2175,57 @@ def show_advanced_score_prediction(df, teams):
         # Exibição dos resultados
         st.success("✅ Predição realizada com sucesso!")
         
-        # Métricas principais
+        # Métricas principais com logos
         col1, col2 = st.columns(2)
         with col1:
-            st.metric(
-                f"🎯 Expectativa de gols - {team_home}",
-                f"{resultado['expectativa_home']:.2f}",
-                delta=None
-            )
+            st.markdown(f"""
+            <div style="padding: 15px; background-color: #e8f4fd; border-radius: 10px; border-left: 4px solid #1f77b4;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    {display_team_with_logo(team_home, (30, 30), show_name=False)}
+                    <strong>Expectativa - {team_home}</strong>
+                </div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #1f77b4;">
+                    {resultado['expectativa_home']:.2f} gols
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
         with col2:
-            st.metric(
-                f"🎯 Expectativa de gols - {team_away}",
-                f"{resultado['expectativa_away']:.2f}",
-                delta=None
-            )
+            st.markdown(f"""
+            <div style="padding: 15px; background-color: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    {display_team_with_logo(team_away, (30, 30), show_name=False)}
+                    <strong>Expectativa - {team_away}</strong>
+                </div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #856404;">
+                    {resultado['expectativa_away']:.2f} gols
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
-        # Placares previstos
+        # Placares previstos com logos
         st.subheader("📋 Resultados da Predição")
         
         col1, col2 = st.columns(2)
         with col1:
-            st.info(
-                f"🎲 **Placar Mais Provável**\n\n"
-                f"{team_home} {resultado['placar_mais_provavel'][0]} x "
-                f"{resultado['placar_mais_provavel'][1]} {team_away}\n\n"
-                f"Probabilidade: {resultado['probabilidade_max']*100:.2f}%"
+            # Placar mais provável
+            placar_html = display_match_result_with_logos(
+                team_home, resultado['placar_mais_provavel'][0], 
+                team_away, resultado['placar_mais_provavel'][1]
             )
+            st.markdown("#### 🎲 Placar Mais Provável")
+            st.markdown(placar_html, unsafe_allow_html=True)
+            st.markdown(f"**Probabilidade: {resultado['probabilidade_max']*100:.2f}%**")
         
         with col2:
-            st.info(
-                f"📊 **Placar Esperado**\n\n"
-                f"{team_home} {resultado['placar_esperado'][0]} x "
-                f"{resultado['placar_esperado'][1]} {team_away}\n\n"
-                f"(Baseado no arredondamento das expectativas)"
+            # Placar esperado
+            esperado_html = display_match_result_with_logos(
+                team_home, resultado['placar_esperado'][0],
+                team_away, resultado['placar_esperado'][1]
             )
+            st.markdown("#### 📊 Placar Esperado")
+            st.markdown(esperado_html, unsafe_allow_html=True)
+            st.markdown("*(Baseado no arredondamento das expectativas)*")
         
         # Probabilidades das odds
         prob_home, prob_draw, prob_away = resultado['probabilidades_odds']
@@ -2134,7 +2322,7 @@ def predict_score_poisson(home_avg, away_avg, home_def, away_def):
 
 # Função compatível com o código original
 def show_score_prediction(df, teams):
-    """Predição de placar usando Distribuição de Poisson (Modelo Original)"""
+    """Predição de placar usando Distribuição de Poisson (Modelo Original) - COM LOGOS"""
     st.header("🎯 Predição de Placar (Distribuição de Poisson)")
 
     if not teams:
@@ -2143,13 +2331,21 @@ def show_score_prediction(df, teams):
 
     col1, col2 = st.columns(2)
     with col1:
-        team_home = st.selectbox("🏠 Time Mandante:", teams, key="poisson_home")
+        st.markdown("### 🏠 Time Mandante")
+        team_home = create_team_selectbox_with_logo("", teams, "poisson_home")
     with col2:
-        team_away = st.selectbox("✈️ Time Visitante:", teams, key="poisson_away")
+        st.markdown("### ✈️ Time Visitante")
+        team_away = create_team_selectbox_with_logo("", teams, "poisson_away")
 
     if team_home == team_away:
         st.warning("Por favor, selecione dois times diferentes.")
         return
+
+    # Exibe confronto selecionado
+    if team_home and team_away:
+        st.markdown("---")
+        st.markdown("#### 🆚 Confronto Selecionado")
+        st.markdown(display_team_vs_team(team_home, team_away), unsafe_allow_html=True)
 
     if st.button("🔮 Prever Placar"):
         # Obtém estatísticas dos times usando as funções do código original
@@ -2169,14 +2365,45 @@ def show_score_prediction(df, teams):
             away_def=away_stats['media_gols_sofridos']
         )
 
-        # Exibição de resultado
-        st.success(f"Placar mais provável: {team_home} {resultado[0]} x {resultado[1]} {team_away}")
+        # Exibição de resultado com logos
+        st.success("✅ Predição realizada com sucesso!")
+        
+        # Placar mais provável com logos
+        st.subheader("🎯 Placar Mais Provável")
+        result_html = display_match_result_with_logos(
+            team_home, resultado[0], team_away, resultado[1]
+        )
+        st.markdown(result_html, unsafe_allow_html=True)
+        
         st.metric(label="🎯 Probabilidade estimada do placar", value=f"{probabilidade*100:.2f}%")
+        
+        # Expectativas de gols com logos
         col1, col2 = st.columns(2)
         with col1:
-            st.info(f"Gols esperados para {team_home}: **{gols_esperados_home:.2f}**")
+            st.markdown(f"""
+            <div style="padding: 15px; background-color: #e8f4fd; border-radius: 10px; border-left: 4px solid #1f77b4;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    {display_team_with_logo(team_home, (25, 25), show_name=False)}
+                    <strong>{team_home}</strong>
+                </div>
+                <div style="font-size: 1.2em; font-weight: bold; color: #1f77b4;">
+                    Gols esperados: {gols_esperados_home:.2f}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
         with col2:
-            st.info(f"Gols esperados para {team_away}: **{gols_esperados_away:.2f}**")
+            st.markdown(f"""
+            <div style="padding: 15px; background-color: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    {display_team_with_logo(team_away, (25, 25), show_name=False)}
+                    <strong>{team_away}</strong>
+                </div>
+                <div style="font-size: 1.2em; font-weight: bold; color: #856404;">
+                    Gols esperados: {gols_esperados_away:.2f}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
         # Tabela com top 10 placares prováveis
         st.subheader("📋 Top 10 placares mais prováveis")
@@ -2188,7 +2415,28 @@ def show_score_prediction(df, teams):
         results.sort(key=lambda x: x[1], reverse=True)
         
         for i, ((h, a), p) in enumerate(results[:10], 1):
-            st.write(f"{i}. {team_home} {h} x {a} {team_away} – {p*100:.2f}%")
+            # Emoji para posições
+            emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+            
+            # HTML do placar com logos pequenos
+            score_html = f"""
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px; 
+                        background-color: {'#f8f9fa' if i > 3 else '#e8f5e8'}; 
+                        border-radius: 8px; margin-bottom: 5px;">
+                <span style="font-weight: bold; min-width: 30px;">{emoji}</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    {display_team_with_logo(team_home, (20, 20), show_name=False)}
+                    <span style="font-weight: 500;">{team_home}</span>
+                </div>
+                <span style="font-weight: bold; font-size: 1.1em; color: #1f4e79;">{h} x {a}</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-weight: 500;">{team_away}</span>
+                    {display_team_with_logo(team_away, (20, 20), show_name=False)}
+                </div>
+                <span style="margin-left: auto; font-weight: bold; color: #28a745;">{p*100:.2f}%</span>
+            </div>
+            """
+            st.markdown(score_html, unsafe_allow_html=True)
 
 
 def main():
@@ -2390,14 +2638,17 @@ def main():
             st.write(df_original['Ano'].value_counts().sort_index())
 
 def show_team_performance(df, teams):
-    """Exibe análise de desempenho de um time selecionado."""
+    """Exibe análise de desempenho de um time selecionado - COM LOGOS."""
     st.header("🏆 Análise de Desempenho de Time")
     
     if not teams:
         st.warning("Nenhum time disponível.")
         return
         
-    team = st.selectbox("Selecione o time para análise:", teams, key="team_performance")
+    # Seleção do time com logo
+    st.markdown("### Selecione o time para análise:")
+    team = create_team_selectbox_with_logo("", teams, "team_performance")
+    
     if not team:
         st.warning("Selecione um time.")
         return
@@ -2405,34 +2656,53 @@ def show_team_performance(df, teams):
     stats_home = calculate_team_stats(df, team, as_home=True)
     stats_away = calculate_team_stats(df, team, as_home=False)
     
-    st.subheader(f"📊 Estatísticas de {team}")
+    # Cabeçalho com logo
+    st.markdown("---")
+    header_html = display_team_stats_header(team)
+    st.markdown(header_html, unsafe_allow_html=True)
+    
+    # Resto da função continua igual...
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write("**Como Mandante:**")
-        st.write(f"Jogos: {stats_home['jogos']}")
-        st.write(f"Vitórias: {stats_home['vitorias']}")
-        st.write(f"Empates: {stats_home['empates']}")
-        st.write(f"Derrotas: {stats_home['derrotas']}")
-        st.write(f"Gols/Jogo: {stats_home['media_gols_feitos']:.2f}")
-        st.write(f"Gols Sofridos/Jogo: {stats_home['media_gols_sofridos']:.2f}")
-        st.write(f"Escanteios/Jogo: {stats_home['media_escanteios_feitos']:.2f}")
-        st.write(f"Escanteios Sofridos/Jogo: {stats_home['media_escanteios_sofridos']:.2f}")
+        st.markdown("#### 🏠 Como Mandante")
+        st.metric("Jogos", stats_home['jogos'])
+        st.metric("Vitórias", stats_home['vitorias'])
+        st.metric("Empates", stats_home['empates'])
+        st.metric("Derrotas", stats_home['derrotas'])
+        st.metric("Gols Feitos", stats_home['gols_feitos'])
+        st.metric("Gols Sofridos", stats_home['gols_sofridos'])
+        st.metric("Média Gols Feitos/Jogo", f"{stats_home['media_gols_feitos']:.2f}")
+        st.metric("Média Gols Sofridos/Jogo", f"{stats_home['media_gols_sofridos']:.2f}")
         
+        if 'escanteios_feitos' in stats_home:
+            st.metric("Escanteios Feitos", stats_home['escanteios_feitos'])
+            st.metric("Escanteios Sofridos", stats_home['escanteios_sofridos'])
+            st.metric("Média Escanteios Feitos/Jogo", f"{stats_home['media_escanteios_feitos']:.2f}")
+            st.metric("Média Escanteios Sofridos/Jogo", f"{stats_home['media_escanteios_sofridos']:.2f}")
+
     with col2:
-        st.write("**Como Visitante:**")
-        st.write(f"Jogos: {stats_away['jogos']}")
-        st.write(f"Vitórias: {stats_away['vitorias']}")
-        st.write(f"Empates: {stats_away['empates']}")
-        st.write(f"Derrotas: {stats_away['derrotas']}")
-        st.write(f"Gols/Jogo: {stats_away['media_gols_feitos']:.2f}")
-        st.write(f"Gols Sofridos/Jogo: {stats_away['media_gols_sofridos']:.2f}")
-        st.write(f"Escanteios/Jogo: {stats_away['media_escanteios_feitos']:.2f}")
-        st.write(f"Escanteios Sofridos/Jogo: {stats_away['media_escanteios_sofridos']:.2f}")
+        st.markdown("#### ✈️ Como Visitante")
+        st.metric("Jogos", stats_away['jogos'])
+        st.metric("Vitórias", stats_away['vitorias'])
+        st.metric("Empates", stats_away['empates'])
+        st.metric("Derrotas", stats_away['derrotas'])
+        st.metric("Gols Feitos", stats_away['gols_feitos'])
+        st.metric("Gols Sofridos", stats_away['gols_sofridos'])
+        st.metric("Média Gols Feitos/Jogo", f"{stats_away['media_gols_feitos']:.2f}")
+        st.metric("Média Gols Sofridos/Jogo", f"{stats_away['media_gols_sofridos']:.2f}")
+        
+        if 'escanteios_feitos' in stats_away:
+            st.metric("Escanteios Feitos", stats_away['escanteios_feitos'])
+            st.metric("Escanteios Sofridos", stats_away['escanteios_sofridos'])
+            st.metric("Média Escanteios Feitos/Jogo", f"{stats_away['media_escanteios_feitos']:.2f}")
+            st.metric("Média Escanteios Sofridos/Jogo", f"{stats_away['media_escanteios_sofridos']:.2f}")
+
 
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
