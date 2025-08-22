@@ -2273,9 +2273,13 @@ def main():
             elif ano_selecionado == "Todos os Anos":
                 st.metric("📅 Período", f"{min(anos)} - {max(anos)}")
             else:
-                total_gols = df['Gols Home'].sum() + df['Gols  Away'].sum()
-                media_gols = total_gols / len(df) if len(df) > 0 else 0
-                st.metric("⚽ Média Gols/Jogo", f"{media_gols:.2f}")
+                # Verifica se as colunas existem antes de calcular
+                if 'Gols Home' in df.columns and 'Gols  Away' in df.columns:
+                    total_gols = df['Gols Home'].sum() + df['Gols  Away'].sum()
+                    media_gols = total_gols / len(df) if len(df) > 0 else 0
+                    st.metric("⚽ Média Gols/Jogo", f"{media_gols:.2f}")
+                else:
+                    st.metric("⚽ Média Gols/Jogo", "N/A")
 
     # Inicializa seleção de análise
     if 'selected_analysis' not in st.session_state:
@@ -2429,6 +2433,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
