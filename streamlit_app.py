@@ -158,6 +158,7 @@ def display_score_result_with_logos(team_home, score_home, score_away, team_away
     
     st.markdown(result_html, unsafe_allow_html=True)
 
+
 # Configuração da página atualizada
 st.set_page_config(
     page_title="⚽ Análise & Estatística Brasileirão",
@@ -2358,13 +2359,17 @@ def show_score_prediction(df, teams):
         
         col1, col2 = st.columns(2)
         with col1:
-            st.info(f"Gols esperados:")
-            display_team_with_logo(team_home, logo_size=(20, 20))
-            st.markdown(f"**{gols_esperados_home:.2f} gols**")
+            st.info("🏠 Gols esperados - Mandante")
+            logo_home = TEAM_LOGOS.get(team_home, "")
+            if logo_home:
+                st.markdown(f'<img src="{logo_home}" width="25" style="border-radius: 3px;">', unsafe_allow_html=True)
+            st.markdown(f"**{team_home}: {gols_esperados_home:.2f} gols**")
         with col2:
-            st.info(f"Gols esperados:")
-            display_team_with_logo(team_away, logo_size=(20, 20))
-            st.markdown(f"**{gols_esperados_away:.2f} gols**")
+            st.info("✈️ Gols esperados - Visitante")  
+            logo_away = TEAM_LOGOS.get(team_away, "")
+            if logo_away:
+                st.markdown(f'<img src="{logo_away}" width="25" style="border-radius: 3px;">', unsafe_allow_html=True)
+            st.markdown(f"**{team_away}: {gols_esperados_away:.2f} gols**")
 
         # Tabela com top 10 placares prováveis
         st.subheader("📋 Top 10 placares mais prováveis")
@@ -2659,6 +2664,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
