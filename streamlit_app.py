@@ -123,7 +123,7 @@ def display_vs_matchup(team_home, team_away):
         st.markdown(
             _clean_html(f"""
 <div style="text-align:right;">
-  {get_team_display_name_with_logo(team_home, logo_size=(30, 30))}
+  {get_team_display_name_with_logo(team_home, logo_size=(70, 70))}
 </div>
 """),
             unsafe_allow_html=True,
@@ -141,7 +141,7 @@ def display_vs_matchup(team_home, team_away):
         st.markdown(
             _clean_html(f"""
 <div style="text-align:left;">
-  {get_team_display_name_with_logo(team_away, logo_size=(30, 30))}
+  {get_team_display_name_with_logo(team_away, logo_size=(70, 70))}
 </div>
 """),
             unsafe_allow_html=True,
@@ -164,7 +164,7 @@ def display_score_result_with_logos(team_home, score_home, score_away, team_away
 
   <div style="display:flex; align-items:center; gap:10px;">
     <img src="{logo_url_home}"
-         style="width:50px; height:50px; border-radius:5px; object-fit:contain;"
+         style="width:70px; height:70px; border-radius:5px; object-fit:contain;"
          onerror="this.style.display='none';"
          alt="{team_home}">
     <span style="font-weight:bold; font-size:1.1em; color:#2e7d32;">{team_home}</span>
@@ -2199,7 +2199,7 @@ def show_advanced_score_prediction(df, teams):
             st.markdown(f"""
             <div style="padding: 15px; background-color: #e8f4fd; border-radius: 10px; border-left: 4px solid #1f77b4;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    {display_team_with_logo(team_home, (30, 30), show_name=False)}
+                    {display_team_with_logo(team_home, (70, 70), show_name=False)}
                     <strong>Expectativa - {team_home}</strong>
                 </div>
                 <div style="font-size: 1.5em; font-weight: bold; color: #1f77b4;">
@@ -2212,7 +2212,7 @@ def show_advanced_score_prediction(df, teams):
             st.markdown(f"""
             <div style="padding: 15px; background-color: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    {display_team_with_logo(team_away, (30, 30), show_name=False)}
+                    {display_team_with_logo(team_away, (70, 70), show_name=False)}
                     <strong>Expectativa - {team_away}</strong>
                 </div>
                 <div style="font-size: 1.5em; font-weight: bold; color: #856404;">
@@ -2693,6 +2693,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
