@@ -59,12 +59,12 @@ TEAM_LOGOS = {
 
 def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
     """
-    Retorna HTML para exibir o nome do time com logo
+    Retorna HTML (string) para exibir o nome do time com logo.
     """
     logo_url = TEAM_LOGOS.get(team_name)
-    
+
     if logo_url:
-        html = f"""
+        return f"""
         <div style="display: flex; align-items: center; gap: 8px; margin: 2px 0;">
             <img src="{logo_url}" 
                  style="width: {logo_size[0]}px; height: {logo_size[1]}px; border-radius: 4px; object-fit: contain;"
@@ -73,59 +73,69 @@ def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
             <span style="font-weight: 500; color: #1f4e79;">{team_name}</span>
         </div>
         """
-        return html
     else:
-        # Fallback: apenas emoji + nome
+        # fallback
         return f"⚽ <span style='font-weight: 500; color: #1f4e79;'>{team_name}</span>"
+
 
 def display_team_with_logo(team_name, logo_size=(25, 25)):
     """
-    Exibe o nome do time com logo usando st.markdown
+    Exibe diretamente no Streamlit o time com logo.
     """
     html = get_team_display_name_with_logo(team_name, logo_size)
     st.markdown(html, unsafe_allow_html=True)
 
+
 def create_team_selectbox_with_logos(label, teams, key, logo_size=(20, 20)):
     """
-    Cria um selectbox normal e exibe o time selecionado com logo
+    Cria selectbox para escolher times e exibe logo abaixo o time selecionado.
     """
     if not teams:
         return st.selectbox(label, [], key=key)
-    
-    # Selectbox normal
+
     selected_team = st.selectbox(label, teams, key=key)
-    
-    # Exibe o time selecionado com logo logo abaixo
+
     if selected_team:
-        html = get_team_display_name_with_logo(selected_team, logo_size)
-        st.markdown(f"<div style='margin-top: -10px; margin-bottom: 10px;'>{html}</div>", unsafe_allow_html=True)
-    
+        st.markdown(
+            f"<div style='margin-top: -10px; margin-bottom: 10px;'>{get_team_display_name_with_logo(selected_team, logo_size)}</div>",
+            unsafe_allow_html=True,
+        )
+
     return selected_team
+
 
 def display_vs_matchup(team_home, team_away):
     """
-    Exibe confronto entre dois times com logos
+    Exibe confronto entre dois times com logos centralizado.
     """
     col1, col2, col3 = st.columns([2, 1, 2])
-    
+
     with col1:
-        html_home = get_team_display_name_with_logo(team_home, logo_size=(30, 30))
-        st.markdown(f"<div style='text-align: right;'>{html_home}</div>", unsafe_allow_html=True)
-    
+        st.markdown(
+            f"<div style='text-align: right;'>{get_team_display_name_with_logo(team_home, logo_size=(30, 30))}</div>",
+            unsafe_allow_html=True,
+        )
+
     with col2:
-        st.markdown("<h3 style='text-align: center; color: #1f4e79; margin: 10px 0;'>VS</h3>", unsafe_allow_html=True)
-    
+        st.markdown(
+            "<h3 style='text-align: center; color: #1f4e79; margin: 10px 0;'>VS</h3>",
+            unsafe_allow_html=True,
+        )
+
     with col3:
-        html_away = get_team_display_name_with_logo(team_away, logo_size=(30, 30))
-        st.markdown(f"<div style='text-align: left;'>{html_away}</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='text-align: left;'>{get_team_display_name_with_logo(team_away, logo_size=(30, 30))}</div>",
+            unsafe_allow_html=True,
+        )
+
 
 def display_score_result_with_logos(team_home, score_home, score_away, team_away):
     """
-    Exibe resultado do placar com logos dos times
+    Exibe resultado do placar com logos dos times.
     """
     logo_url_home = TEAM_LOGOS.get(team_home, "")
     logo_url_away = TEAM_LOGOS.get(team_away, "")
-    
+
     result_html = f"""
     <div style="display: flex; align-items: center; justify-content: center; gap: 15px; 
                 background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
@@ -155,7 +165,7 @@ def display_score_result_with_logos(team_home, score_home, score_away, team_away
         </div>
     </div>
     """
-    
+
     st.markdown(result_html, unsafe_allow_html=True)
 
 
@@ -2664,6 +2674,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
