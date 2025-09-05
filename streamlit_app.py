@@ -14,6 +14,7 @@ warnings.filterwarnings('ignore')
 import base64
 import requests
 from io import BytesIO
+from textwrap import dedent
 
 # Mapeamento de nomes dos times para URLs dos logos
 TEAM_LOGOS = {
@@ -57,38 +58,42 @@ TEAM_LOGOS = {
         "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png"
     }
 
+def _clean_html(s: str) -> str:
+    """Remove indentação comum e espaços extras no início/fim para evitar code blocks no Markdown."""
+    return dedent(s).strip()
+
 def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
     """
     Retorna HTML (string) para exibir o nome do time com logo.
+    SEM indentação à esquerda para não virar bloco de código no Markdown.
     """
     logo_url = TEAM_LOGOS.get(team_name)
-
     if logo_url:
-        return f"""
-        <div style="display: flex; align-items: center; gap: 8px; margin: 2px 0;">
-            <img src="{logo_url}" 
-                 style="width: {logo_size[0]}px; height: {logo_size[1]}px; border-radius: 4px; object-fit: contain;"
-                 onerror="this.style.display='none';"
-                 alt="{team_name}">
-            <span style="font-weight: 500; color: #1f4e79;">{team_name}</span>
-        </div>
-        """
-    else:
-        # fallback
-        return f"⚽ <span style='font-weight: 500; color: #1f4e79;'>{team_name}</span>"
+        return _clean_html(f"""
+<div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
+  <img src="{logo_url}"
+       style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;"
+       onerror="this.style.display='none';"
+       alt="{team_name}">
+  <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
+</div>
+""")
+    # fallback
+    return _clean_html(f"""
+<span>⚽</span> <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
+""")
 
 
 def display_team_with_logo(team_name, logo_size=(25, 25)):
     """
     Exibe diretamente no Streamlit o time com logo.
     """
-    html = get_team_display_name_with_logo(team_name, logo_size)
-    st.markdown(html, unsafe_allow_html=True)
+    st.markdown(get_team_display_name_with_logo(team_name, logo_size), unsafe_allow_html=True)
 
 
 def create_team_selectbox_with_logos(label, teams, key, logo_size=(20, 20)):
     """
-    Cria selectbox para escolher times e exibe logo abaixo o time selecionado.
+    Cria selectbox e exibe abaixo o time selecionado com logo (HTML limpo).
     """
     if not teams:
         return st.selectbox(label, [], key=key)
@@ -97,7 +102,11 @@ def create_team_selectbox_with_logos(label, teams, key, logo_size=(20, 20)):
 
     if selected_team:
         st.markdown(
-            f"<div style='margin-top: -10px; margin-bottom: 10px;'>{get_team_display_name_with_logo(selected_team, logo_size)}</div>",
+            _clean_html(f"""
+<div style="margin-top:-10px; margin-bottom:10px;">
+  {get_team_display_name_with_logo(selected_team, logo_size)}
+</div>
+"""),
             unsafe_allow_html=True,
         )
 
@@ -106,25 +115,35 @@ def create_team_selectbox_with_logos(label, teams, key, logo_size=(20, 20)):
 
 def display_vs_matchup(team_home, team_away):
     """
-    Exibe confronto entre dois times com logos centralizado.
+    Exibe confronto entre dois times com logos, centralizado.
     """
     col1, col2, col3 = st.columns([2, 1, 2])
 
     with col1:
         st.markdown(
-            f"<div style='text-align: right;'>{get_team_display_name_with_logo(team_home, logo_size=(30, 30))}</div>",
+            _clean_html(f"""
+<div style="text-align:right;">
+  {get_team_display_name_with_logo(team_home, logo_size=(30, 30))}
+</div>
+"""),
             unsafe_allow_html=True,
         )
 
     with col2:
         st.markdown(
-            "<h3 style='text-align: center; color: #1f4e79; margin: 10px 0;'>VS</h3>",
+            _clean_html("""
+<h3 style="text-align:center; color:#1f4e79; margin:10px 0;">VS</h3>
+"""),
             unsafe_allow_html=True,
         )
 
     with col3:
         st.markdown(
-            f"<div style='text-align: left;'>{get_team_display_name_with_logo(team_away, logo_size=(30, 30))}</div>",
+            _clean_html(f"""
+<div style="text-align:left;">
+  {get_team_display_name_with_logo(team_away, logo_size=(30, 30))}
+</div>
+"""),
             unsafe_allow_html=True,
         )
 
@@ -132,42 +151,42 @@ def display_vs_matchup(team_home, team_away):
 def display_score_result_with_logos(team_home, score_home, score_away, team_away):
     """
     Exibe resultado do placar com logos dos times.
+    IMPORTANTE: sem indentação à esquerda no HTML.
     """
     logo_url_home = TEAM_LOGOS.get(team_home, "")
     logo_url_away = TEAM_LOGOS.get(team_away, "")
 
-    result_html = f"""
-    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; 
-                background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
-                padding: 20px; border-radius: 12px; margin: 15px 0;
-                border: 2px solid #4caf50; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-        
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="{logo_url_home}" 
-                 style="width: 30px; height: 30px; border-radius: 5px; object-fit: contain;" 
-                 onerror="this.style.display='none';" 
-                 alt="{team_home}">
-            <span style="font-weight: bold; font-size: 1.1em; color: #2e7d32;">{team_home}</span>
-        </div>
-        
-        <div style="font-size: 2em; font-weight: bold; color: #1b5e20; 
-                    background-color: white; padding: 10px 20px; border-radius: 25px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-width: 120px; text-align: center;">
-            {score_home} × {score_away}
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-weight: bold; font-size: 1.1em; color: #2e7d32;">{team_away}</span>
-            <img src="{logo_url_away}" 
-                 style="width: 30px; height: 30px; border-radius: 5px; object-fit: contain;" 
-                 onerror="this.style.display='none';" 
-                 alt="{team_away}">
-        </div>
-    </div>
-    """
+    result_html = _clean_html(f"""
+<div style="display:flex; align-items:center; justify-content:center; gap:15px;
+            background:linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            padding:20px; border-radius:12px; margin:15px 0;
+            border:2px solid #4caf50; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="{logo_url_home}"
+         style="width:30px; height:30px; border-radius:5px; object-fit:contain;"
+         onerror="this.style.display='none';"
+         alt="{team_home}">
+    <span style="font-weight:bold; font-size:1.1em; color:#2e7d32;">{team_home}</span>
+  </div>
+
+  <div style="font-size:2em; font-weight:bold; color:#1b5e20;
+              background-color:white; padding:10px 20px; border-radius:25px;
+              box-shadow:0 2px 6px rgba(0,0,0,0.1); min-width:120px; text-align:center;">
+    {score_home} × {score_away}
+  </div>
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <span style="font-weight:bold; font-size:1.1em; color:#2e7d32;">{team_away}</span>
+    <img src="{logo_url_away}"
+         style="width:30px; height:30px; border-radius:5px; object-fit:contain;"
+         onerror="this.style.display='none';"
+         alt="{team_away}">
+  </div>
+</div>
+""")
 
     st.markdown(result_html, unsafe_allow_html=True)
-
 
 # Configuração da página atualizada
 st.set_page_config(
@@ -2391,27 +2410,26 @@ def show_score_prediction(df, teams):
         results.sort(key=lambda x: x[1], reverse=True)
         
         for i, ((h, a), p) in enumerate(results[:10], 1):
-            emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+    emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
             
-            # Cria HTML para cada linha do ranking
             html_home = get_team_display_name_with_logo(team_home, logo_size=(16, 16))
             html_away = get_team_display_name_with_logo(team_away, logo_size=(16, 16))
-            
-            ranking_html = f"""
-            <div style="display: flex; align-items: center; justify-content: space-between; 
-                        background-color: {'#fff3cd' if i <= 3 else '#f8f9fa'}; 
-                        padding: 8px 12px; margin: 4px 0; border-radius: 6px;
-                        border-left: 3px solid {'#ffc107' if i <= 3 else '#dee2e6'};">
-                <span style="font-weight: bold; min-width: 30px;">{emoji}</span>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    {html_home}
-                    <span style="font-weight: bold; color: #1f4e79; margin: 0 5px;">{h} x {a}</span>
-                    {html_away}
-                </div>
-                <span style="font-weight: bold; color: #28a745;">{p*100:.2f}%</span>
-            </div>
-            """
-            st.markdown(ranking_html, unsafe_allow_html=True)
+
+            ranking_html = _clean_html(f"""
+<div style="display:flex; align-items:center; justify-content:space-between;
+            background-color:{'#fff3cd' if i <= 3 else '#f8f9fa'};
+            padding:8px 12px; margin:4px 0; border-radius:6px;
+            border-left:3px solid {'#ffc107' if i <= 3 else '#dee2e6'};">
+  <span style="font-weight:bold; min-width:30px;">{emoji}</span>
+  <div style="display:flex; align-items:center; gap:10px;">
+    {html_home}
+    <span style="font-weight:bold; color:#1f4e79; margin:0 5px;">{h} x {a}</span>
+    {html_away}
+  </div>
+  <span style="font-weight:bold; color:#28a745;">{p*100:.2f}%</span>
+</div>
+""")
+    st.markdown(ranking_html, unsafe_allow_html=True)
 
 def main():
     st.markdown('<h1 class="main-header">⚽ Análise & Estatística Brasileirão</h1>', unsafe_allow_html=True)
@@ -2674,6 +2692,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
