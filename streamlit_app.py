@@ -164,7 +164,7 @@ def display_score_result_with_logos(team_home, score_home, score_away, team_away
 
   <div style="display:flex; align-items:center; gap:10px;">
     <img src="{logo_url_home}"
-         style="width:30px; height:30px; border-radius:5px; object-fit:contain;"
+         style="width:50px; height:50px; border-radius:5px; object-fit:contain;"
          onerror="this.style.display='none';"
          alt="{team_home}">
     <span style="font-weight:bold; font-size:1.1em; color:#2e7d32;">{team_home}</span>
@@ -2412,8 +2412,8 @@ def show_score_prediction(df, teams):
         for i, ((h, a), p) in enumerate(results[:10], 1):
             emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
 
-            html_home = get_team_display_name_with_logo(team_home, logo_size=(16, 16))
-            html_away = get_team_display_name_with_logo(team_away, logo_size=(16, 16))
+            html_home = get_team_display_name_with_logo(team_home, logo_size=(50, 50))
+            html_away = get_team_display_name_with_logo(team_away, logo_size=(50, 50))
 
             ranking_html = _clean_html(f"""
 <div style="display:flex; align-items:center; justify-content:space-between;
@@ -2693,6 +2693,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
