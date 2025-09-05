@@ -2408,18 +2408,18 @@ def show_score_prediction(df, teams):
                 prob = poisson.pmf(h, gols_esperados_home) * poisson.pmf(a, gols_esperados_away)
                 results.append(((h, a), prob))
         results.sort(key=lambda x: x[1], reverse=True)
-        
+
         for i, ((h, a), p) in enumerate(results[:10], 1):
-    emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-            
+            emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+
             html_home = get_team_display_name_with_logo(team_home, logo_size=(16, 16))
             html_away = get_team_display_name_with_logo(team_away, logo_size=(16, 16))
 
             ranking_html = _clean_html(f"""
 <div style="display:flex; align-items:center; justify-content:space-between;
-            background-color:{'#fff3cd' if i <= 3 else '#f8f9fa'};
-            padding:8px 12px; margin:4px 0; border-radius:6px;
-            border-left:3px solid {'#ffc107' if i <= 3 else '#dee2e6'};">
+    background-color:{'#fff3cd' if i <= 3 else '#f8f9fa'};
+    padding:8px 12px; margin:4px 0; border-radius:6px;
+    border-left:3px solid {'#ffc107' if i <= 3 else '#dee2e6'};">
   <span style="font-weight:bold; min-width:30px;">{emoji}</span>
   <div style="display:flex; align-items:center; gap:10px;">
     {html_home}
@@ -2429,7 +2429,8 @@ def show_score_prediction(df, teams):
   <span style="font-weight:bold; color:#28a745;">{p*100:.2f}%</span>
 </div>
 """)
-    st.markdown(ranking_html, unsafe_allow_html=True)
+            st.markdown(ranking_html, unsafe_allow_html=True)
+
 
 def main():
     st.markdown('<h1 class="main-header">⚽ Análise & Estatística Brasileirão</h1>', unsafe_allow_html=True)
@@ -2692,6 +2693,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
