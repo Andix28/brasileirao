@@ -179,7 +179,7 @@ def display_score_result_with_logos(team_home, score_home, score_away, team_away
   <div style="display:flex; align-items:center; gap:10px;">
     <span style="font-weight:bold; font-size:1.1em; color:#2e7d32;">{team_away}</span>
     <img src="{logo_url_away}"
-         style="width:30px; height:30px; border-radius:5px; object-fit:contain;"
+         style="width:70px; height:70px; border-radius:5px; object-fit:contain;"
          onerror="this.style.display='none';"
          alt="{team_away}">
   </div>
@@ -2693,6 +2693,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
