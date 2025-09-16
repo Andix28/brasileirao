@@ -1257,7 +1257,7 @@ def analyze_confronto_odds(confrontos, team1, team2):
 
 def show_probability_analysis(df, teams):
     """Análise de Valor baseada no Histórico de Performance por Faixas de Odds"""
-    st.header("🎯 Análise de Valor - Histórico vs Odds Atuais")
+    st.header("🎯 Probabilidade com historico das ODDs")
     
     if df is None or df.empty:
         st.error("Dados não disponíveis para análise.")
@@ -1278,15 +1278,93 @@ def show_probability_analysis(df, teams):
         st.error("⚠️ Selecione times diferentes para análise")
         return
 
-    # Inserção das odds atuais
+    # Inserção das odds atuais com sliders
     st.subheader("📊 Odds do Confronto")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        odd_home = st.number_input("🏠 Odd Mandante:", min_value=1.01, value=2.30, step=0.01, format="%.2f")
-    with col2:
-        odd_draw = st.number_input("🤝 Odd Empate:", min_value=1.01, value=3.10, step=0.01, format="%.2f")
-    with col3:
-        odd_away = st.number_input("✈️ Odd Visitante:", min_value=1.01, value=3.30, step=0.01, format="%.2f")
+    
+    # Container para melhor organização visual
+    with st.container():
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.write("🏠 **Odd Mandante**")
+            odd_home = st.slider(
+                "Valor:",
+                min_value=1.01,
+                max_value=10.0,
+                value=2.30,
+                step=0.01,
+                format="%.2f",
+                key="slider_home",
+                help="Use o slider ou digite diretamente o valor"
+            )
+            # Campo de entrada numérica adicional para valores precisos
+            odd_home_input = st.number_input(
+                "Ou digite o valor exato:",
+                min_value=1.01,
+                max_value=50.0,
+                value=odd_home,
+                step=0.01,
+                format="%.2f",
+                key="input_home"
+            )
+            # Usa o valor digitado se foi alterado
+            if odd_home_input != odd_home:
+                odd_home = odd_home_input
+
+        with col2:
+            st.write("🤝 **Odd Empate**")
+            odd_draw = st.slider(
+                "Valor:",
+                min_value=1.01,
+                max_value=10.0,
+                value=3.10,
+                step=0.01,
+                format="%.2f",
+                key="slider_draw",
+                help="Use o slider ou digite diretamente o valor"
+            )
+            # Campo de entrada numérica adicional para valores precisos
+            odd_draw_input = st.number_input(
+                "Ou digite o valor exato:",
+                min_value=1.01,
+                max_value=50.0,
+                value=odd_draw,
+                step=0.01,
+                format="%.2f",
+                key="input_draw"
+            )
+            # Usa o valor digitado se foi alterado
+            if odd_draw_input != odd_draw:
+                odd_draw = odd_draw_input
+
+        with col3:
+            st.write("✈️ **Odd Visitante**")
+            odd_away = st.slider(
+                "Valor:",
+                min_value=1.01,
+                max_value=10.0,
+                value=3.30,
+                step=0.01,
+                format="%.2f",
+                key="slider_away",
+                help="Use o slider ou digite diretamente o valor"
+            )
+            # Campo de entrada numérica adicional para valores precisos
+            odd_away_input = st.number_input(
+                "Ou digite o valor exato:",
+                min_value=1.01,
+                max_value=50.0,
+                value=odd_away,
+                step=0.01,
+                format="%.2f",
+                key="input_away"
+            )
+            # Usa o valor digitado se foi alterado
+            if odd_away_input != odd_away:
+                odd_away = odd_away_input
+
+    # Exibir valores atuais selecionados
+    st.info(f"**Valores selecionados:** 🏠 {odd_home:.2f} | 🤝 {odd_draw:.2f} | ✈️ {odd_away:.2f}")
 
     if st.button("🔍 Analisar Valor nas Odds", type="primary"):
         # Probabilidades implícitas
@@ -2693,6 +2771,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
