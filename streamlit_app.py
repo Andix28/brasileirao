@@ -1393,18 +1393,32 @@ def analyze_team_comprehensive(df, team, position, current_odd):
     if position == "Home":
         games = df[df['Home'] == team].copy()
         odd_col = 'odd Home'
-        result_col = 'Resultado Home'
-        success_condition = 'Vitoria'
     else:
         games = df[df['Away'] == team].copy()
         odd_col = 'odd Away'
-        result_col = 'Resultado Away'
-        success_condition = 'Vitoria'
     
     if games.empty or len(games) < 10:
         return {"error": "Dados insuficientes para análise"}
     
-    games = games.dropna(subset=[odd_col, result_col])
+    # Verifica se as colunas necessárias existem
+    required_cols = [odd_col, 'Gols Home', 'Gols Away']
+    missing_cols = [col for col in required_cols if col not in games.columns]
+    if missing_cols:
+        return {"error": f"Colunas não encontradas: {missing_cols}"}
+    
+    games = games.dropna(subset=required_cols)
+    
+    # Calcula o resultado baseado nos gols
+    if position == "Home":
+        games['Resultado'] = games.apply(lambda row: 
+            'Vitoria' if row['Gols Home'] > row['Gols Away'] else
+            'Empate' if row['Gols Home'] == row['Gols Away'] else
+            'Derrota', axis=1)
+    else:
+        games['Resultado'] = games.apply(lambda row: 
+            'Vitoria' if row['Gols Away'] > row['Gols Home'] else
+            'Empate' if row['Gols Home'] == row['Gols Away'] else
+            'Derrota', axis=1)
     
     # Categorização por odds
     faixas_odds = categorize_odds(games, odd_col, current_odd)
@@ -1414,18 +1428,15 @@ def analyze_team_comprehensive(df, team, position, current_odd):
     for categoria, filtro_games in faixas_odds.items():
         if len(filtro_games) >= 3:
             total = len(filtro_games)
-            vitorias = len(filtro_games[filtro_games[result_col] == success_condition])
-            empates = len(filtro_games[filtro_games[result_col] == 'Empate'])
-            derrotas = total - vitorias - empates
+            vitorias = len(filtro_games[filtro_games['Resultado'] == 'Vitoria'])
+            empates = len(filtro_games[filtro_games['Resultado'] == 'Empate'])
+            derrotas = len(filtro_games[filtro_games['Resultado'] == 'Derrota'])
             
             # Análise de gols
-            if 'Gols Home' in filtro_games.columns and 'Gols Away' in filtro_games.columns:
-                filtro_games['Total_Gols'] = filtro_games['Gols Home'] + filtro_games['Gols Away']
-                over_15 = len(filtro_games[filtro_games['Total_Gols'] > 1.5])
-                over_25 = len(filtro_games[filtro_games['Total_Gols'] > 2.5])
-                under_25 = total - over_25
-            else:
-                over_15 = over_25 = under_25 = 0
+            filtro_games['Total_Gols'] = filtro_games['Gols Home'] + filtro_games['Gols Away']
+            over_15 = len(filtro_games[filtro_games['Total_Gols'] > 1.5])
+            over_25 = len(filtro_games[filtro_games['Total_Gols'] > 2.5])
+            under_25 = total - over_25
             
             resultados.append({
                 'categoria': categoria,
@@ -1568,12 +1579,20 @@ def analyze_draw_comprehensive(df, team_home, team_away, current_odd):
     if direct_games.empty and (home_games.empty or away_games.empty):
         return {"error": "Dados insuficientes"}
     
+    # Verifica colunas necessárias
+    required_cols = ['odd Draw', 'Gols Home', 'Gols Away']
+    
     # Análise de confrontos diretos
     direct_analysis = None
-    if len(direct_games) >= 5:
-        empates_diretos = len(direct_games[direct_games['Resultado Home'] == 'Empate'])
+    if len(direct_games) >= 5 and all(col in direct_games.columns for col in required_cols):
+        direct_games = direct_games.dropna(subset=required_cols)
+        # Calcula empates baseado nos gols
+        direct_games['Resultado'] = direct_games.apply(lambda row: 
+            'Empate' if row['Gols Home'] == row['Gols Away'] else 'Nao_Empate', axis=1)
+        
+        empates_diretos = len(direct_games[direct_games['Resultado'] == 'Empate'])
         total_diretos = len(direct_games)
-        perc_empates_diretos = (empates_diretos / total_diretos) * 100
+        perc_empates_diretos = (empates_diretos / total_diretos) * 100 if total_diretos > 0 else 0
         
         direct_analysis = {
             'total': total_diretos,
@@ -1582,21 +1601,29 @@ def analyze_draw_comprehensive(df, team_home, team_away, current_odd):
         }
     
     # Análise por faixas de odd
-    all_draw_games = pd.concat([home_games, away_games]).dropna(subset=['odd Draw', 'Resultado Home'])
+    all_games = pd.concat([home_games, away_games])
+    all_games = all_games.dropna(subset=required_cols)
+    
+    if all_games.empty:
+        return {"error": "Dados insuficientes após limpeza"}
+    
+    # Calcula resultados para todos os jogos
+    all_games['Resultado'] = all_games.apply(lambda row: 
+        'Empate' if row['Gols Home'] == row['Gols Away'] else 'Nao_Empate', axis=1)
     
     faixas_empate = {
-        'Empate Muito Provável': all_draw_games[all_draw_games['odd Draw'] <= 2.5],
-        'Empate Provável': all_draw_games[(all_draw_games['odd Draw'] > 2.5) & (all_draw_games['odd Draw'] <= 3.2)],
-        'Empate Possível': all_draw_games[(all_draw_games['odd Draw'] > 3.2) & (all_draw_games['odd Draw'] <= 4.0)],
-        'Empate Improvável': all_draw_games[all_draw_games['odd Draw'] > 4.0]
+        'Empate Muito Provável': all_games[all_games['odd Draw'] <= 2.5],
+        'Empate Provável': all_games[(all_games['odd Draw'] > 2.5) & (all_games['odd Draw'] <= 3.2)],
+        'Empate Possível': all_games[(all_games['odd Draw'] > 3.2) & (all_games['odd Draw'] <= 4.0)],
+        'Empate Improvável': all_games[all_games['odd Draw'] > 4.0]
     }
     
     resultados = []
     for categoria, games in faixas_empate.items():
         if len(games) >= 3:
             total = len(games)
-            empates = len(games[games['Resultado Home'] == 'Empate'])
-            perc_empate = (empates / total) * 100
+            empates = len(games[games['Resultado'] == 'Empate'])
+            perc_empate = (empates / total) * 100 if total > 0 else 0
             
             resultados.append({
                 'categoria': categoria,
@@ -1798,209 +1825,6 @@ def display_final_recommendations(home_analysis, away_analysis, draw_analysis,
                     st.info("✈️ **Visitante favorito**: Considere X2 (empate ou vitória do visitante)")
                 else:
                     st.info("⚖️ **Jogo equilibrado**: Todas as opções têm valor similar")
-
-# Função para analisar empates
-def analyze_draw_performance(df, team_home, team_away, current_odd):
-    # Filtra jogos entre os dois times
-    games = df[((df['Home'] == team_home) & (df['Away'] == team_away)) | 
-               ((df['Home'] == team_away) & (df['Away'] == team_home))].copy()
-    
-    if len(games) < 10:
-        return {"error": "Dados insuficientes para análise de empates"}
-    
-    if 'odd Draw' not in games.columns or 'Resultado Home' not in games.columns:
-        return {"error": "Colunas necessárias não encontradas para análise de empates"}
-    
-    games = games.dropna(subset=['odd Draw', 'Resultado Home'])
-    
-    # CORREÇÃO: Adicionar indentação correta
-    if games.empty:
-        return {"error": "Nenhum jogo encontrado entre estes times"}
-    
-    if len(games) < 5:
-        return {"error": "Dados insuficientes após limpeza para análise de empates"}
-    
-    faixas = []
-    
-    # Faixa 1: Empate Provável
-    limite1 = current_odd * 0.8
-    faixa1 = games[games['odd Draw'] <= limite1]
-    if len(faixa1) >= 3:
-        faixas.append(("Empate Provável", f"≤ {limite1:.2f}", faixa1))
-    
-    # Faixa 2: Situação Atual
-    limite2 = current_odd * 1.2
-    faixa2 = games[(games['odd Draw'] > limite1) & (games['odd Draw'] <= limite2)]
-    if len(faixa2) >= 3:
-        faixas.append(("Situação Atual", f"{limite1:.2f} - {limite2:.2f}", faixa2))
-    
-    # Faixa 3: Empate Improvável
-    faixa3 = games[games['odd Draw'] > limite2]
-    if len(faixa3) >= 3:
-        faixas.append(("Empate Improvável", f"> {limite2:.2f}", faixa3))
-    
-    resultados = []
-    for nome, range_str, dados in faixas:
-        total = len(dados)
-        empates = len(dados[dados['Resultado Home'] == 'Empate'])
-        perc_empate = (empates / total) * 100 if total > 0 else 0
-        odd_media = dados['odd Draw'].mean()
-        
-        resultados.append({
-            'categoria': nome,
-            'range': range_str,
-            'total': total,
-            'empates': empates,
-            'perc_empate': perc_empate,
-            'odd_media': odd_media,
-            'is_current': (limite1 < current_odd <= limite2) and (nome == "Situação Atual")
-        })
-    
-    return {
-        'current_odd': current_odd,
-        'total_games': len(games),
-        'faixas': resultados
-    }
-
-# Função para exibir análise de empates
-def display_draw_analysis(analysis, current_odd, prob_implicita):
-    if "error" in analysis:
-        st.warning(f"⚠️ {analysis['error']}")
-        return
-    st.write(f"**Total de jogos analisados:** {analysis['total_games']}")
-    st.write(f"**Odd atual:** {current_odd:.2f} (Probabilidade implícita: {prob_implicita:.1f}%)")
-    if analysis['faixas']:
-        df_display = []
-        situacao_atual = None
-        for faixa in analysis['faixas']:
-            df_display.append({
-                'Situação': faixa['categoria'],
-                'Faixa de Odds': faixa['range'],
-                'Jogos': faixa['total'],
-                'Empates': faixa['empates'],
-                'Taxa de Empate': f"{faixa['perc_empate']:.1f}%",
-                'Odd Média': f"{faixa['odd_media']:.2f}"
-            })
-            if faixa.get('is_current', False):
-                situacao_atual = faixa
-        df_display = pd.DataFrame(df_display)
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
-        if situacao_atual:
-            valor = situacao_atual['perc_empate'] - prob_implicita
-            st.metric(
-                "Taxa Histórica de Empate", 
-                f"{situacao_atual['perc_empate']:.1f}%",
-                delta=f"{valor:+.1f}% vs mercado"
-            )
-            if valor > 3:
-                st.success(f"✅ **VALOR NO EMPATE**: Histórico sugere {valor:.1f}% mais chance de empate!")
-            elif valor < -3:
-                st.error(f"⚠️ **EMPATE SUPERVALORIZADO**: {abs(valor):.1f}% menos provável historicamente!")
-            else:
-                st.info("⚖️ **ODD DE EMPATE EQUILIBRADA**")
-    else:
-        st.warning("Dados insuficientes para análise de empates")
-
-def analyze_team_odds_performance(df, team, position, current_odd):
-    """Analisa performance do time em diferentes faixas de odds"""
-    
-    # Filtrar jogos do time na posição
-    team_games = df[df[position] == team].copy()
-    
-    if len(team_games) < 5:  # Reduzido de 10 para 5 jogos
-        return {"error": f"Poucos dados históricos para {team} ({len(team_games)} jogos)"}
-    
-    # Mapear colunas corretas baseado na posição
-    if position == "Home":
-        odd_column = 'odd Home'
-        result_column = 'Resultado Home'
-    else:  # position == "Away"
-        odd_column = 'odd Away'
-        # Se não existir Resultado Away, criar baseado no Resultado Home
-        if 'Resultado Away' not in team_games.columns:
-            team_games['Resultado Away'] = team_games['Resultado Home'].map({
-                'Vitória': 'Derrota',
-                'Derrota': 'Vitória', 
-                'Empate': 'Empate'
-            })
-        result_column = 'Resultado Away'
-    
-    if odd_column not in team_games.columns or result_column not in team_games.columns:
-        return {"error": "Colunas necessárias não encontradas no dataset"}
-    
-    # Remover valores nulos
-    team_games = team_games.dropna(subset=[odd_column, result_column])
-    
-    if len(team_games) < 5:  # Reduzido de 10 para 5 jogos
-        return {"error": f"Dados insuficientes após limpeza para {team}"}
-    
-    # Definir faixas de odds baseadas na odd atual
-    faixas = []
-    
-    # Faixa 1: Muito favorito (odds baixas)
-    limite1 = current_odd * 0.7  # 30% abaixo da odd atual
-    faixa1 = team_games[team_games[odd_column] <= limite1]
-    if len(faixa1) >= 3:  # Reduzido de 5 para 3
-        faixas.append(("Muito Favorito", f"≤ {limite1:.2f}", faixa1, "#2E8B57"))  # Verde escuro
-    
-    # Faixa 2: Favorito moderado
-    limite2 = current_odd * 0.9  # 10% abaixo da odd atual
-    faixa2 = team_games[(team_games[odd_column] > limite1) & (team_games[odd_column] <= limite2)]
-    if len(faixa2) >= 3:  # Reduzido de 5 para 3
-        faixas.append(("Favorito Moderado", f"{limite1:.2f} - {limite2:.2f}", faixa2, "#32CD32"))  # Verde claro
-    
-    # Faixa 3: Situação similar à atual
-    limite3 = current_odd * 1.1  # 10% acima da odd atual
-    faixa3 = team_games[(team_games[odd_column] > limite2) & (team_games[odd_column] <= limite3)]
-    if len(faixa3) >= 2:  # Reduzido de 3 para 2
-        faixas.append(("Situação Atual", f"{limite2:.2f} - {limite3:.2f}", faixa3, "#FFD700"))  # Dourado
-    
-    # Faixa 4: Menos favorito
-    limite4 = current_odd * 1.3  # 30% acima da odd atual
-    faixa4 = team_games[(team_games[odd_column] > limite3) & (team_games[odd_column] <= limite4)]
-    if len(faixa4) >= 3:  # Reduzido de 5 para 3
-        faixas.append(("Menos Favorito", f"{limite3:.2f} - {limite4:.2f}", faixa4, "#FF8C00"))  # Laranja
-    
-    # Faixa 5: Azarão
-    faixa5 = team_games[team_games[odd_column] > limite4]
-    if len(faixa5) >= 3:  # Reduzido de 5 para 3
-        faixas.append(("Azarão", f"> {limite4:.2f}", faixa5, "#DC143C"))  # Vermelho
-    
-    # Calcular estatísticas para cada faixa
-    resultados = []
-    for nome, range_str, dados, cor in faixas:
-        total = len(dados)
-        vitorias = len(dados[dados[result_column] == 'Vitória'])
-        empates = len(dados[dados[result_column] == 'Empate'])
-        derrotas = len(dados[dados[result_column] == 'Derrota'])
-
-        perc_vitoria = (vitorias / total) * 100 if total > 0 else 0
-        perc_empate = (empates / total) * 100 if total > 0 else 0
-        perc_derrota = (derrotas / total) * 100 if total > 0 else 0
-        odd_media = dados[odd_column].mean()
-
-        resultados.append({
-            'categoria': nome,
-            'range': range_str,
-            'total': total,
-            'vitorias': vitorias,
-            'empates': empates,
-            'derrotas': derrotas,
-            'perc_vitoria': perc_vitoria,
-            'perc_empate': perc_empate,
-            'perc_derrota': perc_derrota,
-            'odd_media': odd_media,
-            'is_current': nome == "Situação Atual",
-            'cor': cor
-        })
-    return {
-        'team': team,
-        'position': position,
-        'total_games': len(team_games),
-        'current_odd': current_odd,
-        'faixas': resultados
-    }
-
 def show_corner_analysis(df, teams):
     """Análise de escanteios com base nas médias"""
     st.header("🚩 Análise de Escanteios")
@@ -3111,6 +2935,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
