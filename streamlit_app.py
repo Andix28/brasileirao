@@ -66,20 +66,19 @@ def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
     """
     logo_url = TEAM_LOGOS.get(team_name)
     if logo_url:
-        return _clean_html(f"""
+        return f"""
 <div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
   <img src="{logo_url}"
        style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;"
        onerror="this.style.display='none';"
        alt="{team_name}">
-  <span style="font-weight:500; color:#FFFFFF; font-size:25px;">{team_name}</span>
+  <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span>
 </div>
-""")
+"""
     # fallback
-    return _clean_html(f"""
-<span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:25px;">{team_name}</span>
-""")
-
+    return f"""
+<span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span>
+"""
 
 def display_team_with_logo(team_name, logo_size=(25, 25)):
     """
@@ -3301,6 +3300,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
