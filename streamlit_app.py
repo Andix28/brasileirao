@@ -3008,25 +3008,18 @@ def show_score_prediction(df, teams):
 
         for i, ((h, a), p) in enumerate(results[:10], 1):
             emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-
-            html_home = get_team_display_name_with_logo(team_home, logo_size=(50, 50))
-            html_away = get_team_display_name_with_logo(team_away, logo_size=(50, 50))
-
-            ranking_html = _clean_html(f"""
-<div style="display:flex; align-items:center; justify-content:space-between;
-    background-color:{'#fff3cd' if i <= 3 else '#f8f9fa'};
-    padding:8px 12px; margin:4px 0; border-radius:6px;
-    border-left:3px solid {'#ffc107' if i <= 3 else '#dee2e6'};">
-  <span style="font-weight:bold; min-width:30px;">{emoji}</span>
-  <div style="display:flex; align-items:center; gap:10px;">
-    {html_home}
-    <span style="font-weight:bold; color:#1f4e79; margin:0 5px;">{h} x {a}</span>
-    {html_away}
-  </div>
-  <span style="font-weight:bold; color:#28a745;">{p*100:.2f}%</span>
-</div>
-""")
-            st.markdown(ranking_html, unsafe_allow_html=True)
+    
+            col1, col2, col3, col4, col5 = st.columns([1, 3, 1, 3, 2])
+            with col1:
+                st.write(emoji)
+            with col2:
+                display_team_with_logo(team_home, logo_size=(25, 25))
+            with col3:
+                st.write(f"**{h} x {a}**")
+            with col4:
+                display_team_with_logo(team_away, logo_size=(25, 25))
+            with col5:
+                st.write(f"**{p*100:.2f}%**")
 
 
 def main():
