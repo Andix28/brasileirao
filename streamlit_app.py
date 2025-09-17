@@ -3,18 +3,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from scipy.stats import poisson
+import numpy as np
 import warnings
-
-warnings.filterwarnings('ignore')
-
-# ====== SISTEMA DE LOGOS DOS TIMES ======
-# Adicione este código logo após os imports no início do arquivo
-
 import base64
 import requests
 from io import BytesIO
 from textwrap import dedent
+warnings.filterwarnings('ignore')
 
 # Mapeamento de nomes dos times para URLs dos logos
 TEAM_LOGOS = {
@@ -2172,7 +2169,7 @@ def display_match_corner_prediction(home_stats, away_stats, home_team, away_team
         probabilities = [poisson.pmf(total, total_predicted) * 100 for total in corners_range]
         
         # Encontrar valores mais prováveis
-        max_prob_idx = np.argmax(probabilities)
+        max_prob_idx = probabilities.index(max(probabilities))
         most_likely = corners_range[max_prob_idx]
         
         # Probabilidades para apostas comuns
@@ -3304,6 +3301,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
