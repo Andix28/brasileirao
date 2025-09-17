@@ -1842,12 +1842,12 @@ def show_corner_analysis(df, teams):
         with col1:
             st.write("🏠 **Time Mandante:**")
             home_team = st.selectbox("Selecione o mandante:", teams, key="corner_home", label_visibility="collapsed")
-            display_team_with_logo(home_team, logo_size=(40, 40))
+            display_team_with_logo(home_team, logo_size=(100, 100))
             
         with col2:
             st.write("✈️ **Time Visitante:**")
             away_team = st.selectbox("Selecione o visitante:", teams, key="corner_away", label_visibility="collapsed")
-            display_team_with_logo(away_team, logo_size=(40, 40))
+            display_team_with_logo(away_team, logo_size=(100, 100))
 
         if home_team == away_team:
             st.warning("Por favor, selecione dois times diferentes.")
@@ -1960,7 +1960,7 @@ def display_corner_statistics_tables(home_stats, away_stats, home_team, away_tea
     
     with col1:
         st.markdown("### 🏠 Time Mandante")
-        display_team_with_logo(home_team, logo_size=(30, 30))
+        display_team_with_logo(home_team, logo_size=(100, 100))
         
         # Dados para tabela do mandante
         home_data = {
@@ -2003,7 +2003,7 @@ def display_corner_statistics_tables(home_stats, away_stats, home_team, away_tea
     
     with col2:
         st.markdown("### ✈️ Time Visitante")
-        display_team_with_logo(away_team, logo_size=(30, 30))
+        display_team_with_logo(away_team, logo_size=(100, 100))
         
         # Dados para tabela do visitante
         away_data = {
@@ -3301,6 +3301,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
