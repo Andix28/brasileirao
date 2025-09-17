@@ -3030,7 +3030,7 @@ def show_score_prediction(df, teams):
   <span style="font-weight:bold; min-width:30px;">{emoji}</span>
   <div style="display:flex; align-items:center; gap:10px;">
     {html_home}
-    <span style="font-weight:bold; color:#1f4e79; margin:0 5px;">1 x 2</span>
+    <span style="font-weight:bold; color:#1f4e79; margin:0 5px;">{h} x {a}</span>
     {html_away}
   </div>
   <span style="font-weight:bold; color:#28a745;">{p*100:.2f}%</span>
@@ -3300,6 +3300,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
