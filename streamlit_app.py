@@ -59,35 +59,25 @@ def _clean_html(s: str) -> str:
     """Remove indentação comum e espaços extras no início/fim para evitar code blocks no Markdown."""
     return dedent(s).strip()
 
-def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
+def get_team_display_name_with_logo(team_name, logo_size=(80, 80)):
     """
     Retorna HTML (string) para exibir o nome do time com logo.
     SEM indentação à esquerda para não virar bloco de código no Markdown.
     """
     logo_url = TEAM_LOGOS.get(team_name)
     if logo_url:
-        return f"""
-<div style="display:flex; align-items:center; gap:8px; margin:2px 0;">
-  <img src="{logo_url}"
-       style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;"
-       onerror="this.style.display='none';"
-       alt="{team_name}">
-  <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span>
-</div>
-"""
+        return f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" onerror="this.style.display=\'none\';" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
     # fallback
-    return f"""
-<span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span>
-"""
+    return f'<span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span>'
 
-def display_team_with_logo(team_name, logo_size=(25, 25)):
+def display_team_with_logo(team_name, logo_size=(80, 80)):
     """
     Exibe diretamente no Streamlit o time com logo.
     """
     st.markdown(get_team_display_name_with_logo(team_name, logo_size), unsafe_allow_html=True)
 
 
-def create_team_selectbox_with_logos(label, teams, key, logo_size=(20, 20)):
+def create_team_selectbox_with_logos(label, teams, key, logo_size=(80, 80)):
     """
     Cria selectbox e exibe abaixo o time selecionado com logo (HTML limpo).
     """
@@ -3300,6 +3290,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
