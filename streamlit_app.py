@@ -72,12 +72,12 @@ def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
        style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;"
        onerror="this.style.display='none';"
        alt="{team_name}">
-  <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
+  <span style="font-weight:500; color:#FFFFFF; font-size:25px;">{team_name}</span>
 </div>
 """)
     # fallback
     return _clean_html(f"""
-<span>⚽</span> <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
+<span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:25px;">{team_name}</span>
 """)
 
 
@@ -3301,6 +3301,7 @@ def show_team_performance(df, teams):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
