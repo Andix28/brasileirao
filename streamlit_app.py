@@ -3009,32 +3009,29 @@ def show_score_prediction(df, teams):
         for i, ((h, a), p) in enumerate(results[:10], 1):
             emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
     
-            # Obter HTML das logos
-            html_home = get_team_display_name_with_logo(team_home, logo_size=(25, 25))
-            html_away = get_team_display_name_with_logo(team_away, logo_size=(25, 25))
-            
-            placar_html = f"""
-            <div style="
-                display: flex;
-                align-items: center;
-                background-color: #2E2E2E;
-                padding: 10px;
-                margin: 5px 0;
-                border-radius: 8px;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                min-height: 50px;
-            ">
-                <div style="font-size: 18px; min-width: 30px;">{emoji}</div>
-                <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
-                    {html_home}
-                    <span style="font-size: 20px; color: #FFD700; margin: 0 10px;">{h} x {a}</span>
-                    {html_away}
+                placar_html = f"""
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    background-color: #2E2E2E;
+                    padding: 10px;
+                    margin: 5px 0;
+                    border-radius: 8px;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    min-height: 50px;
+                    color: white;
+                ">
+                    <div style="font-size: 18px; min-width: 30px;">{emoji}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
+                        <span style="color: white;">{team_home}</span>
+                        <span style="font-size: 20px; color: #FFD700; margin: 0 10px;">{h} x {a}</span>
+                        <span style="color: white;">{team_away}</span>
+                    </div>
+                    <div style="font-size: 16px; color: #28a745; min-width: 60px; text-align: right;">{p*100:.2f}%</div>
                 </div>
-                <div style="font-size: 16px; color: #28a745; min-width: 60px; text-align: right;">{p*100:.2f}%</div>
-            </div>
-            """
-            st.markdown(placar_html, unsafe_allow_html=True)
+                """
+                st.markdown(placar_html, unsafe_allow_html=True)
 
 
 def main():
@@ -3715,6 +3712,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
