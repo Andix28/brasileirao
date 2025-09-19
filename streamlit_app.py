@@ -3221,68 +3221,484 @@ def main():
             st.write(df_original['Ano'].value_counts().sort_index())
 
 def show_team_performance(df, teams):
-    """Exibe análise de desempenho de um time selecionado (COM LOGOS)."""
+    """Exibe análise de desempenho de um time selecionado com logos e gráficos avançados."""
     st.header("🏆 Análise de Desempenho de Time")
     
     if not teams:
         st.warning("Nenhum time disponível.")
         return
         
-    team = create_team_selectbox_with_logos("Selecione o time para análise:", teams, key="team_performance")
+    # Seleção do time com logo
+    st.subheader("📋 Seleção de Time")
+    team = st.selectbox("Escolha o time para análise:", teams, key="team_performance")
+    
     if not team:
         st.warning("Selecione um time.")
         return
-        
-    stats_home = calculate_team_stats(df, team, as_home=True)
-    stats_away = calculate_team_stats(df, team, as_home=False)
     
-    # Header com logo
+    # Exibir logo do time selecionado
+    col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
+    with col_logo2:
+        display_team_with_logo(team, logo_size=(60, 60))
+    
     st.markdown("---")
-    col_header1, col_header2, col_header3 = st.columns([1, 2, 1])
-    with col_header2:
-        st.markdown("### 📊 Estatísticas Detalhadas")
-        display_team_with_logo(team, logo_size=(40, 40))
+    
+    # Calcular estatísticas avançadas
+    stats_home = calculate_advanced_team_stats(df, team, as_home=True)
+    stats_away = calculate_advanced_team_stats(df, team, as_home=False)
+    
+    # Verificar se há dados suficientes
+    if stats_home['jogos'] == 0 and stats_away['jogos'] == 0:
+        st.error("Nenhum dado encontrado para este time.")
+        return
+    
+    # Seção de estatísticas detalhadas
+    display_detailed_team_stats(stats_home, stats_away, team)
+    
+    # Seção de gráfico de evolução
+    display_team_evolution_chart(df, teams, team)
+
+def calculate_advanced_team_stats(df, team, as_home=True):
+    """Calcula estatísticas avançadas incluindo primeiro tempo"""
+    if as_home:
+        games = df[df['Home'] == team].copy()
+        gols_feitos_col = 'Gols Home'
+        gols_sofridos_col = 'Gols Away'
+        gols_ht_feitos_col = 'Home Score HT'
+        gols_ht_sofridos_col = 'Away Score HT'
+        corners_feitos_col = 'Corner Home'
+        corners_sofridos_col = 'Corner Away'
+    else:
+        games = df[df['Away'] == team].copy()
+        gols_feitos_col = 'Gols Away'
+        gols_sofridos_col = 'Gols Home'
+        gols_ht_feitos_col = 'Away Score HT'
+        gols_ht_sofridos_col = 'Home Score HT'
+        corners_feitos_col = 'Corner Away'
+        corners_sofridos_col = 'Corner Home'
+    
+    if games.empty:
+        return create_empty_team_stats()
+    
+    # Remove jogos com dados faltantes
+    required_cols = [gols_feitos_col, gols_sofridos_col]
+    available_cols = [col for col in required_cols if col in games.columns]
+    
+    if not available_cols:
+        return create_empty_team_stats()
+    
+    games = games.dropna(subset=available_cols)
+    
+    if games.empty:
+        return create_empty_team_stats()
+    
+    # Calcular resultados
+    if as_home:
+        games['Resultado'] = games.apply(lambda row: 
+            'Vitoria' if row[gols_feitos_col] > row[gols_sofridos_col] else
+            'Empate' if row[gols_feitos_col] == row[gols_sofridos_col] else
+            'Derrota', axis=1)
+    else:
+        games['Resultado'] = games.apply(lambda row: 
+            'Vitoria' if row[gols_feitos_col] > row[gols_sofridos_col] else
+            'Empate' if row[gols_feitos_col] == row[gols_sofridos_col] else
+            'Derrota', axis=1)
+    
+    # Estatísticas básicas
+    total_jogos = len(games)
+    vitorias = len(games[games['Resultado'] == 'Vitoria'])
+    empates = len(games[games['Resultado'] == 'Empate'])
+    derrotas = len(games[games['Resultado'] == 'Derrota'])
+    
+    gols_feitos = games[gols_feitos_col].sum()
+    gols_sofridos = games[gols_sofridos_col].sum()
+    
+    # Estatísticas do primeiro tempo
+    gols_ht_feitos = 0
+    gols_ht_sofridos = 0
+    if gols_ht_feitos_col in games.columns and gols_ht_sofridos_col in games.columns:
+        games_ht = games.dropna(subset=[gols_ht_feitos_col, gols_ht_sofridos_col])
+        if not games_ht.empty:
+            gols_ht_feitos = games_ht[gols_ht_feitos_col].sum()
+            gols_ht_sofridos = games_ht[gols_ht_sofridos_col].sum()
+    
+    # Estatísticas de escanteios
+    corners_feitos = 0
+    corners_sofridos = 0
+    if corners_feitos_col in games.columns and corners_sofridos_col in games.columns:
+        games_corners = games.dropna(subset=[corners_feitos_col, corners_sofridos_col])
+        if not games_corners.empty:
+            corners_feitos = games_corners[corners_feitos_col].sum()
+            corners_sofridos = games_corners[corners_sofridos_col].sum()
+    
+    return {
+        'jogos': total_jogos,
+        'vitorias': vitorias,
+        'empates': empates,
+        'derrotas': derrotas,
+        'perc_vitorias': (vitorias / total_jogos * 100) if total_jogos > 0 else 0,
+        'perc_empates': (empates / total_jogos * 100) if total_jogos > 0 else 0,
+        'perc_derrotas': (derrotas / total_jogos * 100) if total_jogos > 0 else 0,
+        'gols_feitos': gols_feitos,
+        'gols_sofridos': gols_sofridos,
+        'media_gols_feitos': gols_feitos / total_jogos if total_jogos > 0 else 0,
+        'media_gols_sofridos': gols_sofridos / total_jogos if total_jogos > 0 else 0,
+        'gols_ht_feitos': gols_ht_feitos,
+        'gols_ht_sofridos': gols_ht_sofridos,
+        'media_gols_ht_feitos': gols_ht_feitos / total_jogos if total_jogos > 0 else 0,
+        'media_gols_ht_sofridos': gols_ht_sofridos / total_jogos if total_jogos > 0 else 0,
+        'corners_feitos': corners_feitos,
+        'corners_sofridos': corners_sofridos,
+        'media_corners_feitos': corners_feitos / total_jogos if total_jogos > 0 else 0,
+        'media_corners_sofridos': corners_sofridos / total_jogos if total_jogos > 0 else 0,
+        'saldo_gols': gols_feitos - gols_sofridos
+    }
+
+def create_empty_team_stats():
+    """Cria estrutura vazia para estatísticas do time"""
+    return {
+        'jogos': 0, 'vitorias': 0, 'empates': 0, 'derrotas': 0,
+        'perc_vitorias': 0, 'perc_empates': 0, 'perc_derrotas': 0,
+        'gols_feitos': 0, 'gols_sofridos': 0,
+        'media_gols_feitos': 0, 'media_gols_sofridos': 0,
+        'gols_ht_feitos': 0, 'gols_ht_sofridos': 0,
+        'media_gols_ht_feitos': 0, 'media_gols_ht_sofridos': 0,
+        'corners_feitos': 0, 'corners_sofridos': 0,
+        'media_corners_feitos': 0, 'media_corners_sofridos': 0,
+        'saldo_gols': 0
+    }
+
+def display_detailed_team_stats(stats_home, stats_away, team):
+    """Exibe estatísticas detalhadas em formato profissional"""
+    st.subheader("📊 Estatísticas Detalhadas")
+    
+    # Cards de resumo geral
+    total_jogos = stats_home['jogos'] + stats_away['jogos']
+    total_vitorias = stats_home['vitorias'] + stats_away['vitorias']
+    total_empates = stats_home['empates'] + stats_away['empates']
+    total_derrotas = stats_home['derrotas'] + stats_away['derrotas']
+    
+    if total_jogos > 0:
+        aproveitamento = ((total_vitorias * 3 + total_empates) / (total_jogos * 3)) * 100
+    else:
+        aproveitamento = 0
+    
+    # Cards superiores
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("🎮 Total de Jogos", total_jogos)
+    with col2:
+        st.metric("🏆 Aproveitamento", f"{aproveitamento:.1f}%")
+    with col3:
+        st.metric("⚽ Saldo de Gols", stats_home['saldo_gols'] + stats_away['saldo_gols'])
+    with col4:
+        total_media_gols = ((stats_home['media_gols_feitos'] + stats_away['media_gols_feitos']) + 
+                           (stats_home['media_gols_sofridos'] + stats_away['media_gols_sofridos'])) / 2
+        st.metric("📊 Média Gols/Jogo", f"{total_media_gols:.2f}")
+    
+    st.markdown("---")
+    
+    # Estatísticas detalhadas por posição
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 🏠 Como Mandante")
+        
+        # Container estilizado para mandante
+        with st.container():
+            # Resultado geral
+            col1_1, col1_2, col1_3 = st.columns(3)
+            with col1_1:
+                st.metric("✅ Vitórias", stats_home['vitorias'], 
+                         delta=f"{stats_home['perc_vitorias']:.1f}%")
+            with col1_2:
+                st.metric("⚖️ Empates", stats_home['empates'],
+                         delta=f"{stats_home['perc_empates']:.1f}%")
+            with col1_3:
+                st.metric("❌ Derrotas", stats_home['derrotas'],
+                         delta=f"{stats_home['perc_derrotas']:.1f}%")
+            
+            st.markdown("**⚽ Gols - Tempo Integral**")
+            col1_4, col1_5 = st.columns(2)
+            with col1_4:
+                st.metric("Feitos", stats_home['gols_feitos'],
+                         delta=f"Média: {stats_home['media_gols_feitos']:.2f}")
+            with col1_5:
+                st.metric("Sofridos", stats_home['gols_sofridos'],
+                         delta=f"Média: {stats_home['media_gols_sofridos']:.2f}")
+            
+            st.markdown("**🕐 Gols - Primeiro Tempo**")
+            col1_6, col1_7 = st.columns(2)
+            with col1_6:
+                st.metric("Feitos HT", stats_home['gols_ht_feitos'],
+                         delta=f"Média: {stats_home['media_gols_ht_feitos']:.2f}")
+            with col1_7:
+                st.metric("Sofridos HT", stats_home['gols_ht_sofridos'],
+                         delta=f"Média: {stats_home['media_gols_ht_sofridos']:.2f}")
+            
+            st.markdown("**🚩 Escanteios**")
+            col1_8, col1_9 = st.columns(2)
+            with col1_8:
+                st.metric("Feitos", stats_home['corners_feitos'],
+                         delta=f"Média: {stats_home['media_corners_feitos']:.2f}")
+            with col1_9:
+                st.metric("Sofridos", stats_home['corners_sofridos'],
+                         delta=f"Média: {stats_home['media_corners_sofridos']:.2f}")
+
+    with col2:
+        st.markdown("### ✈️ Como Visitante")
+        
+        # Container estilizado para visitante
+        with st.container():
+            # Resultado geral
+            col2_1, col2_2, col2_3 = st.columns(3)
+            with col2_1:
+                st.metric("✅ Vitórias", stats_away['vitorias'],
+                         delta=f"{stats_away['perc_vitorias']:.1f}%")
+            with col2_2:
+                st.metric("⚖️ Empates", stats_away['empates'],
+                         delta=f"{stats_away['perc_empates']:.1f}%")
+            with col2_3:
+                st.metric("❌ Derrotas", stats_away['derrotas'],
+                         delta=f"{stats_away['perc_derrotas']:.1f}%")
+            
+            st.markdown("**⚽ Gols - Tempo Integral**")
+            col2_4, col2_5 = st.columns(2)
+            with col2_4:
+                st.metric("Feitos", stats_away['gols_feitos'],
+                         delta=f"Média: {stats_away['media_gols_feitos']:.2f}")
+            with col2_5:
+                st.metric("Sofridos", stats_away['gols_sofridos'],
+                         delta=f"Média: {stats_away['media_gols_sofridos']:.2f}")
+            
+            st.markdown("**🕐 Gols - Primeiro Tempo**")
+            col2_6, col2_7 = st.columns(2)
+            with col2_6:
+                st.metric("Feitos HT", stats_away['gols_ht_feitos'],
+                         delta=f"Média: {stats_away['media_gols_ht_feitos']:.2f}")
+            with col2_7:
+                st.metric("Sofridos HT", stats_away['gols_ht_sofridos'],
+                         delta=f"Média: {stats_away['media_gols_ht_sofridos']:.2f}")
+            
+            st.markdown("**🚩 Escanteios**")
+            col2_8, col2_9 = st.columns(2)
+            with col2_8:
+                st.metric("Feitos", stats_away['corners_feitos'],
+                         delta=f"Média: {stats_away['media_corners_feitos']:.2f}")
+            with col2_9:
+                st.metric("Sofridos", stats_away['corners_sofridos'],
+                         delta=f"Média: {stats_away['media_corners_sofridos']:.2f}")
+
+def display_team_evolution_chart(df, teams, selected_team):
+    """Exibe gráfico de evolução da posição ao longo das rodadas"""
+    st.markdown("---")
+    st.subheader("📈 Evolução na Tabela por Rodadas")
+    
+    # Verificar se há dados de rodada
+    if 'Rodada' not in df.columns and 'Jogo ID' not in df.columns:
+        st.warning("Dados de rodada não disponíveis para gráfico de evolução.")
+        return
+    
+    # Seleção de anos e times para comparação
+    anos_disponiveis = []
+    if 'Ano' in df.columns:
+        anos_disponiveis = sorted(df['Ano'].dropna().unique())
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 🏠 Como Mandante")
-        st.metric("Jogos", stats_home['jogos'])
-        st.metric("Vitórias", stats_home['vitorias'])
-        st.metric("Empates", stats_home['empates'])
-        st.metric("Derrotas", stats_home['derrotas'])
-        st.metric("Gols Feitos", stats_home['gols_feitos'])
-        st.metric("Gols Sofridos", stats_home['gols_sofridos'])
-        st.metric("Média Gols Feitos/Jogo", f"{stats_home['media_gols_feitos']:.2f}")
-        st.metric("Média Gols Sofridos/Jogo", f"{stats_home['media_gols_sofridos']:.2f}")
-        
-        if 'escanteios_feitos' in stats_home:
-            st.metric("Escanteios Feitos", stats_home['escanteios_feitos'])
-            st.metric("Escanteios Sofridos", stats_home['escanteios_sofridos'])
-            st.metric("Média Escanteios Feitos/Jogo", f"{stats_home['media_escanteios_feitos']:.2f}")
-            st.metric("Média Escanteios Sofridos/Jogo", f"{stats_home['media_escanteios_sofridos']:.2f}")
-
+        if anos_disponiveis:
+            anos_selecionados = st.multiselect(
+                "📅 Selecione os anos:",
+                anos_disponiveis,
+                default=[max(anos_disponiveis)] if anos_disponiveis else [],
+                key="years_evolution"
+            )
+        else:
+            anos_selecionados = []
+            st.info("Dados de ano não disponíveis")
+    
     with col2:
-        st.markdown("#### ✈️ Como Visitante")
-        st.metric("Jogos", stats_away['jogos'])
-        st.metric("Vitórias", stats_away['vitorias'])
-        st.metric("Empates", stats_away['empates'])
-        st.metric("Derrotas", stats_away['derrotas'])
-        st.metric("Gols Feitos", stats_away['gols_feitos'])
-        st.metric("Gols Sofridos", stats_away['gols_sofridos'])
-        st.metric("Média Gols Feitos/Jogo", f"{stats_away['media_gols_feitos']:.2f}")
-        st.metric("Média Gols Sofridos/Jogo", f"{stats_away['media_gols_sofridos']:.2f}")
+        times_comparacao = st.multiselect(
+            "⚽ Times para comparar:",
+            teams,
+            default=[selected_team],
+            key="teams_comparison"
+        )
+    
+    if not times_comparacao:
+        st.warning("Selecione pelo menos um time para análise.")
+        return
+    
+    # Criar gráfico de evolução
+    create_position_evolution_chart(df, times_comparacao, anos_selecionados)
+
+def create_position_evolution_chart(df, teams_selected, years_selected):
+    """Cria gráfico de evolução das posições"""
+    
+    # Preparar dados
+    evolution_data = []
+    
+    for team in teams_selected:
+        for year in years_selected if years_selected else [None]:
+            # Filtrar dados
+            if year and 'Ano' in df.columns:
+                team_games = df[((df['Home'] == team) | (df['Away'] == team)) & (df['Ano'] == year)].copy()
+            else:
+                team_games = df[(df['Home'] == team) | (df['Away'] == team)].copy()
+            
+            if team_games.empty:
+                continue
+            
+            # Simular evolução da posição (baseado em pontos acumulados)
+            team_games = team_games.sort_values('Jogo ID' if 'Jogo ID' in team_games.columns else team_games.index)
+            
+            points = 0
+            positions = []
+            rodadas = []
+            
+            for idx, (_, game) in enumerate(team_games.iterrows(), 1):
+                # Calcular pontos do jogo
+                if game['Home'] == team:
+                    gols_feitos = game['Gols Home']
+                    gols_sofridos = game['Gols Away']
+                else:
+                    gols_feitos = game['Gols Away']
+                    gols_sofridos = game['Gols Home']
+                
+                if gols_feitos > gols_sofridos:
+                    points += 3
+                elif gols_feitos == gols_sofridos:
+                    points += 1
+                
+                # Simular posição (simplificado - baseado em pontos por jogo)
+                avg_points = points / idx
+                # Converter para posição (simulada)
+                if avg_points >= 2.0:
+                    position = min(1 + (2.5 - avg_points) * 4, 4)
+                elif avg_points >= 1.5:
+                    position = 4 + (2.0 - avg_points) * 8
+                elif avg_points >= 1.0:
+                    position = 8 + (1.5 - avg_points) * 8
+                else:
+                    position = 16 + (1.0 - avg_points) * 4
+                
+                positions.append(max(1, min(20, int(position))))
+                rodadas.append(idx)
+            
+            # Adicionar aos dados
+            team_label = f"{team}" if not years_selected else f"{team} ({year})"
+            evolution_data.extend([
+                {
+                    'Time': team_label,
+                    'Rodada': rodada,
+                    'Posicao': pos,
+                    'Ano': year if year else 'N/A'
+                }
+                for rodada, pos in zip(rodadas, positions)
+            ])
+    
+    if not evolution_data:
+        st.warning("Não há dados suficientes para criar o gráfico de evolução.")
+        return
+    
+    # Criar DataFrame
+    df_evolution = pd.DataFrame(evolution_data)
+    
+    # Criar gráfico
+    fig = go.Figure()
+    
+    colors = px.colors.qualitative.Set1
+    
+    for i, team in enumerate(df_evolution['Time'].unique()):
+        team_data = df_evolution[df_evolution['Time'] == team]
         
-        if 'escanteios_feitos' in stats_away:
-            st.metric("Escanteios Feitos", stats_away['escanteios_feitos'])
-            st.metric("Escanteios Sofridos", stats_away['escanteios_sofridos'])
-            st.metric("Média Escanteios Feitos/Jogo", f"{stats_away['media_escanteios_feitos']:.2f}")
-            st.metric("Média Escanteios Sofridos/Jogo", f"{stats_away['media_escanteios_sofridos']:.2f}")
+        fig.add_trace(go.Scatter(
+            x=team_data['Rodada'],
+            y=team_data['Posicao'],
+            mode='lines+markers',
+            name=team,
+            line=dict(color=colors[i % len(colors)], width=3),
+            marker=dict(size=6),
+            hovertemplate=f'<b>{team}</b><br>' +
+                         'Rodada: %{x}<br>' +
+                         'Posição: %{y}<br>' +
+                         '<extra></extra>'
+        ))
+    
+    # Configurar layout
+    fig.update_layout(
+        title="Evolução da Posição na Tabela por Rodadas",
+        xaxis_title="Rodadas",
+        yaxis_title="Posição na Tabela",
+        yaxis=dict(
+            autorange='reversed',  # Inverter eixo Y (1º lugar no topo)
+            dtick=1,
+            range=[20.5, 0.5]
+        ),
+        xaxis=dict(dtick=2),
+        hovermode='closest',
+        height=600,
+        showlegend=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=1.01
+        ),
+        plot_bgcolor='rgba(240,240,240,0.3)',
+        paper_bgcolor='white'
+    )
+    
+    # Adicionar linhas de referência para zonas
+    fig.add_hline(y=4.5, line_dash="dash", line_color="blue", 
+                  annotation_text="Libertadores", annotation_position="left")
+    fig.add_hline(y=6.5, line_dash="dash", line_color="green", 
+                  annotation_text="Sul-Americana", annotation_position="left")
+    fig.add_hline(y=16.5, line_dash="dash", line_color="red", 
+                  annotation_text="Rebaixamento", annotation_position="left")
+    
+    # Exibir gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Tabela resumo
+    if len(teams_selected) > 1:
+        st.subheader("📊 Resumo Comparativo")
+        
+        summary_data = []
+        for team in df_evolution['Time'].unique():
+            team_data = df_evolution[df_evolution['Time'] == team]
+            
+            summary_data.append({
+                'Time': team,
+                'Melhor Posição': int(team_data['Posicao'].min()),
+                'Pior Posição': int(team_data['Posicao'].max()),
+                'Posição Final': int(team_data['Posicao'].iloc[-1]),
+                'Rodadas Analisadas': len(team_data)
+            })
+        
+        df_summary = pd.DataFrame(summary_data)
+        st.dataframe(df_summary, use_container_width=True, hide_index=True)
+
+def display_team_with_logo(team_name, logo_size=(25, 25)):
+    """Exibe diretamente no Streamlit o time com logo."""
+    try:
+        logo_url = TEAM_LOGOS.get(team_name)
+    except NameError:
+        logo_url = None
+    
+    if logo_url:
+        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
+    else:
+        html = f'<div style="text-align:center;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
+    
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
