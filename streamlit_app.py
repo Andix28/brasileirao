@@ -3688,9 +3688,9 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
         logo_url = None
     
     if logo_url:
-        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
+        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
     else:
-        html = f'<div style="text-align:center;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
+        html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
     
     st.markdown(html, unsafe_allow_html=True)
 
@@ -3698,6 +3698,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
