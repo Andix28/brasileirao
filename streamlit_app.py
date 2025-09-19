@@ -3646,8 +3646,10 @@ def create_position_evolution_chart(df, teams_selected, years_selected):
             xanchor="left",
             x=1.01
         ),
-        plot_bgcolor='rgba(240,240,240,0.3)',
-        paper_bgcolor='white'
+        plot_bgcolor='rgba(50,50,50,1)',
+        paper_bgcolor='#1E1E1E',
+        font=dict(color='white'),
+        title_font=dict(color='white')
     )
     
     # Adicionar linhas de referência para zonas
@@ -3698,6 +3700,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
