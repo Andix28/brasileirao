@@ -3013,11 +3013,11 @@ def show_score_prediction(df, teams):
             with col1:
                 st.markdown(f"<h2 style='text-align: center; margin: 0;'>{emoji}</h2>", unsafe_allow_html=True)
             with col2:
-                display_team_with_logo(team_home, logo_size=(25, 25))
+                display_team_with_logo(team_home, logo_size=(60, 60))
             with col3:
-                st.markdown(f"<h1 style='text-align: center; margin: 0; color: #1f4e79;'>{h} x {a}</h1>", unsafe_allow_html=True)
+                st.markdown(f"<h1 style='text-align: center; margin: 0; color: #F1C40F;'>{h} x {a}</h1>", unsafe_allow_html=True)
             with col4:
-                display_team_with_logo(team_away, logo_size=(25, 25))
+                display_team_with_logo(team_away, logo_size=(60, 60))
             with col5:
                 st.markdown(f"<h2 style='text-align: center; margin: 0; color: #28a745;'>{p*100:.2f}%</h2>", unsafe_allow_html=True)
 
@@ -3700,6 +3700,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
