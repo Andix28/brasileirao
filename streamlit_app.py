@@ -3009,17 +3009,17 @@ def show_score_prediction(df, teams):
         for i, ((h, a), p) in enumerate(results[:10], 1):
             emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
     
-            col1, col2, col3, col4, col5 = st.columns([1, 3, 1, 3, 2])
+            col1, col2, col3, col4, col5 = st.columns([1.5, 3, 1.5, 3, 1.5])
             with col1:
-                st.write(emoji)
+                st.markdown(f"<h2 style='text-align: center; margin: 0;'>{emoji}</h2>", unsafe_allow_html=True)
             with col2:
                 display_team_with_logo(team_home, logo_size=(25, 25))
             with col3:
-                st.write(f"**{h} x {a}**")
+                st.markdown(f"<h1 style='text-align: center; margin: 0; color: #1f4e79;'>{h} x {a}</h1>", unsafe_allow_html=True)
             with col4:
                 display_team_with_logo(team_away, logo_size=(25, 25))
             with col5:
-                st.write(f"**{p*100:.2f}%**")
+                st.markdown(f"<h2 style='text-align: center; margin: 0; color: #28a745;'>{p*100:.2f}%</h2>", unsafe_allow_html=True)
 
 
 def main():
@@ -3700,6 +3700,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
