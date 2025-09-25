@@ -13,6 +13,26 @@ from io import BytesIO
 from textwrap import dedent
 warnings.filterwarnings('ignore')
 
+def normalize_team_name(team_name):
+    """Normaliza nome do time para buscar logo e exibição correta"""
+    replacements = {
+        'SÃ£o': 'São',
+        'Ã¡': 'á',
+        'Ã ': 'à',
+        'Ã³': 'ó',
+        'Ãª': 'ê',
+        'Ã¢': 'â',
+        'Ã§': 'ç',
+        'Ã­': 'í',
+        'Ãº': 'ú'
+    }
+    
+    normalized = team_name
+    for old, new in replacements.items():
+        normalized = normalized.replace(old, new)
+    
+    return normalized
+
 # Mapeamento de nomes dos times para URLs dos logos
 TEAM_LOGOS = {
         "Vasco": "https://logodetimes.com/wp-content/uploads/vasco-da-gama.png",
@@ -64,7 +84,8 @@ def get_team_display_name_with_logo(team_name, logo_size=(80, 80)):
     Retorna HTML (string) para exibir o nome do time com logo.
     SEM indentação à esquerda para não virar bloco de código no Markdown.
     """
-    logo_url = TEAM_LOGOS.get(team_name)
+    normalized_name = normalize_team_name(team_name)
+    logo_url = TEAM_LOGOS.get(normalized_name) or TEAM_LOGOS.get(team_name)
     if logo_url:
         return f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" onerror="this.style.display=\'none\';" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
     # fallback
@@ -3702,16 +3723,16 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
         logo_url = None
     
     if logo_url:
-        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{team_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
+            html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{normalized_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'
     else:
-        html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{team_name}</span></div>'
-    
+            html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'   
     st.markdown(html, unsafe_allow_html=True)
 
 
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
