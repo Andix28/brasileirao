@@ -3716,21 +3716,25 @@ def create_position_evolution_chart(df, teams_selected, years_selected):
 
 def display_team_with_logo(team_name, logo_size=(25, 25)):
     """Exibe diretamente no Streamlit o time com logo."""
+    normalized_name = normalize_team_name(team_name)
+    
     try:
-        logo_url = TEAM_LOGOS.get(team_name)
+        logo_url = TEAM_LOGOS.get(normalized_name) or TEAM_LOGOS.get(team_name)
     except NameError:
         logo_url = None
     
     if logo_url:
-            html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; border-radius:4px; object-fit:contain;" alt="{normalized_name}"><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'
+        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><div style="background-color:transparent; display:flex; align-items:center;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; object-fit:contain; background:none;" alt="{normalized_name}"></div><span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'
     else:
-            html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'   
+        html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:28px;">{normalized_name}</span></div>'   
+    
     st.markdown(html, unsafe_allow_html=True)
 
 
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
