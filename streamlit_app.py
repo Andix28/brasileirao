@@ -13,26 +13,6 @@ from io import BytesIO
 from textwrap import dedent
 warnings.filterwarnings('ignore')
 
-def normalize_team_name(team_name):
-    """Normaliza nome do time para buscar logo e exibição correta"""
-    replacements = {
-        'SÃ£o': 'São',
-        'Ã¡': 'á',
-        'Ã ': 'à',
-        'Ã³': 'ó',
-        'Ãª': 'ê',
-        'Ã¢': 'â',
-        'Ã§': 'ç',
-        'Ã­': 'í',
-        'Ãº': 'ú'
-    }
-    
-    normalized = team_name
-    for old, new in replacements.items():
-        normalized = normalized.replace(old, new)
-    
-    return normalized
-
 # Mapeamento de nomes dos times para URLs dos logos
 TEAM_LOGOS = {
         "Vasco": "https://logodetimes.com/wp-content/uploads/vasco-da-gama.png",
@@ -74,6 +54,26 @@ TEAM_LOGOS = {
         "Juventude": "https://logodetimes.com/wp-content/uploads/juventude-rs.png",
         "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png"
     }
+
+def normalize_team_name(team_name):
+    """Normaliza nome do time para buscar logo e exibição correta"""
+    replacements = {
+        'SÃ£o': 'São',
+        'Ã¡': 'á',
+        'Ã ': 'à',
+        'Ã³': 'ó',
+        'Ãª': 'ê',
+        'Ã¢': 'â',
+        'Ã§': 'ç',
+        'Ã­': 'í',
+        'Ãº': 'ú'
+    }
+    
+    normalized = team_name
+    for old, new in replacements.items():
+        normalized = normalized.replace(old, new)
+    
+    return normalized
 
 def _clean_html(s: str) -> str:
     """Remove indentação comum e espaços extras no início/fim para evitar code blocks no Markdown."""
@@ -3732,6 +3732,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
