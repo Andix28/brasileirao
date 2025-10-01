@@ -3714,7 +3714,7 @@ def create_position_evolution_chart(df, teams_selected, years_selected):
         df_summary = pd.DataFrame(summary_data)
         st.dataframe(df_summary, use_container_width=True, hide_index=True)
 
-def display_team_with_logo(team_name, logo_size=(25, 25)):
+def display_team_with_logo(team_name, logo_size=(80, 80)):
     """Exibe diretamente no Streamlit o time com logo."""
     normalized_name = normalize_team_name(team_name)
     
@@ -3734,6 +3734,7 @@ def display_team_with_logo(team_name, logo_size=(25, 25)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
