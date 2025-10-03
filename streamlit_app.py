@@ -46,6 +46,7 @@ TEAM_LOGOS = {
         "Sport": "https://logodetimes.com/wp-content/uploads/sport-recife.png",
         "Sport Recife": "https://logodetimes.com/wp-content/uploads/sport-recife.png",
         "Mirassol": "https://logodetimes.com/wp-content/uploads/mirassol.png",
+        "Mirasol": "https://logodetimes.com/wp-content/uploads/mirassol.png",
         "Atletico GO": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
         "Atlético-GO": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
         "A. Goianiense": "https://logodetimes.com/wp-content/uploads/atletico-goianiense.png",
@@ -3734,6 +3735,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
