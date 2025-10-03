@@ -3010,13 +3010,13 @@ def show_score_prediction(df, teams):
             st.info("🏠 Gols esperados - Mandante")
             logo_home = TEAM_LOGOS.get(team_home, "")
             if logo_home:
-                st.markdown(f'<img src="{logo_home}" width="25" style="border-radius: 3px;">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{logo_home}" width="50" style="border-radius: 6px;">', unsafe_allow_html=True)
             st.markdown(f"**{team_home}: {gols_esperados_home:.2f} gols**")
         with col2:
             st.info("✈️ Gols esperados - Visitante")  
             logo_away = TEAM_LOGOS.get(team_away, "")
             if logo_away:
-                st.markdown(f'<img src="{logo_away}" width="25" style="border-radius: 3px;">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{logo_away}" width="50" style="border-radius: 6px;">', unsafe_allow_html=True)
             st.markdown(f"**{team_away}: {gols_esperados_away:.2f} gols**")
 
         # Tabela com top 10 placares prováveis
@@ -3736,6 +3736,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
