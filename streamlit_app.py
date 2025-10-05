@@ -74,7 +74,6 @@ def normalize_team_name(team_name):
     normalized = team_name
     for old, new in replacements.items():
         normalized = normalized.replace(old, new)
-    
     return normalized
 
 def _clean_html(s: str) -> str:
@@ -120,7 +119,6 @@ def create_team_selectbox_with_logos(label, teams, key, logo_size=(80, 80)):
 
     return selected_team
 
-
 def display_vs_matchup(team_home, team_away):
     """
     Exibe confronto entre dois times com logos, centralizado.
@@ -154,7 +152,6 @@ def display_vs_matchup(team_home, team_away):
 """),
             unsafe_allow_html=True,
         )
-
 
 def display_score_result_with_logos(team_home, score_home, score_away, team_away):
     """
@@ -3755,10 +3752,10 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
     
     st.markdown(html, unsafe_allow_html=True)
 
-
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
