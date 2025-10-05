@@ -3085,12 +3085,23 @@ def main():
 
     if df.empty:
         st.error("⚠ Não foi possível carregar os dados.")
-        st.info("🔍 Certifique-se de que o arquivo está na raiz do repositório.")
+        st.info("📂 Certifique-se de que o arquivo está na raiz do repositório.")
         return
 
-    # Filtro de ano no topo (sempre visível)
-    st.markdown('<div class="filter-container">', unsafe_allow_html=True)
-    st.markdown('<h3 class="section-header">📅 Filtros de Temporada</h3>', unsafe_allow_html=True)
+    # ==== SEÇÃO DE FILTROS MODERNA ====
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; 
+                border-radius: 15px; 
+                margin: 20px 0;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+        <h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">
+            📅 Filtros de Temporada
+        </h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Container centralizado para o filtro
     col_filter = st.columns([1, 2, 1])[1]
     with col_filter:
         anos = sorted(df['Ano'].dropna().unique())
@@ -3118,23 +3129,15 @@ def main():
         )
         
         # Aplicação do filtro baseado na seleção
-        df_original = df.copy()  # Mantém cópia dos dados originais
+        df_original = df.copy()
         
         if ano_selecionado == "2024 + 2025 (Combinados)":
             df = df[df['Ano'].isin([2024, 2025])]
-            st.info("📊 Analisando dados combinados de 2024 e 2025")
-        elif ano_selecionado == "Todos os Anos":
-            # Mantém todos os dados
-            st.info(f"📊 Analisando dados de todos os anos: {', '.join(map(str, sorted(anos)))}")
-        else:
-            # Filtro por ano específico
+        elif ano_selecionado != "Todos os Anos":
             ano_num = int(ano_selecionado)
             df = df[df['Ano'] == ano_num]
-            st.info(f"📊 Analisando dados de {ano_num}")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Inicializa lista de times de forma segura
+    # Inicializa lista de times
     if ('Home' in df.columns) and ('Away' in df.columns):
         home_teams = df['Home'].dropna().astype(str).str.strip()
         away_teams = df['Away'].dropna().astype(str).str.strip()
@@ -3142,87 +3145,144 @@ def main():
     else:
         teams = []
 
-    # Exibe estatísticas do filtro aplicado
+    # ==== ESTATÍSTICAS UNIFICADAS EM CARD COMPACTO ====
     if not df.empty:
-        col_stat1, col_stat2, col_stat3 = st.columns(3)
-        with col_stat1:
-            st.metric("🏟️ Total de Jogos", len(df))
-        with col_stat2:
-            st.metric("⚽ Times Únicos", len(teams))
-        with col_stat3:
-            if ano_selecionado == "2024 + 2025 (Combinados)":
-                jogos_2024 = len(df[df['Ano'] == 2024])
-                jogos_2025 = len(df[df['Ano'] == 2025])
-                st.metric("📈 Distribuição", f"2024: {jogos_2024} | 2025: {jogos_2025}")
-            elif ano_selecionado == "Todos os Anos":
-                st.metric("📅 Período", f"{min(anos)} - {max(anos)}")
+        # Calcular estatísticas
+        total_jogos = len(df)
+        total_times = len(teams)
+        
+        if ano_selecionado == "2024 + 2025 (Combinados)":
+            jogos_2024 = len(df[df['Ano'] == 2024])
+            jogos_2025 = len(df[df['Ano'] == 2025])
+            info_extra = f"2024: {jogos_2024} | 2025: {jogos_2025}"
+        elif ano_selecionado == "Todos os Anos":
+            info_extra = f"Período: {min(anos)} - {max(anos)}"
+        else:
+            if 'Gols Home' in df.columns and 'Gols  Away' in df.columns:
+                total_gols = df['Gols Home'].sum() + df['Gols  Away'].sum()
+                media_gols = total_gols / len(df) if len(df) > 0 else 0
+                info_extra = f"Média: {media_gols:.2f} gols/jogo"
             else:
-                # Verifica se as colunas existem antes de calcular
-                if 'Gols Home' in df.columns and 'Gols  Away' in df.columns:
-                    total_gols = df['Gols Home'].sum() + df['Gols  Away'].sum()
-                    media_gols = total_gols / len(df) if len(df) > 0 else 0
-                    st.metric("⚽ Média Gols/Jogo", f"{media_gols:.2f}")
-                else:
-                    st.metric("⚽ Média Gols/Jogo", "N/A")
+                info_extra = "N/A"
+        
+        # Card unificado e compacto
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                    padding: 20px;
+                    border-radius: 12px;
+                    margin: 20px auto;
+                    max-width: 800px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
+                <div style="text-align: center; padding: 10px; min-width: 150px;">
+                    <div style="color: #ffd700; font-size: 36px; font-weight: bold;">{total_jogos}</div>
+                    <div style="color: white; font-size: 14px; margin-top: 5px;">🏟️ Total de Jogos</div>
+                </div>
+                <div style="border-left: 2px solid rgba(255,255,255,0.3); height: 60px;"></div>
+                <div style="text-align: center; padding: 10px; min-width: 150px;">
+                    <div style="color: #4CAF50; font-size: 36px; font-weight: bold;">{total_times}</div>
+                    <div style="color: white; font-size: 14px; margin-top: 5px;">⚽ Times Únicos</div>
+                </div>
+                <div style="border-left: 2px solid rgba(255,255,255,0.3); height: 60px;"></div>
+                <div style="text-align: center; padding: 10px; min-width: 150px;">
+                    <div style="color: #FF6B6B; font-size: 20px; font-weight: bold;">{info_extra}</div>
+                    <div style="color: white; font-size: 14px; margin-top: 5px;">📊 Informação Extra</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Inicializa seleção de análise
     if 'selected_analysis' not in st.session_state:
         st.session_state.selected_analysis = None
 
-    # Seleção de análise
+    # ==== SELEÇÃO DE ANÁLISE ====
     if st.session_state.selected_analysis is None:
-        st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
-        st.markdown('<h2 class="section-header">📊 Opções de Análise</h2>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    padding: 25px;
+                    border-radius: 15px;
+                    margin: 30px 0 20px 0;
+                    box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+            <h2 style="color: white; margin: 0; text-align: center; font-size: 28px;">
+                📊 Opções de Análise
+            </h2>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Adiciona informação sobre o filtro ativo
+        # Informação sobre filtro ativo
         if ano_selecionado == "2024 + 2025 (Combinados)":
             st.markdown(
-                '<div style="background-color: #e8f4fd; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #1f77b4;">'
-                '<strong>🔄 Modo Combinado Ativo:</strong> As análises incluirão dados de 2024 e 2025 juntos'
+                '<div style="background-color: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2196F3;">'
+                '<strong style="color: #1976D2;">🔄 Modo Combinado Ativo:</strong> <span style="color: #424242;">As análises incluirão dados de 2024 e 2025 juntos</span>'
                 '</div>', 
                 unsafe_allow_html=True
             )
         elif ano_selecionado == "Todos os Anos":
             st.markdown(
-                '<div style="background-color: #f0f8e8; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid #28a745;">'
-                f'<strong>📊 Análise Completa:</strong> Incluindo todos os anos disponíveis ({", ".join(map(str, sorted(anos)))})'
+                '<div style="background-color: #f1f8e9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #8BC34A;">'
+                f'<strong style="color: #558B2F;">📊 Análise Completa:</strong> <span style="color: #424242;">Incluindo todos os anos disponíveis ({", ".join(map(str, sorted(anos)))})</span>'
                 '</div>', 
                 unsafe_allow_html=True
             )
         
+        # Grid de botões proporcional e moderno
         col1, col2, col3 = st.columns(3)
         
+        # Estilo CSS para botões maiores
+        button_style = """
+        <style>
+        div.stButton > button {
+            width: 100%;
+            height: 80px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        div.stButton > button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        </style>
+        """
+        st.markdown(button_style, unsafe_allow_html=True)
+        
         with col1:
-            if st.button("🏆 Análise de Desempenho", key="desempenho"):
+            if st.button("🏆 Análise de Desempenho", key="desempenho", use_container_width=True):
                 st.session_state.selected_analysis = "1. Análise de Desempenho de Time"
                 st.rerun()
-            if st.button("📊 Análise 1º Tempo", key="primeiro_tempo"):
+            
+            if st.button("📊 Análise 1º Tempo", key="primeiro_tempo", use_container_width=True):
                 st.session_state.selected_analysis = "2. Análise 1º Tempo HT"
                 st.rerun()
-            if st.button("🚩 Análise de Escanteios", key="corner_analysis"):
+            
+            if st.button("🚩 Análise de Escanteios", key="corner_analysis", use_container_width=True):
                 st.session_state.selected_analysis = "7. Análise de Escanteios"
                 st.rerun()
 
         with col2:
-            if st.button("🎯 Probabilidades", key="probabilidades"):
+            if st.button("🎯 Probabilidades", key="probabilidades", use_container_width=True):
                 st.session_state.selected_analysis = "3. Cálculo de Probabilidades Implícitas"
                 st.rerun()
-            if st.button("🤝 Confronto Direto", key="confronto"):
+            
+            if st.button("🤝 Confronto Direto", key="confronto", use_container_width=True):
                 st.session_state.selected_analysis = "4. Confronto Direto"
                 st.rerun()
 
         with col3:
-            if st.button("🔮 Predição de Placar", key="predicao"):
+            if st.button("🔮 Predição de Placar", key="predicao", use_container_width=True):
                 st.session_state.selected_analysis = "5. Predição de Placar (Poisson)"
                 st.rerun()
-            if st.button("📊 Gráficos Interativos", key="graficos"):
+            
+            if st.button("📈 Gráficos Interativos", key="graficos", use_container_width=True):
                 st.session_state.selected_analysis = "6. Gráficos Interativos"
                 st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
     else:
-        # BOTÃO VOLTAR (sempre no topo quando uma análise está selecionada)
+        # BOTÃO VOLTAR (quando uma análise está selecionada)
         col_back, col_filter_info = st.columns([1, 3])
         with col_back:
             if st.button("🏠 Voltar ao Menu Principal", key="voltar_menu"):
@@ -3754,6 +3814,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
