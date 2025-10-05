@@ -116,7 +116,6 @@ def create_team_selectbox_with_logos(label, teams, key, logo_size=(80, 80)):
 """),
             unsafe_allow_html=True,
         )
-
     return selected_team
 
 def display_vs_matchup(team_home, team_away):
@@ -3755,6 +3754,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
