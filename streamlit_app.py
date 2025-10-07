@@ -77,13 +77,6 @@ def normalize_team_name(team_name):
     return normalized
 
 
-
-
-
-
-
-
-
 def _clean_html(s: str) -> str:
     """Remove indentação comum e espaços extras no início/fim para evitar code blocks no Markdown."""
     return dedent(s).strip()
@@ -104,7 +97,6 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
     Exibe diretamente no Streamlit o time com logo.
     """
     st.markdown(get_team_display_name_with_logo(team_name, logo_size), unsafe_allow_html=True)
-
 
 def create_team_selectbox_with_logos(label, teams, key, logo_size=(80, 80)):
     """
@@ -3822,6 +3814,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
