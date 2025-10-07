@@ -76,6 +76,14 @@ def normalize_team_name(team_name):
         normalized = normalized.replace(old, new)
     return normalized
 
+
+
+
+
+
+
+
+
 def _clean_html(s: str) -> str:
     """Remove indentação comum e espaços extras no início/fim para evitar code blocks no Markdown."""
     return dedent(s).strip()
@@ -3814,6 +3822,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
