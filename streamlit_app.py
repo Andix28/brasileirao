@@ -899,7 +899,7 @@ def display_first_half_analysis(stats, analysis, team_home, team_away):
         st.write(f"Saldo de Gols: {analysis['away_saldo']}")
 
 
-import pandas as pd
+
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -1022,7 +1022,7 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
     }}
     .custom-table thead tr {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        color: black;
         text-align: center;
         font-weight: bold;
         font-size: 18px;
@@ -4065,6 +4065,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
