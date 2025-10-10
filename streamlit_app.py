@@ -1301,16 +1301,30 @@ def display_scenario_stats(scenarios, team_name, position, color):
         for label, count, emoji in category_scenarios:
             percentage = (count / total_games * 100) if total_games > 0 else 0
             
-            # Barra de progresso visual
+            # Definir cor baseada no resultado final
+            if "FT Vitória" in label:
+                text_color = "#4CAF50"  # Verde
+                bar_color = "#4CAF50"
+            elif "FT Empate" in label:
+                text_color = "#FFD700"  # Amarelo
+                bar_color = "#FFC107"
+            else:  # FT Derrota
+                text_color = "#F44336"  # Vermelho
+                bar_color = "#F44336"
+            
             bar_width = min(percentage, 100)
-            bar_color = "#4CAF50" if "Vitória" in label else "#FFC107" if "Empate" in label else "#F44336"
             
             st.markdown(f"""
             <div style="margin: 8px 0;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                    <span style="font-size: 15px; color: #2c3e50;">{emoji} {label}</span>
-                    <span style="font-size: 15px; font-weight: bold; color: {color};">{count} ({percentage:.1f}%)</span>
+                    <span style="font-size: 30px; font-weight: bold; color: {text_color};">{emoji} {label}</span>
+                    <span style="font-size: 30px; font-weight: bold; color: {color};">{count} ({percentage:.1f}%)</span>
                 </div>
+                <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
+                    <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
                 <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
                     <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
                 </div>
@@ -4068,6 +4082,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
