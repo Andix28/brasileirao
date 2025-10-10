@@ -1147,21 +1147,30 @@ def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
         barmode='group',
         xaxis_title="Métricas",
         yaxis_title="Valores",
+        xaxis=dict(
+            gridcolor='#404040',
+            color='white'
+        ),
+        yaxis=dict(
+            gridcolor='#404040',
+            color='white'
+        ),
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(size=14)
+            font=dict(size=14, color='white')
         ),
         title=dict(
             text=f"Desempenho 1º Tempo: {team_home} vs {team_away}",
-            font=dict(size=20)
+            font=dict(size=20, color='white')
         ),
         height=500,
-        plot_bgcolor='rgba(240,240,240,0.3)',
-        paper_bgcolor='white'
+        plot_bgcolor='#1a1a1a',
+        paper_bgcolor='#0d0d0d',
+        font=dict(color='white')
     )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -4059,6 +4068,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
