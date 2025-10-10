@@ -1314,24 +1314,18 @@ def display_scenario_stats(scenarios, team_name, position, color):
             
             bar_width = min(percentage, 100)
             
-            st.markdown(f"""
-            <div style="margin: 8px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                    <span style="font-size: 30px; font-weight: bold; color: {text_color};">{emoji} {label}</span>
-                    <span style="font-size: 30px; font-weight: bold; color: {color};">{count} ({percentage:.1f}%)</span>
-                </div>
-                <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
-                    <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-                <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
-                    <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+            html_content = f"""
+<div style="margin: 8px 0;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+        <span style="font-size: 30px; font-weight: bold; color: {text_color};">{emoji} {label}</span>
+        <span style="font-size: 30px; font-weight: bold; color: {color};">{count} ({percentage:.1f}%)</span>
+    </div>
+    <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
+        <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
+    </div>
+</div>
+"""
+            st.markdown(html_content, unsafe_allow_html=True)
     
     # Insights importantes
     st.markdown("### 💡 Destaques")
@@ -4082,6 +4076,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
