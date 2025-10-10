@@ -898,12 +898,6 @@ def display_first_half_analysis(stats, analysis, team_home, team_away):
         st.write(f"Gols Sofridos/Jogo: {analysis['away_media_sofridos']:.2f}")
         st.write(f"Saldo de Gols: {analysis['away_saldo']}")
 
-
-
-import streamlit as st
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
 def show_first_half_analysis(df, teams):
     """Análise de 1º Tempo HT - Versão Profissional"""
     st.markdown("""
@@ -1100,35 +1094,18 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
     st.markdown(html_table, unsafe_allow_html=True)
 
 def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
-    """Exibe gráfico comparativo profissional (tema escuro)"""
+    """Exibe gráfico comparativo profissional"""
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
                 padding: 20px;
                 border-radius: 12px;
                 margin: 20px 0;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
             📈 Gráfico Comparativo - 1º Tempo
         </h2>
     </div>
     """, unsafe_allow_html=True)
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(y=home_stats, mode='lines+markers',
-                             name=team_home, line=dict(color='cyan', width=2)))
-    fig.add_trace(go.Scatter(y=away_stats, mode='lines+markers',
-                             name=team_away, line=dict(color='orange', width=2)))
-
-    fig.update_layout(
-        paper_bgcolor='black',
-        plot_bgcolor='black',
-        font=dict(color='white'),
-        title='Comparativo de Estatísticas (1º Tempo)',
-        title_font=dict(color='white'),
-        legend=dict(bgcolor='black', bordercolor='white')
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
     
     fig = go.Figure()
     
@@ -4082,6 +4059,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
