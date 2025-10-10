@@ -899,99 +899,72 @@ def display_first_half_analysis(stats, analysis, team_home, team_away):
         st.write(f"Saldo de Gols: {analysis['away_saldo']}")
 
 
+import pandas as pd
+import streamlit as st
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 def show_first_half_analysis(df, teams):
-    """Análise de 1º Tempo HT"""
-    st.header("📊 Análise 1º Tempo HT")
+    """Análise de 1º Tempo HT - Versão Profissional"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 25px; 
+                border-radius: 15px; 
+                margin: 20px 0;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+        <h1 style="color: white; margin: 0; text-align: center; font-size: 32px;">
+            📊 Análise 1º Tempo HT
+        </h1>
+    </div>
+    """, unsafe_allow_html=True)
     
     if len(teams) < 2:
         st.warning("Selecione pelo menos dois times.")
         return
-        
+    
+    # Seleção de times com logos
+    st.subheader("⚽ Seleção de Times")
     col1, col2 = st.columns(2)
+    
     with col1:
-        team_home = st.selectbox("🏠 Time Mandante:", teams, key="ht_home")
+        st.write("🏠 **Time Mandante:**")
+        team_home = st.selectbox("Selecione o mandante:", teams, key="ht_home", label_visibility="collapsed")
+        display_team_with_logo(team_home, logo_size=(40, 40))
+    
     with col2:
-        team_away = st.selectbox("✈️ Time Visitante:", teams, key="ht_away")
-        
+        st.write("✈️ **Time Visitante:**")
+        team_away = st.selectbox("Selecione o visitante:", teams, key="ht_away", label_visibility="collapsed")
+        display_team_with_logo(team_away, logo_size=(40, 40))
+    
     if not team_home or not team_away or team_home == team_away:
         st.warning("Selecione dois times diferentes.")
         return
     
-    # Verificar se as colunas necessárias existem
+    # Verificar colunas necessárias
     required_cols = ['Home Score HT', 'Away Score HT', 'Gols Home', 'Gols Away']
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         st.error(f"⚠ Colunas necessárias não encontradas: {', '.join(missing_cols)}")
         return
 
-    # Filtrar jogos
+    st.markdown("---")
+    
+    # Filtrar jogos - TODOS os jogos do time na posição
     home_games = df[df['Home'] == team_home].copy()
     away_games = df[df['Away'] == team_away].copy()
     
     # Calcular estatísticas do 1º tempo
-    home_ht_stats = calculate_ht_stats(home_games, True)  # True = mandante
-    away_ht_stats = calculate_ht_stats(away_games, False)  # False = visitante
+    home_ht_stats = calculate_ht_stats(home_games, True)
+    away_ht_stats = calculate_ht_stats(away_games, False)
     
-    # Exibir tabela comparativa
-    st.subheader("📊 Comparativo 1º Tempo")
-    df_comparativo = pd.DataFrame({
-        "Métrica": [
-            "Jogos Analisados",
-            "Gols Feitos no 1º Tempo", 
-            "Gols Sofridos no 1º Tempo",
-            "Média Gols Feitos/Jogo (1ºT)",
-            "Média Gols Sofridos/Jogo (1ºT)"
-        ],
-        f"{team_home} (Mandante)": [
-            home_ht_stats['jogos'],
-            home_ht_stats['gols_feitos_ht'],
-            home_ht_stats['gols_sofridos_ht'],
-            f"{home_ht_stats['media_feitos_ht']:.2f}",
-            f"{home_ht_stats['media_sofridos_ht']:.2f}"
-        ],
-        f"{team_away} (Visitante)": [
-            away_ht_stats['jogos'],
-            away_ht_stats['gols_feitos_ht'],
-            away_ht_stats['gols_sofridos_ht'],
-            f"{away_ht_stats['media_feitos_ht']:.2f}",
-            f"{away_ht_stats['media_sofridos_ht']:.2f}"
-        ]
-    })
-    st.dataframe(df_comparativo, use_container_width=True, hide_index=True)
+    # Tabela comparativa moderna
+    display_modern_comparison_table(home_ht_stats, away_ht_stats, team_home, team_away)
     
-    # Gráfico de colunas
-    st.subheader("📈 Gráfico Comparativo - 1º Tempo")
-    fig = go.Figure()
+    # Gráfico comparativo profissional
+    display_professional_ht_chart(home_ht_stats, away_ht_stats, team_home, team_away)
     
-    metrics = ["Gols Feitos (1ºT)", "Gols Sofridos (1ºT)"]
-    home_values = [home_ht_stats['gols_feitos_ht'], home_ht_stats['gols_sofridos_ht']]
-    away_values = [away_ht_stats['gols_feitos_ht'], away_ht_stats['gols_sofridos_ht']]
-    
-    fig.add_trace(go.Bar(
-        x=metrics, 
-        y=home_values, 
-        name=f"{team_home} (Mandante)", 
-        marker_color='royalblue'
-    ))
-    fig.add_trace(go.Bar(
-        x=metrics, 
-        y=away_values, 
-        name=f"{team_away} (Visitante)", 
-        marker_color='darkorange'
-    ))
-    
-    fig.update_layout(
-        barmode='group',
-        xaxis_title="Métrica",
-        yaxis_title="Quantidade",
-        legend_title="Times",
-        title=f"Desempenho 1º Tempo: {team_home} vs {team_away}"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Análise de reversões/manutenções de resultado
-    st.subheader("🔄 Análise de Reversões de Resultado")
-    show_result_reversions(home_games, away_games, team_home, team_away)
+    # Análise completa de cenários HT → FT
+    display_complete_scenario_analysis(home_games, away_games, team_home, team_away)
 
 def calculate_ht_stats(games, is_home):
     """Calcula estatísticas do 1º tempo"""
@@ -1021,97 +994,376 @@ def calculate_ht_stats(games, is_home):
         'media_sofridos_ht': gols_sofridos_ht / jogos if jogos > 0 else 0
     }
 
-def show_result_reversions(home_games, away_games, team_home, team_away):
-    """Exibe análise de reversões de resultado entre 1º tempo e resultado final"""
+def display_modern_comparison_table(home_stats, away_stats, team_home, team_away):
+    """Exibe tabela comparativa moderna e profissional"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
+            📊 Comparativo Estatístico - 1º Tempo
+        </h2>
+    </div>
+    """, unsafe_allow_html=True)
     
+    # Criar tabela HTML customizada
+    html_table = f"""
+    <style>
+    .custom-table {{
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }}
+    .custom-table thead tr {{
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+    }}
+    .custom-table th, .custom-table td {{
+        padding: 15px;
+        text-align: center;
+    }}
+    .custom-table tbody tr {{
+        border-bottom: 1px solid #dddddd;
+    }}
+    .custom-table tbody tr:nth-of-type(even) {{
+        background-color: #f3f3f3;
+    }}
+    .custom-table tbody tr:last-of-type {{
+        border-bottom: 2px solid #667eea;
+    }}
+    .metric-label {{
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 17px;
+        text-align: left !important;
+        padding-left: 20px !important;
+    }}
+    .home-value {{
+        color: #2196F3;
+        font-weight: bold;
+        font-size: 20px;
+    }}
+    .away-value {{
+        color: #FF6B6B;
+        font-weight: bold;
+        font-size: 20px;
+    }}
+    </style>
+    
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th style="text-align: left; padding-left: 20px;">📊 Métrica</th>
+                <th>🏠 {team_home}<br/>(Mandante)</th>
+                <th>✈️ {team_away}<br/>(Visitante)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="metric-label">🎮 Jogos Analisados</td>
+                <td class="home-value">{home_stats['jogos']}</td>
+                <td class="away-value">{away_stats['jogos']}</td>
+            </tr>
+            <tr>
+                <td class="metric-label">⚽ Gols Feitos no 1º Tempo</td>
+                <td class="home-value">{home_stats['gols_feitos_ht']}</td>
+                <td class="away-value">{away_stats['gols_feitos_ht']}</td>
+            </tr>
+            <tr>
+                <td class="metric-label">🛡️ Gols Sofridos no 1º Tempo</td>
+                <td class="home-value">{home_stats['gols_sofridos_ht']}</td>
+                <td class="away-value">{away_stats['gols_sofridos_ht']}</td>
+            </tr>
+            <tr>
+                <td class="metric-label">📈 Média Gols Feitos/Jogo (1ºT)</td>
+                <td class="home-value">{home_stats['media_feitos_ht']:.2f}</td>
+                <td class="away-value">{away_stats['media_feitos_ht']:.2f}</td>
+            </tr>
+            <tr>
+                <td class="metric-label">📉 Média Gols Sofridos/Jogo (1ºT)</td>
+                <td class="home-value">{home_stats['media_sofridos_ht']:.2f}</td>
+                <td class="away-value">{away_stats['media_sofridos_ht']:.2f}</td>
+            </tr>
+        </tbody>
+    </table>
+    """
+    
+    st.markdown(html_table, unsafe_allow_html=True)
+
+def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
+    """Exibe gráfico comparativo profissional"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
+            📈 Gráfico Comparativo - 1º Tempo
+        </h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    fig = go.Figure()
+    
+    metrics = ["Gols Feitos<br>(1ºT)", "Gols Sofridos<br>(1ºT)", "Média Feitos<br>(1ºT)", "Média Sofridos<br>(1ºT)"]
+    home_values = [
+        home_stats['gols_feitos_ht'], 
+        home_stats['gols_sofridos_ht'],
+        home_stats['media_feitos_ht'],
+        home_stats['media_sofridos_ht']
+    ]
+    away_values = [
+        away_stats['gols_feitos_ht'], 
+        away_stats['gols_sofridos_ht'],
+        away_stats['media_feitos_ht'],
+        away_stats['media_sofridos_ht']
+    ]
+    
+    fig.add_trace(go.Bar(
+        x=metrics, 
+        y=home_values, 
+        name=f"🏠 {team_home}", 
+        marker_color='#2196F3',
+        text=[f"{v:.1f}" if isinstance(v, float) else str(v) for v in home_values],
+        textposition='auto',
+        textfont=dict(size=14, color='white')
+    ))
+    
+    fig.add_trace(go.Bar(
+        x=metrics, 
+        y=away_values, 
+        name=f"✈️ {team_away}", 
+        marker_color='#FF6B6B',
+        text=[f"{v:.1f}" if isinstance(v, float) else str(v) for v in away_values],
+        textposition='auto',
+        textfont=dict(size=14, color='white')
+    ))
+    
+    fig.update_layout(
+        barmode='group',
+        xaxis_title="Métricas",
+        yaxis_title="Valores",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(size=14)
+        ),
+        title=dict(
+            text=f"Desempenho 1º Tempo: {team_home} vs {team_away}",
+            font=dict(size=20)
+        ),
+        height=500,
+        plot_bgcolor='rgba(240,240,240,0.3)',
+        paper_bgcolor='white'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def display_complete_scenario_analysis(home_games, away_games, team_home, team_away):
+    """Exibe análise completa de todos os cenários HT → FT"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
+            🔄 Análise de Cenários: 1º Tempo → Resultado Final
+        </h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Analisar cenários completos
+    home_scenarios = analyze_all_scenarios(home_games, True)
+    away_scenarios = analyze_all_scenarios(away_games, False)
+    
+    # Exibir lado a lado
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write(f"**🏠 {team_home} (Como Mandante)**")
-        home_reversions = analyze_reversions(home_games, True)
-        display_reversion_stats(home_reversions)
-        
-    with col2:
-        st.write(f"**✈️ {team_away} (Como Visitante)**")  
-        away_reversions = analyze_reversions(away_games, False)
-        display_reversion_stats(away_reversions)
-
-def analyze_reversions(games, is_home):
-    """Analisa reversões de resultado"""
-    if games.empty:
-        return {
-            'venceu_ht_perdeu_final': 0,
-            'venceu_ht_empatou_final': 0,
-            'perdeu_ht_venceu_final': 0,
-            'perdeu_ht_empatou_final': 0,
-            'empate_ht_venceu_final': 0,
-            'empate_ht_perdeu_final': 0
-        }
+        display_scenario_stats(home_scenarios, team_home, "🏠 Mandante", "#2196F3")
     
-    reversions = {
-        'venceu_ht_perdeu_final': 0,
-        'venceu_ht_empatou_final': 0,
-        'perdeu_ht_venceu_final': 0,
-        'perdeu_ht_empatou_final': 0,
-        'empate_ht_venceu_final': 0,
-        'empate_ht_perdeu_final': 0
+    with col2:
+        display_scenario_stats(away_scenarios, team_away, "✈️ Visitante", "#FF6B6B")
+
+def analyze_all_scenarios(games, is_home):
+    """Analisa todos os cenários possíveis HT → FT"""
+    scenarios = {
+        # Vencendo no HT
+        'ht_win_ft_win': 0,
+        'ht_win_ft_draw': 0,
+        'ht_win_ft_loss': 0,
+        # Empatando no HT
+        'ht_draw_ft_win': 0,
+        'ht_draw_ft_draw': 0,
+        'ht_draw_ft_loss': 0,
+        # Perdendo no HT
+        'ht_loss_ft_win': 0,
+        'ht_loss_ft_draw': 0,
+        'ht_loss_ft_loss': 0
     }
+    
+    if games.empty:
+        return scenarios
     
     for _, game in games.iterrows():
         if is_home:
-            ht_home = game['Home Score HT']
-            ht_away = game['Away Score HT']
-            final_home = game['Gols Home']
-            final_away = game['Gols Away']
+            ht_team = game['Home Score HT']
+            ht_opp = game['Away Score HT']
+            ft_team = game['Gols Home']
+            ft_opp = game['Gols Away']
         else:
-            # Para time visitante, inverter a perspectiva
-            ht_home = game['Away Score HT']
-            ht_away = game['Home Score HT']
-            final_home = game['Gols Away']
-            final_away = game['Gols Home']
+            ht_team = game['Away Score HT']
+            ht_opp = game['Home Score HT']
+            ft_team = game['Gols Away']
+            ft_opp = game['Gols Home']
         
-        # Resultado no 1º tempo
-        if ht_home > ht_away:
+        # Resultado HT
+        if ht_team > ht_opp:
             ht_result = 'win'
-        elif ht_home < ht_away:
+        elif ht_team < ht_opp:
             ht_result = 'loss'
         else:
             ht_result = 'draw'
         
-        # Resultado final
-        if final_home > final_away:
-            final_result = 'win'
-        elif final_home < final_away:
-            final_result = 'loss'
+        # Resultado FT
+        if ft_team > ft_opp:
+            ft_result = 'win'
+        elif ft_team < ft_opp:
+            ft_result = 'loss'
         else:
-            final_result = 'draw'
+            ft_result = 'draw'
         
-        # Contar reversões
-        if ht_result == 'win' and final_result == 'loss':
-            reversions['venceu_ht_perdeu_final'] += 1
-        elif ht_result == 'win' and final_result == 'draw':
-            reversions['venceu_ht_empatou_final'] += 1
-        elif ht_result == 'loss' and final_result == 'win':
-            reversions['perdeu_ht_venceu_final'] += 1
-        elif ht_result == 'loss' and final_result == 'draw':
-            reversions['perdeu_ht_empatou_final'] += 1
-        elif ht_result == 'draw' and final_result == 'win':
-            reversions['empate_ht_venceu_final'] += 1
-        elif ht_result == 'draw' and final_result == 'loss':
-            reversions['empate_ht_perdeu_final'] += 1
+        # Mapear cenário
+        scenario_key = f"ht_{ht_result}_ft_{ft_result}"
+        if scenario_key in scenarios:
+            scenarios[scenario_key] += 1
     
-    return reversions
+    return scenarios
 
-def display_reversion_stats(reversions):
-    """Exibe estatísticas de reversão"""
-    st.write("**Mudanças de Resultado:**")
-    st.write(f"• Venceu no 1ºT → Perdeu no final: {reversions['venceu_ht_perdeu_final']}")
-    st.write(f"• Venceu no 1ºT → Empatou no final: {reversions['venceu_ht_empatou_final']}")
-    st.write(f"• Perdeu no 1ºT → Venceu no final: {reversions['perdeu_ht_venceu_final']}")
-    st.write(f"• Perdeu no 1ºT → Empatou no final: {reversions['perdeu_ht_empatou_final']}")
-    st.write(f"• Empatou no 1ºT → Venceu no final: {reversions['empate_ht_venceu_final']}")
-    st.write(f"• Empatou no 1ºT → Perdeu no final: {reversions['empate_ht_perdeu_final']}")
+def display_scenario_stats(scenarios, team_name, position, color):
+    """Exibe estatísticas de cenários de forma profissional"""
+    total_games = sum(scenarios.values())
+    
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, {color} 0%, {color}CC 100%);
+                padding: 15px;
+                border-radius: 10px;
+                margin: 10px 0;
+                text-align: center;">
+        <h3 style="color: white; margin: 0; font-size: 22px;">
+            {position} {team_name}
+        </h3>
+        <p style="color: white; margin: 5px 0; font-size: 16px;">
+            Total: {total_games} jogos
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Organizar cenários por categoria
+    scenarios_data = [
+        ("✅ Vencendo no 1ºT", [
+            ("HT Vitória → FT Vitória", scenarios['ht_win_ft_win'], "🏆"),
+            ("HT Vitória → FT Empate", scenarios['ht_win_ft_draw'], "⚖️"),
+            ("HT Vitória → FT Derrota", scenarios['ht_win_ft_loss'], "❌")
+        ]),
+        ("⚖️ Empatando no 1ºT", [
+            ("HT Empate → FT Vitória", scenarios['ht_draw_ft_win'], "🏆"),
+            ("HT Empate → FT Empate", scenarios['ht_draw_ft_draw'], "⚖️"),
+            ("HT Empate → FT Derrota", scenarios['ht_draw_ft_loss'], "❌")
+        ]),
+        ("❌ Perdendo no 1ºT", [
+            ("HT Derrota → FT Vitória", scenarios['ht_loss_ft_win'], "🏆🔄"),
+            ("HT Derrota → FT Empate", scenarios['ht_loss_ft_draw'], "⚖️"),
+            ("HT Derrota → FT Derrota", scenarios['ht_loss_ft_loss'], "❌")
+        ])
+    ]
+    
+    for category_title, category_scenarios in scenarios_data:
+        st.markdown(f"**{category_title}**")
+        
+        for label, count, emoji in category_scenarios:
+            percentage = (count / total_games * 100) if total_games > 0 else 0
+            
+            # Barra de progresso visual
+            bar_width = min(percentage, 100)
+            bar_color = "#4CAF50" if "Vitória" in label else "#FFC107" if "Empate" in label else "#F44336"
+            
+            st.markdown(f"""
+            <div style="margin: 8px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                    <span style="font-size: 15px; color: #2c3e50;">{emoji} {label}</span>
+                    <span style="font-size: 15px; font-weight: bold; color: {color};">{count} ({percentage:.1f}%)</span>
+                </div>
+                <div style="background-color: #e0e0e0; border-radius: 10px; height: 12px; overflow: hidden;">
+                    <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Insights importantes
+    st.markdown("### 💡 Destaques")
+    
+    viradas = scenarios['ht_loss_ft_win']
+    manteve_vantagem = scenarios['ht_win_ft_win']
+    perdeu_vantagem = scenarios['ht_win_ft_loss']
+    
+    if total_games > 0:
+        st.info(f"🔄 **Viradas:** {viradas} vezes ({viradas/total_games*100:.1f}%) - Perdendo no HT e vencendo no FT")
+        st.success(f"🛡️ **Manteve Vantagem:** {manteve_vantagem} vezes ({manteve_vantagem/total_games*100:.1f}%) - Vencendo do HT ao FT")
+        if perdeu_vantagem > 0:
+            st.warning(f"⚠️ **Perdeu Vantagem:** {perdeu_vantagem} vezes ({perdeu_vantagem/total_games*100:.1f}%) - Vencendo no HT e perdendo no FT")
 
+def display_team_with_logo(team_name, logo_size=(25, 25)):
+    """Exibe time com logo"""
+    normalized_name = normalize_team_name(team_name)
+    
+    try:
+        logo_url = TEAM_LOGOS.get(normalized_name) or TEAM_LOGOS.get(team_name)
+    except NameError:
+        logo_url = None
+    
+    if logo_url:
+        html = f'<div style="display:flex; align-items:center; gap:8px; margin:2px 0; justify-content:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><div style="background-color:transparent; display:flex; align-items:center;"><img src="{logo_url}" style="width:{logo_size[0]}px; height:{logo_size[1]}px; object-fit:contain; background:none;" alt="{normalized_name}"></div><span style="font-weight:500; color:#FFFFFF; font-size:20px;">{normalized_name}</span></div>'
+    else:
+        html = f'<div style="text-align:center; background-color:#2E2E2E; padding:10px; border-radius:8px;"><span>⚽</span> <span style="font-weight:500; color:#FFFFFF; font-size:20px;">{normalized_name}</span></div>'
+    
+    st.markdown(html, unsafe_allow_html=True)
+
+def normalize_team_name(team_name):
+    """Normaliza nome do time"""
+    replacements = {
+        'SÃ£o': 'São',
+        'Ã¡': 'á',
+        'Ã ': 'à',
+        'Ã³': 'ó',
+        'Ãª': 'ê',
+        'Ã¢': 'â',
+        'Ã§': 'ç',
+        'Ã­': 'í',
+        'Ãº': 'ú'
+    }
+    
+    normalized = team_name
+    for old, new in replacements.items():
+        normalized = normalized.replace(old, new)
+    
+    return normalized
 
 def show_direct_confrontation(df, teams):
     """Análise de Confronto Direto"""
@@ -3813,6 +4065,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
