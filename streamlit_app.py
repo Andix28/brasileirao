@@ -3411,9 +3411,8 @@ def main():
     with col1:
         is_selected = st.session_state.ano_selecionado == "2024"
         if st.button("📅 2024", key="btn_2024", use_container_width=True, type="primary" if is_selected else "secondary"):
-        st.session_state.ano_selecionado = "2024"
-        st.rerun()
-
+            st.session_state.ano_selecionado = "2024"
+            st.rerun()
     with col2:
         is_selected = st.session_state.ano_selecionado == "2025"
         if st.button("📅 2025", key="btn_2025", use_container_width=True, type="primary" if is_selected else "secondary"):
@@ -4146,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
