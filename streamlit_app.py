@@ -55,6 +55,9 @@ TEAM_LOGOS = {
         "Criciúma": "https://logodetimes.com/wp-content/uploads/criciuma.png",
         "Juventude": "https://logodetimes.com/wp-content/uploads/juventude-rs.png",
         "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png"
+        "Remo": "https://logodetimes.com/wp-content/uploads/remo.png"
+        "Coritiba": "https://logodetimes.com/wp-content/uploads/coritiba.png"
+        "Chapecoense" : "https://logodetimes.com/wp-content/uploads/chapecoense.png"
     }
 
 def normalize_team_name(team_name):
@@ -3350,7 +3353,7 @@ def main():
         st.info("📂 Certifique-se de que o arquivo está na raiz do repositório.")
         return
 
-    # ==== SEÇÃO DE FILTROS MODERNA ====
+    # ==== SEÇÃO DE FILTROS MODERNA COM SELEÇÃO RÁPIDA ====
     st.markdown("""
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                 padding: 25px; 
@@ -3363,41 +3366,93 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Container centralizado para o filtro
-    col_filter = st.columns([1, 2, 1])[1]
-    with col_filter:
-        anos = sorted(df['Ano'].dropna().unique())
-        
-        # Criação das opções de filtro
-        opcoes_anos = []
-        
-        # Adiciona anos individuais
-        for ano in anos:
-            opcoes_anos.append(f"{ano}")
-        
-        # Adiciona opção para ambos os anos (se existirem 2024 e 2025)
-        if 2024 in anos and 2025 in anos:
-            opcoes_anos.append("2024 + 2025 (Combinados)")
-        
-        # Se houver mais de 2 anos, adiciona opção "Todos os Anos"
-        if len(anos) > 1:
-            opcoes_anos.append("Todos os Anos")
-        
-        ano_selecionado = st.selectbox(
-            "Selecione a Temporada:", 
-            opcoes_anos, 
-            key="ano_selecionado",
-            help="Escolha um ano específico, combinação de anos ou todos os anos disponíveis"
-        )
-        
-        # Aplicação do filtro baseado na seleção
-        df_original = df.copy()
-        
-        if ano_selecionado == "2024 + 2025 (Combinados)":
-            df = df[df['Ano'].isin([2024, 2025])]
-        elif ano_selecionado != "Todos os Anos":
-            ano_num = int(ano_selecionado)
-            df = df[df['Ano'] == ano_num]
+    # Estilo CSS para os botões de filtro
+    st.markdown("""
+    <style>
+    .filter-button {
+        display: inline-block;
+        padding: 12px 20px;
+        margin: 5px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .filter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Container para filtros
+    st.markdown("<h4 style='text-align: center; color: #667eea; margin: 20px 0;'>Selecione Rápido:</h4>", unsafe_allow_html=True)
+    
+    # Criar 5 colunas para os botões de filtro
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    # Inicializar estado do filtro se não existir
+    if 'ano_selecionado' not in st.session_state:
+        st.session_state.ano_selecionado = "2025"
+    
+    with col1:
+        if st.button("📅 2024", key="btn_2024", use_container_width=True):
+            st.session_state.ano_selecionado = "2024"
+            st.rerun()
+    
+    with col2:
+        if st.button("📅 2025", key="btn_2025", use_container_width=True):
+            st.session_state.ano_selecionado = "2025"
+            st.rerun()
+    
+    with col3:
+        if st.button("📅 2026", key="btn_2026", use_container_width=True):
+            st.session_state.ano_selecionado = "2026"
+            st.rerun()
+    
+    with col4:
+        if st.button("🔄 2025+2026", key="btn_2025_2026", use_container_width=True):
+            st.session_state.ano_selecionado = "2025 + 2026 (Combinados)"
+            st.rerun()
+    
+    with col5:
+        if st.button("📊 Todos", key="btn_todos", use_container_width=True):
+            st.session_state.ano_selecionado = "Todos os Anos"
+            st.rerun()
+    
+    # Exibir filtro selecionado
+    ano_selecionado = st.session_state.ano_selecionado
+    
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                padding: 15px;
+                border-radius: 10px;
+                margin: 15px auto;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <h4 style="color: white; margin: 0; font-size: 18px;">
+            ✅ Filtro Ativo: <strong>{ano_selecionado}</strong>
+        </h4>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Aplicação do filtro baseado na seleção
+    df_original = df.copy()
+    anos = sorted(df['Ano'].dropna().unique())
+    
+    if ano_selecionado == "2025 + 2026 (Combinados)":
+        df = df[df['Ano'].isin([2025, 2026])]
+    elif ano_selecionado == "Todos os Anos":
+        # Mantém todos os dados
+        pass
+    else:
+        # Filtro por ano específico
+        ano_num = int(ano_selecionado)
+        df = df[df['Ano'] == ano_num]
 
     # Inicializa lista de times
     if ('Home' in df.columns) and ('Away' in df.columns):
@@ -3413,10 +3468,10 @@ def main():
         total_jogos = len(df)
         total_times = len(teams)
         
-        if ano_selecionado == "2024 + 2025 (Combinados)":
-            jogos_2024 = len(df[df['Ano'] == 2024])
+        if ano_selecionado == "2025 + 2026 (Combinados)":
             jogos_2025 = len(df[df['Ano'] == 2025])
-            info_extra = f"2024: {jogos_2024} | 2025: {jogos_2025}"
+            jogos_2026 = len(df[df['Ano'] == 2026])
+            info_extra = f"2025: {jogos_2025} | 2026: {jogos_2026}"
         elif ano_selecionado == "Todos os Anos":
             info_extra = f"Período: {min(anos)} - {max(anos)}"
         else:
@@ -3473,10 +3528,10 @@ def main():
         """, unsafe_allow_html=True)
         
         # Informação sobre filtro ativo
-        if ano_selecionado == "2024 + 2025 (Combinados)":
+        if ano_selecionado == "2025 + 2026 (Combinados)":
             st.markdown(
                 '<div style="background-color: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2196F3;">'
-                '<strong style="color: #1976D2;">🔄 Modo Combinado Ativo:</strong> <span style="color: #424242;">As análises incluirão dados de 2024 e 2025 juntos</span>'
+                '<strong style="color: #1976D2;">🔄 Modo Combinado Ativo:</strong> <span style="color: #424242;">As análises incluirão dados de 2025 e 2026 juntos</span>'
                 '</div>', 
                 unsafe_allow_html=True
             )
@@ -4076,6 +4131,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
