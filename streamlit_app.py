@@ -3398,31 +3398,46 @@ def main():
     if 'ano_selecionado' not in st.session_state:
         st.session_state.ano_selecionado = "2025"
     
+    # Estilo para botão selecionado
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"] > button[kind="primary"] {
+        background-color: #4CAF50 !important;
+        border: 3px solid #45a049 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     with col1:
-        if st.button("📅 2024", key="btn_2024", use_container_width=True):
-            st.session_state.ano_selecionado = "2024"
-            st.rerun()
-    
+        is_selected = st.session_state.ano_selecionado == "2024"
+        if st.button("📅 2024", key="btn_2024", use_container_width=True, type="primary" if is_selected else "secondary"):
+        st.session_state.ano_selecionado = "2024"
+        st.rerun()
+
     with col2:
-        if st.button("📅 2025", key="btn_2025", use_container_width=True):
+        is_selected = st.session_state.ano_selecionado == "2025"
+        if st.button("📅 2025", key="btn_2025", use_container_width=True, type="primary" if is_selected else "secondary"):
             st.session_state.ano_selecionado = "2025"
             st.rerun()
-    
+
     with col3:
-        if st.button("📅 2026", key="btn_2026", use_container_width=True):
+        is_selected = st.session_state.ano_selecionado == "2026"
+        if st.button("📅 2026", key="btn_2026", use_container_width=True, type="primary" if is_selected else "secondary"):
             st.session_state.ano_selecionado = "2026"
             st.rerun()
-    
+
     with col4:
-        if st.button("🔄 2025+2026", key="btn_2025_2026", use_container_width=True):
+        is_selected = st.session_state.ano_selecionado == "2025 + 2026 (Combinados)"
+        if st.button("🔄 2025+2026", key="btn_2025_2026", use_container_width=True, type="primary" if is_selected else "secondary"):
             st.session_state.ano_selecionado = "2025 + 2026 (Combinados)"
             st.rerun()
-    
+
     with col5:
-        if st.button("📊 Todos", key="btn_todos", use_container_width=True):
+        is_selected = st.session_state.ano_selecionado == "Todos os Anos"
+        if st.button("📊 Todos", key="btn_todos", use_container_width=True, type="primary" if is_selected else "secondary"):
             st.session_state.ano_selecionado = "Todos os Anos"
             st.rerun()
-    
+        
     # Exibir filtro selecionado
     ano_selecionado = st.session_state.ano_selecionado
     
@@ -4131,6 +4146,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
