@@ -54,10 +54,10 @@ TEAM_LOGOS = {
         "Criciuma": "https://logodetimes.com/wp-content/uploads/criciuma.png",
         "Criciúma": "https://logodetimes.com/wp-content/uploads/criciuma.png",
         "Juventude": "https://logodetimes.com/wp-content/uploads/juventude-rs.png",
-        "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png"
-        "Remo": "https://logodetimes.com/wp-content/uploads/remo.png"
-        "Coritiba": "https://logodetimes.com/wp-content/uploads/coritiba.png"
-        "Chapecoense" : "https://logodetimes.com/wp-content/uploads/chapecoense.png"
+        "Palmeiras": "https://logodetimes.com/wp-content/uploads/palmeiras.png",
+        "Remo": "https://logodetimes.com/wp-content/uploads/remo.png",
+        "Coritiba": "https://logodetimes.com/wp-content/uploads/coritiba.png",
+        "Chapecoense" : "https://logodetimes.com/wp-content/uploads/chapecoense.png",
     }
 
 def normalize_team_name(team_name):
@@ -4131,6 +4131,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
