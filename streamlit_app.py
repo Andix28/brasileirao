@@ -3552,7 +3552,7 @@ def main():
         elif ano_selecionado == "Todos os Anos":
             st.markdown(
                 '<div style="background-color: #f1f8e9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #8BC34A;">'
-                f'<strong style="color: #558B2F;">📊 Análise Completa:</strong> <span style="color: #424242;">Incluindo todos os anos disponíveis ({", ".join(map(str, sorted(anos)))})</span>'
+                '<strong style="color: #558B2F;">📊 Análise Completa:</strong> <span style="color: #424242;">Incluindo todos os anos disponíveis (2024, 2025 e 2026)</span>'
                 '</div>', 
                 unsafe_allow_html=True
             )
@@ -4145,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
