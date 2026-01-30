@@ -852,12 +852,11 @@ def display_basic_summary(stats, team_home, team_away, analysis):
             saldo_icon = "➖"
             saldo_text = "0"
             
-        away_icon = "✈️"
         st.info(f"""
-        {away_icon} **{team_away} (Como Visitante)**
-        - 🎮 Jogos analisados: **{analysis['away_jogos']}**
-        - ⚽ Gols marcados: **{analysis['away_gols_total']}** (média: {analysis['away_media_gols']}/jogo)
-        - 🥅 Gols sofridos: **{analysis['away_sofridos_total']}** (média: {analysis['away_media_sofridos']}/jogo)
+        **{team_away} (Como Visitante)**
+        - Jogos analisados: **{analysis['away_jogos']}**
+        - Gols marcados: **{analysis['away_gols_total']}** (média: {analysis['away_media_gols']}/jogo)
+        - Gols sofridos: **{analysis['away_sofridos_total']}** (média: {analysis['away_media_sofridos']}/jogo)
         - {saldo_icon} Saldo de gols: **{saldo_text}**
         """)
 
@@ -4146,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
