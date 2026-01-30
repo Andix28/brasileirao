@@ -758,7 +758,7 @@ def display_statistics_summary(stats, team_home, team_away):
         st.write(f"Stats away: {stats.get('away', 'N/A')}")
 
 def calculate_advanced_metrics(stats, team_home, team_away):
-    """
+    ""
     Calcula métricas avançadas para análise profissional.
     
     Args:
@@ -1327,7 +1327,7 @@ def display_scenario_stats(scenarios, team_name, position, color):
         <div style="background-color: {bar_color}; width: {bar_width}%; height: 100%; transition: width 0.3s ease;"></div>
     </div>
 </div>
-"""
+""
             st.markdown(html_content, unsafe_allow_html=True)
     
     # Insights importantes
@@ -4145,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
