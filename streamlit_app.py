@@ -758,8 +758,9 @@ def display_statistics_summary(stats, team_home, team_away):
         st.write(f"Stats away: {stats.get('away', 'N/A')}")
 
 def calculate_advanced_metrics(stats, team_home, team_away):
-    ""
-    Calcula metricas avançadas para analise profissional.
+    """
+    Calcula metricas avancadas para analise profissional.
+    """
     
     Args:
         stats (dict): Estatísticas básicas
@@ -4073,6 +4074,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
