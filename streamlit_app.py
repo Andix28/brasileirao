@@ -3179,13 +3179,14 @@ def show_score_prediction(df, teams):
             away_def=away_stats['media_gols_sofridos']
         )
 
-        # Exibição de resultado com logos
-        st.success("🎯 Placar Mais Provável:")
+        # Exibicao de resultado com logos
+        st.success("Placar Mais Provavel:")
         display_score_result_with_logos(team_home, resultado[0], resultado[1], team_away)
         
-        st.metric(label="🎯 Probabilidade estimada do placar", value=f"{probabilidade*100:.2f}%")
+        prob_formatted = f"{probabilidade*100:.2f}"
+        st.metric(label="Probabilidade estimada do placar", value=f"{prob_formatted}%")
         
-         col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
         
         with col1:
             st.info("Gols esperados - Mandante")
@@ -4073,6 +4074,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
