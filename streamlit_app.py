@@ -2468,7 +2468,7 @@ def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
 """
     # fallback
     return f"""
-<span>⚽</span> <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
+<span></span> <span style="font-weight:500; color:#1f4e79;">{team_name}</span>
 """
 
 def display_team_with_logo(team_name, logo_size=(25, 25)):
@@ -4060,6 +4060,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
