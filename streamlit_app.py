@@ -987,97 +987,43 @@ def calculate_ht_stats(games, is_home):
 
 def display_modern_comparison_table(home_stats, away_stats, team_home, team_away):
     """Exibe tabela comparativa moderna e profissional"""
-    html_header = """
-<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">Comparativo Estatistico - Primeiro Tempo</h2>
-</div>
-"""
-    st.markdown(html_header, unsafe_allow_html=True)
     
-    # Criar tabela HTML customizada
+    st.markdown('<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"><h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">Comparativo Estatistico - Primeiro Tempo</h2></div>', unsafe_allow_html=True)
+    
     html_table = f"""
-    <style>
-    .custom-table {{
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        font-size: 16px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-radius: 8px;
-        overflow: hidden;
-    }}
-    .custom-table thead tr {{
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: black;
-        text-align: center;
-        font-weight: bold;
-        font-size: 18px;
-    }}
-    .custom-table th, .custom-table td {{
-        padding: 15px;
-        text-align: center;
-    }}
-    .custom-table tbody tr {{
-        border-bottom: 1px solid #dddddd;
-    }}
-    .custom-table tbody tr:nth-of-type(even) {{
-        background-color: #f3f3f3;
-    }}
-    .custom-table tbody tr:last-of-type {{
-        border-bottom: 2px solid #667eea;
-    }}
-    .metric-label {{
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 17px;
-        text-align: left !important;
-        padding-left: 20px !important;
-    }}
-    .home-value {{
-        color: #2196F3;
-        font-weight: bold;
-        font-size: 20px;
-    }}
-    .away-value {{
-        color: #FF6B6B;
-        font-weight: bold;
-        font-size: 20px;
-    }}
-    </style>
-    
     <table class="custom-table">
         <thead>
             <tr>
-                <th style="text-align: left; padding-left: 20px;">Metrica</th>
-                <th>{team_home}<br/>(Mandante)</th>
-                <th>{team_away}<br/>(Visitante)</th>
+                <th>Metrica</th>
+                <th>{team_home} (Mandante)</th>
+                <th>{team_away} (Visitante)</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td class="metric-label">Jogos Analisados</td>
-                <td class="home-value">{home_stats['jogos']}</td>
-                <td class="away-value">{away_stats['jogos']}</td>
+                <td>Jogos Analisados</td>
+                <td>{home_stats['jogos']}</td>
+                <td>{away_stats['jogos']}</td>
             </tr>
             <tr>
-                <td class="metric-label">Gols Feitos no 1o Tempo</td>
-                <td class="home-value">{home_stats['gols_feitos_ht']}</td>
-                <td class="away-value">{away_stats['gols_feitos_ht']}</td>
+                <td>Gols Feitos no 1o Tempo</td>
+                <td>{home_stats['gols_feitos_ht']}</td>
+                <td>{away_stats['gols_feitos_ht']}</td>
             </tr>
             <tr>
-                <td class="metric-label">Gols Sofridos no 1o Tempo</td>
-                <td class="home-value">{home_stats['gols_sofridos_ht']}</td>
-                <td class="away-value">{away_stats['gols_sofridos_ht']}</td>
+                <td>Gols Sofridos no 1o Tempo</td>
+                <td>{home_stats['gols_sofridos_ht']}</td>
+                <td>{away_stats['gols_sofridos_ht']}</td>
             </tr>
             <tr>
-                <td class="metric-label">Media Gols Feitos/Jogo (1oT)</td>
-                <td class="home-value">{home_stats['media_feitos_ht']:.2f}</td>
-                <td class="away-value">{away_stats['media_feitos_ht']:.2f}</td>
+                <td>Media Gols Feitos/Jogo</td>
+                <td>{home_stats['media_feitos_ht']:.2f}</td>
+                <td>{away_stats['media_feitos_ht']:.2f}</td>
             </tr>
             <tr>
-                <td class="metric-label">Media Gols Sofridos/Jogo (1oT)</td>
-                <td class="home-value">{home_stats['media_sofridos_ht']:.2f}</td>
-                <td class="away-value">{away_stats['media_sofridos_ht']:.2f}</td>
+                <td>Media Gols Sofridos/Jogo</td>
+                <td>{home_stats['media_sofridos_ht']:.2f}</td>
+                <td>{away_stats['media_sofridos_ht']:.2f}</td>
             </tr>
         </tbody>
     </table>
@@ -4134,6 +4080,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
