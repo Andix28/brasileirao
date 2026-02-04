@@ -1048,34 +1048,34 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
     <table class="custom-table">
         <thead>
             <tr>
-                <th style="text-align: left; padding-left: 20px;">📊 Métrica</th>
-                <th>🏠 {team_home}<br/>(Mandante)</th>
-                <th>✈️ {team_away}<br/>(Visitante)</th>
+                <th style="text-align: left; padding-left: 20px;">Metrica</th>
+                <th>{team_home}<br/>(Mandante)</th>
+                <th>{team_away}<br/>(Visitante)</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td class="metric-label">🎮 Jogos Analisados</td>
+                <td class="metric-label">Jogos Analisados</td>
                 <td class="home-value">{home_stats['jogos']}</td>
                 <td class="away-value">{away_stats['jogos']}</td>
             </tr>
             <tr>
-                <td class="metric-label">⚽ Gols Feitos no 1º Tempo</td>
+                <td class="metric-label">Gols Feitos no 1o Tempo</td>
                 <td class="home-value">{home_stats['gols_feitos_ht']}</td>
                 <td class="away-value">{away_stats['gols_feitos_ht']}</td>
             </tr>
             <tr>
-                <td class="metric-label">🛡️ Gols Sofridos no 1º Tempo</td>
+                <td class="metric-label">Gols Sofridos no 1o Tempo</td>
                 <td class="home-value">{home_stats['gols_sofridos_ht']}</td>
                 <td class="away-value">{away_stats['gols_sofridos_ht']}</td>
             </tr>
             <tr>
-                <td class="metric-label">📈 Média Gols Feitos/Jogo (1ºT)</td>
+                <td class="metric-label">Media Gols Feitos/Jogo (1oT)</td>
                 <td class="home-value">{home_stats['media_feitos_ht']:.2f}</td>
                 <td class="away-value">{away_stats['media_feitos_ht']:.2f}</td>
             </tr>
             <tr>
-                <td class="metric-label">📉 Média Gols Sofridos/Jogo (1ºT)</td>
+                <td class="metric-label">Media Gols Sofridos/Jogo (1oT)</td>
                 <td class="home-value">{home_stats['media_sofridos_ht']:.2f}</td>
                 <td class="away-value">{away_stats['media_sofridos_ht']:.2f}</td>
             </tr>
@@ -4134,6 +4134,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
