@@ -3225,38 +3225,36 @@ def show_score_prediction(df, teams):
             """
             st.markdown(html_away, unsafe_allow_html=True)
 
-        # Tabela com top 10 placares prováveis
-        st.subheader("📋 Top 10 placares mais prováveis")
+        # Tabela com top 10 placares provaveis
+        st.subheader("Top 10 placares mais provaveis")
         results = []
         for h in range(6):
             for a in range(6):
                 prob = poisson.pmf(h, gols_esperados_home) * poisson.pmf(a, gols_esperados_away)
                 results.append(((h, a), prob))
         results.sort(key=lambda x: x[1], reverse=True)
-
+        
         for i, ((h, a), p) in enumerate(results[:10], 1):
-            emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-    
+            if i == 1:
+                emoji = "1."
+            elif i == 2:
+                emoji = "2."
+            elif i == 3:
+                emoji = "3."
+            else:
+                emoji = f"{i}."
+            
+            probabilidade_formatted = f"{p*100:.2f}"
+            
             placar_html = f"""
-            <div style="
-                display: flex;
-                align-items: center;
-                background-color: #2E2E2E;
-                padding: 10px;
-                margin: 5px 0;
-                border-radius: 8px;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                min-height: 50px;
-                color: white;
-            ">
+            <div style="display: flex; align-items: center; background-color: #2E2E2E; padding: 10px; margin: 5px 0; border-radius: 8px; justify-content: space-between; flex-wrap: wrap; min-height: 50px; color: white;">
                 <div style="font-size: 18px; min-width: 30px;">{emoji}</div>
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
                     <span style="color: white;">{team_home}</span>
                     <span style="font-size: 20px; color: #FFD700; margin: 0 10px;">{h} x {a}</span>
                     <span style="color: white;">{team_away}</span>
                 </div>
-                <div style="font-size: 16px; color: #28a745; min-width: 60px; text-align: right;">{p*100:.2f}%</div>
+                <div style="font-size: 16px; color: #28a745; min-width: 60px; text-align: right;">{probabilidade_formatted}%</div>
             </div>
             """
             st.markdown(placar_html, unsafe_allow_html=True)
@@ -4067,6 +4065,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
