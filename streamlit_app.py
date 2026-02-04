@@ -1189,23 +1189,10 @@ def analyze_all_scenarios(games, is_home):
     return scenarios
 
 def display_scenario_stats(scenarios, team_name, position, color):
-    """Exibe estatísticas de cenários de forma profissional"""
+    """Exibe estatisticas de cenarios de forma profissional"""
     total_games = sum(scenarios.values())
     
-    st.markdown(f"""
-    <div style="background: linear-gradient(135deg, {color} 0%, {color}CC 100%);
-                padding: 15px;
-                border-radius: 10px;
-                margin: 10px 0;
-                text-align: center;">
-        <h3 style="color: white; margin: 0; font-size: 22px;">
-            {position} {team_name}
-        </h3>
-        <p style="color: white; margin: 5px 0; font-size: 16px;">
-            Total: {total_games} jogos
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div style="background: linear-gradient(135deg, {color} 0%, {color}CC 100%); padding: 15px; border-radius: 10px; margin: 10px 0; text-align: center;"><h3 style="color: white; margin: 0; font-size: 22px;">{position} {team_name}</h3><p style="color: white; margin: 5px 0; font-size: 16px;">Total: {total_games} jogos</p></div>', unsafe_allow_html=True)
     
     # Organizar cenarios por categoria
     scenarios_data = [
@@ -4073,6 +4060,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
