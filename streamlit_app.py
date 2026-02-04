@@ -1006,12 +1006,12 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
                 <td>{away_stats['jogos']}</td>
             </tr>
             <tr>
-                <td>Gols Feitos no 1o Tempo</td>
+                <td>Gols Feitos no Primeiro Tempo</td>
                 <td>{home_stats['gols_feitos_ht']}</td>
                 <td>{away_stats['gols_feitos_ht']}</td>
             </tr>
             <tr>
-                <td>Gols Sofridos no 1o Tempo</td>
+                <td>Gols Sofridos no Primeiro Tempo</td>
                 <td>{home_stats['gols_sofridos_ht']}</td>
                 <td>{away_stats['gols_sofridos_ht']}</td>
             </tr>
@@ -1040,14 +1040,14 @@ def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
                 margin: 20px 0;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-            📈 Gráfico Comparativo - 1º Tempo
+            📈 Gráfico Comparativo - 1 Tempo
         </h2>
     </div>
     """, unsafe_allow_html=True)
     
     fig = go.Figure()
     
-    metrics = ["Gols Feitos<br>(1ºT)", "Gols Sofridos<br>(1ºT)", "Média Feitos<br>(1ºT)", "Média Sofridos<br>(1ºT)"]
+    metrics = ["Gols Feitos<br>(1 T)", "Gols Sofridos<br>(1 T)", "Média Feitos<br>(1 T)", "Média Sofridos<br>(1 T)"]
     home_values = [
         home_stats['gols_feitos_ht'], 
         home_stats['gols_sofridos_ht'],
@@ -1102,7 +1102,7 @@ def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
             font=dict(size=14, color='white')
         ),
         title=dict(
-            text=f"Desempenho 1º Tempo: {team_home} vs {team_away}",
+            text=f"Desempenho Primeiro Tempo: {team_home} vs {team_away}",
             font=dict(size=20, color='white')
         ),
         height=500,
@@ -1122,7 +1122,7 @@ def display_complete_scenario_analysis(home_games, away_games, team_home, team_a
                 margin: 20px 0;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-            🔄 Análise de Cenários: 1º Tempo → Resultado Final
+            🔄 Análise de Cenários: Primeiro Tempo → Resultado Final
         </h2>
     </div>
     """, unsafe_allow_html=True)
@@ -1216,17 +1216,17 @@ def display_scenario_stats(scenarios, team_name, position, color):
     
     # Organizar cenários por categoria
     scenarios_data = [
-        ("✅ Vencendo no 1ºT", [
+        ("✅ Vencendo no 1 T", [
             ("HT Vitória → FT Vitória", scenarios['ht_win_ft_win'], "🏆"),
             ("HT Vitória → FT Empate", scenarios['ht_win_ft_draw'], "⚖️"),
             ("HT Vitória → FT Derrota", scenarios['ht_win_ft_loss'], "❌")
         ]),
-        ("⚖️ Empatando no 1ºT", [
+        ("⚖️ Empatando no 1 T", [
             ("HT Empate → FT Vitória", scenarios['ht_draw_ft_win'], "🏆"),
             ("HT Empate → FT Empate", scenarios['ht_draw_ft_draw'], "⚖️"),
             ("HT Empate → FT Derrota", scenarios['ht_draw_ft_loss'], "❌")
         ]),
-        ("❌ Perdendo no 1ºT", [
+        ("❌ Perdendo no 1 T", [
             ("HT Derrota → FT Vitória", scenarios['ht_loss_ft_win'], "🏆🔄"),
             ("HT Derrota → FT Empate", scenarios['ht_loss_ft_draw'], "⚖️"),
             ("HT Derrota → FT Derrota", scenarios['ht_loss_ft_loss'], "❌")
@@ -3521,8 +3521,8 @@ def main():
                 st.session_state.selected_analysis = "1. Análise de Desempenho de Time"
                 st.rerun()
             
-            if st.button("📊 Análise 1º Tempo", key="primeiro_tempo", use_container_width=True):
-                st.session_state.selected_analysis = "2. Análise 1º Tempo HT"
+            if st.button("📊 Análise 1 Tempo", key="primeiro_tempo", use_container_width=True):
+                st.session_state.selected_analysis = "2. Análise 1 Tempo HT"
                 st.rerun()
             
             if st.button("🚩 Análise de Escanteios", key="corner_analysis", use_container_width=True):
@@ -3568,7 +3568,7 @@ def main():
         try:
             if st.session_state.selected_analysis == "1. Análise de Desempenho de Time":
                 show_team_performance(df, teams)
-            elif st.session_state.selected_analysis == "2. Análise 1º Tempo HT":
+            elif st.session_state.selected_analysis == "2. Análise 1 Tempo HT":
                 show_first_half_analysis(df, teams)
             elif st.session_state.selected_analysis == "3. Cálculo de Probabilidades Implícitas":
                 show_probability_analysis(df, teams)
@@ -4080,6 +4080,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
