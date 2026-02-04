@@ -3006,6 +3006,8 @@ def show_advanced_score_prediction(df, teams):
             """, unsafe_allow_html=True)
             
         with col2:
+            exp_away_formatted = f"{resultado['expectativa_away']:.2f}"
+            
             st.markdown(f"""
             <div style="padding: 15px; background-color: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -3013,7 +3015,7 @@ def show_advanced_score_prediction(df, teams):
                     <strong>Expectativa - {team_away}</strong>
                 </div>
                 <div style="font-size: 1.5em; font-weight: bold; color: #856404;">
-                    {resultado['expectativa_away']:.2f} gols
+                    {exp_away_formatted} gols
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -4062,6 +4064,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
