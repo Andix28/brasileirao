@@ -3273,10 +3273,9 @@ def main():
         st.info("Certifique-se de que o arquivo esta na raiz do repositorio.")
         return
     
-    # ==== SECAO DE FILTROS MODERNA COM SELECAO RAPIDA ====
+    # Filtros de temporada
     st.markdown('<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"><h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">Filtros de Temporada</h3></div>', unsafe_allow_html=True)
     
-    # Estilo CSS para os botoes de filtro
     st.markdown("""
     <style>
     .filter-button {
@@ -3298,17 +3297,13 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Container para filtros
     st.markdown("<h4 style='text-align: center; color: #667eea; margin: 20px 0;'>Selecione Rapido:</h4>", unsafe_allow_html=True)
     
-    # Criar 5 colunas para os botoes de filtro
     col1, col2, col3, col4, col5 = st.columns(5)
     
-    # Inicializar estado do filtro se nao existir
     if 'ano_selecionado' not in st.session_state:
         st.session_state.ano_selecionado = "2025"
     
-    # Estilo para botao selecionado
     st.markdown("""
     <style>
     div[data-testid="stButton"] > button[kind="primary"] {
@@ -4055,6 +4050,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
