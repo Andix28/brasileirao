@@ -3276,11 +3276,11 @@ def main():
     
         # Filtros de temporada
         header_filtros = """
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
-            <h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">Filtros de Temporada</h3>
-        </div>
-        """
-            st.markdown(header_filtros, unsafe_allow_html=True)
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+        <h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">Filtros de Temporada</h3>
+    </div>
+    """
+        st.markdown(header_filtros, unsafe_allow_html=True)
     
             css_filtros = """       
         <style>
@@ -4074,6 +4074,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
