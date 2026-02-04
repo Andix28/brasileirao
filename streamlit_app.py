@@ -3185,12 +3185,14 @@ def show_score_prediction(df, teams):
         
         st.metric(label="🎯 Probabilidade estimada do placar", value=f"{probabilidade*100:.2f}%")
         
-        col1, col2 = st.columns(2)
+         col1, col2 = st.columns(2)
+        
         with col1:
-            st.info("🏠 Gols esperados - Mandante")
+            st.info("Gols esperados - Mandante")
             normalized_home = normalize_team_name(team_home)
             logo_home = TEAM_LOGOS.get(normalized_home) or TEAM_LOGOS.get(team_home, "")
-
+            gols_home_formatted = f"{gols_esperados_home:.2f}"
+            
             html_home = f"""
             <div style="display:flex; align-items:center; gap:15px; padding:10px; background-color:#2E2E2E; border-radius:8px;">
                 <div style="background-color:transparent; display:flex; align-items:center;">
@@ -3198,17 +3200,18 @@ def show_score_prediction(df, teams):
                 </div>
                 <div style="color:white;">
                     <div style="font-weight:bold; font-size:18px;">{normalized_home}</div>
-                    <div style="font-size:24px; color:#4CAF50; font-weight:bold;">{gols_esperados_home:.2f} gols</div>
+                    <div style="font-size:24px; color:#4CAF50; font-weight:bold;">{gols_home_formatted} gols</div>
                 </div>
             </div>
             """
             st.markdown(html_home, unsafe_allow_html=True)
-
+        
         with col2:
-            st.info("✈️ Gols esperados - Visitante")
+            st.info("Gols esperados - Visitante")
             normalized_away = normalize_team_name(team_away)
             logo_away = TEAM_LOGOS.get(normalized_away) or TEAM_LOGOS.get(team_away, "")
-    
+            gols_away_formatted = f"{gols_esperados_away:.2f}"
+            
             html_away = f"""
             <div style="display:flex; align-items:center; gap:15px; padding:10px; background-color:#2E2E2E; border-radius:8px;">
                 <div style="background-color:transparent; display:flex; align-items:center;">
@@ -3216,7 +3219,7 @@ def show_score_prediction(df, teams):
                 </div>
                 <div style="color:white;">
                     <div style="font-weight:bold; font-size:18px;">{normalized_away}</div>
-                    <div style="font-size:24px; color:#4CAF50; font-weight:bold;">{gols_esperados_away:.2f} gols</div>
+                    <div style="font-size:24px; color:#4CAF50; font-weight:bold;">{gols_away_formatted} gols</div>
                 </div>
             </div>
             """
@@ -4064,6 +4067,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
