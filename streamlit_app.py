@@ -760,23 +760,22 @@ def display_statistics_summary(stats, team_home, team_away):
 def calculate_advanced_metrics(stats, team_home, team_away):
     """
     Calcula metricas avancadas para analise profissional.
-    """
     
     Args:
-        stats (dict): Estatísticas básicas
+        stats (dict): Estatisticas basicas
         team_home (str): Nome do time mandante
         team_away (str): Nome do time visitante
         
     Returns:
-        dict: Métricas avançadas calculadas
+        dict: Metricas avancadas calculadas
     """
     
-    # Função auxiliar para converter valores de forma segura
+    # Funcao auxiliar para converter valores de forma segura
     def safe_int(value):
         try:
             if pd.isna(value):
                 return 0
-            return int(float(value))  # Converte para float primeiro, depois int
+            return int(float(value))
         except (ValueError, TypeError):
             return 0
     
@@ -787,7 +786,7 @@ def calculate_advanced_metrics(stats, team_home, team_away):
             return float(value)
         except (ValueError, TypeError):
             return 0.0
-
+            
     # Converter valores de forma segura
     home_gols_marcados = safe_int(stats['home']['gols_marcados'])
     home_gols_sofridos = safe_int(stats['home']['gols_sofridos'])
@@ -4074,6 +4073,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
