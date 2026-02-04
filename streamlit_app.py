@@ -3261,32 +3261,22 @@ def show_score_prediction(df, teams):
 
 
 def main():
-    st.markdown('<h1 class="main-header">⚽ Análise & Estatística Brasileirão</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Sistema completo de análise estatística do Campeonato Brasileiro</p>', unsafe_allow_html=True)
-
+    st.markdown('<h1 class="main-header">Analise & Estatistica Brasileirao</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Sistema completo de analise estatistica do Campeonato Brasileiro</p>', unsafe_allow_html=True)
+    
     # Carrega os dados
     with st.spinner("Carregando dados..."):
         df = load_data()
-
-    if df.empty:
-        st.error("⚠ Não foi possível carregar os dados.")
-        st.info("📂 Certifique-se de que o arquivo está na raiz do repositório.")
-        return
-
-    # ==== SEÇÃO DE FILTROS MODERNA COM SELEÇÃO RÁPIDA ====
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 25px; 
-                border-radius: 15px; 
-                margin: 20px 0;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
-        <h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">
-            📅 Filtros de Temporada
-        </h3>
-    </div>
-    """, unsafe_allow_html=True)
     
-    # Estilo CSS para os botões de filtro
+    if df.empty:
+        st.error("Nao foi possivel carregar os dados.")
+        st.info("Certifique-se de que o arquivo esta na raiz do repositorio.")
+        return
+    
+    # ==== SECAO DE FILTROS MODERNA COM SELECAO RAPIDA ====
+    st.markdown('<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"><h3 style="color: white; margin: 0; text-align: center; font-size: 24px;">Filtros de Temporada</h3></div>', unsafe_allow_html=True)
+    
+    # Estilo CSS para os botoes de filtro
     st.markdown("""
     <style>
     .filter-button {
@@ -3309,16 +3299,16 @@ def main():
     """, unsafe_allow_html=True)
     
     # Container para filtros
-    st.markdown("<h4 style='text-align: center; color: #667eea; margin: 20px 0;'>Selecione Rápido:</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #667eea; margin: 20px 0;'>Selecione Rapido:</h4>", unsafe_allow_html=True)
     
-    # Criar 5 colunas para os botões de filtro
+    # Criar 5 colunas para os botoes de filtro
     col1, col2, col3, col4, col5 = st.columns(5)
     
-    # Inicializar estado do filtro se não existir
+    # Inicializar estado do filtro se nao existir
     if 'ano_selecionado' not in st.session_state:
         st.session_state.ano_selecionado = "2025"
     
-    # Estilo para botão selecionado
+    # Estilo para botao selecionado
     st.markdown("""
     <style>
     div[data-testid="stButton"] > button[kind="primary"] {
@@ -4065,6 +4055,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
