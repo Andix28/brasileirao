@@ -990,6 +990,12 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
     
     st.markdown('<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"><h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">Comparativo Estatistico - Primeiro Tempo</h2></div>', unsafe_allow_html=True)
     
+    # Formatar valores antes de usar no HTML
+    media_feitos_home = f"{home_stats['media_feitos_ht']:.2f}"
+    media_feitos_away = f"{away_stats['media_feitos_ht']:.2f}"
+    media_sofridos_home = f"{home_stats['media_sofridos_ht']:.2f}"
+    media_sofridos_away = f"{away_stats['media_sofridos_ht']:.2f}"
+    
     html_table = f"""
     <table class="custom-table">
         <thead>
@@ -1002,35 +1008,35 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
         <tbody>
             <tr>
                 <td>Jogos Analisados</td>
-                <td>{home_stats["jogos"]}</td>
-                <td>{away_stats["jogos"]}</td>
+                <td>{home_stats['jogos']}</td>
+                <td>{away_stats['jogos']}</td>
             </tr>
             <tr>
                 <td>Gols Feitos no Primeiro Tempo</td>
-                <td>{home_stats["gols_feitos_ht"]}</td>
-                <td>{away_stats["gols_feitos_ht"]}</td>
+                <td>{home_stats['gols_feitos_ht']}</td>
+                <td>{away_stats['gols_feitos_ht']}</td>
             </tr>
             <tr>
                 <td>Gols Sofridos no Primeiro Tempo</td>
-                <td>{home_stats["gols_sofridos_ht"]}</td>
-                <td>{away_stats["gols_sofridos_ht"]}</td>
+                <td>{home_stats['gols_sofridos_ht']}</td>
+                <td>{away_stats['gols_sofridos_ht']}</td>
             </tr>
             <tr>
-                <td>Media Gols Feitos/Jogo</td>
-                <td>{home_stats["media_feitos_ht"]:.2f}</td>
-                <td>{away_stats["media_feitos_ht"]:.2f}</td>
+                <td>Media Gols Feitos por Jogo</td>
+                <td>{media_feitos_home}</td>
+                <td>{media_feitos_away}</td>
             </tr>
             <tr>
-                <td>Media Gols Sofridos/Jogo</td>
-                <td>{home_stats["media_sofridos_ht"]:.2f}</td>
-                <td>{away_stats["media_sofridos_ht"]:.2f}</td>
+                <td>Media Gols Sofridos por Jogo</td>
+                <td>{media_sofridos_home}</td>
+                <td>{media_sofridos_away}</td>
             </tr>
         </tbody>
     </table>
     """
     
     st.markdown(html_table, unsafe_allow_html=True)
-
+    
 def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
     """Exibe gráfico comparativo profissional"""
     st.markdown("""
@@ -4080,6 +4086,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
