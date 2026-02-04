@@ -903,17 +903,20 @@ def display_first_half_analysis(stats, analysis, team_home, team_away):
 
 def show_first_half_analysis(df, teams):
     """Analise de Primeiro Tempo HT - Versao Profissional"""
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 25px; 
-                border-radius: 15px; 
-                margin: 20px 0;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
-        <h1 style="color: white; margin: 0; text-align: center; font-size: 32px;">
+    st.markdown(
+        """
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 25px; 
+                    border-radius: 15px; 
+                    margin: 20px 0;
+                    box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+             <h1 style="color: white; margin: 0; text-align: center; font-size: 32px;">
                 Analise Primeiro Tempo HT
-        </h1>
-    </div>
-    """, unsafe_allow_html=True)
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
     if len(teams) < 2:
         st.warning("Selecione pelo menos dois times.")
@@ -4145,6 +4148,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
