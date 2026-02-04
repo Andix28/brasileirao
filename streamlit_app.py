@@ -954,7 +954,7 @@ def show_first_half_analysis(df, teams):
     # Gráfico comparativo profissional
     display_professional_ht_chart(home_ht_stats, away_ht_stats, team_home, team_away)
     
-    # Análise completa de cenários HT → FT
+    # Análise completa de cenários HT para FT
     display_complete_scenario_analysis(home_games, away_games, team_home, team_away)
 
 def calculate_ht_stats(games, is_home):
@@ -1134,7 +1134,7 @@ def display_complete_scenario_analysis(home_games, away_games, team_home, team_a
         display_scenario_stats(away_scenarios, team_away, "✈️ Visitante", "#FF6B6B")
 
 def analyze_all_scenarios(games, is_home):
-    """Analisa todos os cenários possíveis HT → FT"""
+    """Analisa todos os cenários possíveis HT para FT"""
     scenarios = {
         # Vencendo no HT
         'ht_win_ft_win': 0,
@@ -1207,22 +1207,22 @@ def display_scenario_stats(scenarios, team_name, position, color):
     </div>
     """, unsafe_allow_html=True)
     
-    # Organizar cenários por categoria
+    # Organizar cenarios por categoria
     scenarios_data = [
-        ("✅ Vencendo no 1 T", [
-            ("HT Vitória → FT Vitória", scenarios['ht_win_ft_win'], "🏆"),
-            ("HT Vitória → FT Empate", scenarios['ht_win_ft_draw'], "⚖️"),
-            ("HT Vitória → FT Derrota", scenarios['ht_win_ft_loss'], "❌")
+        ("Vencendo no 1T", [
+            ("HT Vitoria para FT Vitoria", scenarios['ht_win_ft_win'], "Vitoria"),
+            ("HT Vitoria para FT Empate", scenarios['ht_win_ft_draw'], "Empate"),
+            ("HT Vitoria para FT Derrota", scenarios['ht_win_ft_loss'], "Derrota")
         ]),
-        ("⚖️ Empatando no 1 T", [
-            ("HT Empate → FT Vitória", scenarios['ht_draw_ft_win'], "🏆"),
-            ("HT Empate → FT Empate", scenarios['ht_draw_ft_draw'], "⚖️"),
-            ("HT Empate → FT Derrota", scenarios['ht_draw_ft_loss'], "❌")
+        ("Empatando no 1T", [
+            ("HT Empate para FT Vitoria", scenarios['ht_draw_ft_win'], "Vitoria"),
+            ("HT Empate para FT Empate", scenarios['ht_draw_ft_draw'], "Empate"),
+            ("HT Empate para FT Derrota", scenarios['ht_draw_ft_loss'], "Derrota")
         ]),
-        ("❌ Perdendo no 1 T", [
-            ("HT Derrota → FT Vitória", scenarios['ht_loss_ft_win'], "🏆🔄"),
-            ("HT Derrota → FT Empate", scenarios['ht_loss_ft_draw'], "⚖️"),
-            ("HT Derrota → FT Derrota", scenarios['ht_loss_ft_loss'], "❌")
+        ("Perdendo no 1T", [
+            ("HT Derrota para FT Vitoria", scenarios['ht_loss_ft_win'], "Virada"),
+            ("HT Derrota para FT Empate", scenarios['ht_loss_ft_draw'], "Empate"),
+            ("HT Derrota para FT Derrota", scenarios['ht_loss_ft_loss'], "Derrota")
         ])
     ]
     
@@ -4073,6 +4073,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
