@@ -2726,7 +2726,7 @@ def adjust_expectations_with_odds(exp_home, exp_away, prob_home, prob_draw, prob
     return exp_home_corrigida, exp_away_corrigida
 
 def generate_score_matrix(exp_home, exp_away):
-    """Gera matriz de probabilidades para placares de 0x0 até 5x5"""
+    """Gera matriz de probabilidades para placares de 0-0 até 5-5"""
     
     matrix = []
     total_prob = 0
@@ -2880,7 +2880,7 @@ def adjust_expectations_with_odds(exp_home, exp_away, prob_home, prob_draw, prob
     return exp_home_corrigida, exp_away_corrigida
 
 def generate_score_matrix(exp_home, exp_away):
-    """Gera matriz de probabilidades para placares de 0x0 até 5x5"""
+    """Gera matriz de probabilidades para placares de 0-0 até 5-5"""
     
     matrix = []
     total_prob = 0
@@ -3053,7 +3053,7 @@ def show_advanced_score_prediction(df, teams):
             st.metric(f"Vitória {team_away}", f"{prob_away*100:.1f}%")
         
         # Matriz de probabilidades
-        st.subheader("📈 Matriz de Probabilidades (0x0 até 5x5)")
+        st.subheader("📈 Matriz de Probabilidades (0-0 até 5-5)")
         
         # Cria DataFrame para exibir a matriz
         matrix_df = pd.DataFrame(
@@ -4060,6 +4060,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
