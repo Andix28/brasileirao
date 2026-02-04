@@ -1038,18 +1038,14 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
     st.markdown(html_table, unsafe_allow_html=True)
     
 def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
-    """Exibe gráfico comparativo profissional"""
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                padding: 20px;
-                border-radius: 12px;
-                margin: 20px 0;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-        <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-            📈 Gráfico Comparativo - 1 Tempo
-        </h2>
-    </div>
-    """, unsafe_allow_html=True)
+    """Exibe grafico comparativo profissional"""
+    
+    header_html = """
+<div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">Grafico Comparativo - Primeiro Tempo</h2>
+</div>
+"""
+    st.markdown(header_html, unsafe_allow_html=True)
     
     fig = go.Figure()
     
@@ -4086,6 +4082,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
