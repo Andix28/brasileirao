@@ -987,17 +987,12 @@ def calculate_ht_stats(games, is_home):
 
 def display_modern_comparison_table(home_stats, away_stats, team_home, team_away):
     """Exibe tabela comparativa moderna e profissional"""
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                padding: 20px;
-                border-radius: 12px;
-                margin: 20px 0;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-        <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-                Comparativo Estatístico - Primeiro Tempo
-        </h2>
-    </div>
-    """, unsafe_allow_html=True)
+    html_header = """
+<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">Comparativo Estatistico - Primeiro Tempo</h2>
+</div>
+"""
+    st.markdown(html_header, unsafe_allow_html=True)
     
     # Criar tabela HTML customizada
     html_table = f"""
@@ -4139,6 +4134,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
