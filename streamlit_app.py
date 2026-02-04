@@ -910,7 +910,7 @@ def show_first_half_analysis(df, teams):
                 margin: 20px 0;
                 box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
         <h1 style="color: white; margin: 0; text-align: center; font-size: 32px;">
-            📊 Análise 1º Tempo HT
+            📊 Analise Primeiro Tempo HT
         </h1>
     </div>
     """, unsafe_allow_html=True)
@@ -4145,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
