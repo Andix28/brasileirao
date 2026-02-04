@@ -1116,7 +1116,7 @@ def display_professional_ht_chart(home_stats, away_stats, team_home, team_away):
     st.plotly_chart(fig, use_container_width=True)
 
 def display_complete_scenario_analysis(home_games, away_games, team_home, team_away):
-    """Exibe análise completa de todos os cenários HT → FT"""
+    """Exibe analise completa de todos os cenarios HT para FT"""
     st.markdown("""
     <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
                 padding: 20px;
@@ -1124,7 +1124,7 @@ def display_complete_scenario_analysis(home_games, away_games, team_home, team_a
                 margin: 20px 0;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-            🔄 Análise de Cenários: Primeiro Tempo → Resultado Final
+                Análise de Cenários: Primeiro Tempo para Resultado Final
         </h2>
     </div>
     """, unsafe_allow_html=True)
@@ -4082,6 +4082,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
