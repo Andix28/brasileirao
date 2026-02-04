@@ -910,7 +910,7 @@ def show_first_half_analysis(df, teams):
                 margin: 20px 0;
                 box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
         <h1 style="color: white; margin: 0; text-align: center; font-size: 32px;">
-            📊 Analise Primeiro Tempo HT
+                Analise Primeiro Tempo HT
         </h1>
     </div>
     """, unsafe_allow_html=True)
@@ -964,7 +964,7 @@ def show_first_half_analysis(df, teams):
     display_complete_scenario_analysis(home_games, away_games, team_home, team_away)
 
 def calculate_ht_stats(games, is_home):
-    """Calcula estatísticas do 1º tempo"""
+    """Calcula estatísticas do Primeiro tempo"""
     if games.empty:
         return {
             'jogos': 0,
@@ -1000,7 +1000,7 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
                 margin: 20px 0;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <h2 style="color: white; margin: 0; text-align: center; font-size: 26px;">
-            📊 Comparativo Estatístico - 1º Tempo
+                Comparativo Estatístico - Primeiro Tempo
         </h2>
     </div>
     """, unsafe_allow_html=True)
@@ -4145,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
