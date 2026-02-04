@@ -1002,28 +1002,28 @@ def display_modern_comparison_table(home_stats, away_stats, team_home, team_away
         <tbody>
             <tr>
                 <td>Jogos Analisados</td>
-                <td>{home_stats['jogos']}</td>
-                <td>{away_stats['jogos']}</td>
+                <td>{home_stats["jogos"]}</td>
+                <td>{away_stats["jogos"]}</td>
             </tr>
             <tr>
                 <td>Gols Feitos no Primeiro Tempo</td>
-                <td>{home_stats['gols_feitos_ht']}</td>
-                <td>{away_stats['gols_feitos_ht']}</td>
+                <td>{home_stats["gols_feitos_ht"]}</td>
+                <td>{away_stats["gols_feitos_ht"]}</td>
             </tr>
             <tr>
                 <td>Gols Sofridos no Primeiro Tempo</td>
-                <td>{home_stats['gols_sofridos_ht']}</td>
-                <td>{away_stats['gols_sofridos_ht']}</td>
+                <td>{home_stats["gols_sofridos_ht"]}</td>
+                <td>{away_stats["gols_sofridos_ht"]}</td>
             </tr>
             <tr>
                 <td>Media Gols Feitos/Jogo</td>
-                <td>{home_stats['media_feitos_ht']:.2f}</td>
-                <td>{away_stats['media_feitos_ht']:.2f}</td>
+                <td>{home_stats["media_feitos_ht"]:.2f}</td>
+                <td>{away_stats["media_feitos_ht"]:.2f}</td>
             </tr>
             <tr>
                 <td>Media Gols Sofridos/Jogo</td>
-                <td>{home_stats['media_sofridos_ht']:.2f}</td>
-                <td>{away_stats['media_sofridos_ht']:.2f}</td>
+                <td>{home_stats["media_sofridos_ht"]:.2f}</td>
+                <td>{away_stats["media_sofridos_ht"]:.2f}</td>
             </tr>
         </tbody>
     </table>
@@ -4080,6 +4080,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
