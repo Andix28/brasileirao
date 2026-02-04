@@ -2991,6 +2991,8 @@ def show_advanced_score_prediction(df, teams):
         # Métricas principais com logos
         col1, col2 = st.columns(2)
         with col1:
+            exp_home_formatted = f"{resultado['expectativa_home']:.2f}"
+            
             st.markdown(f"""
             <div style="padding: 15px; background-color: #e8f4fd; border-radius: 10px; border-left: 4px solid #1f77b4;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -2998,7 +3000,7 @@ def show_advanced_score_prediction(df, teams):
                     <strong>Expectativa - {team_home}</strong>
                 </div>
                 <div style="font-size: 1.5em; font-weight: bold; color: #1f77b4;">
-                    {resultado['expectativa_home']:.2f} gols
+                    {exp_home_formatted} gols
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -4060,6 +4062,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
