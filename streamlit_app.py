@@ -902,7 +902,7 @@ def display_first_half_analysis(stats, analysis, team_home, team_away):
         st.write(f"Saldo de Gols: {analysis['away_saldo']}")
 
 def show_first_half_analysis(df, teams):
-    """Analise de 1o Tempo HT - Versao Profissional"""
+    """Analise de Primeiro Tempo HT - Versao Profissional"""
     st.markdown("""
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                 padding: 25px; 
@@ -4145,6 +4145,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
