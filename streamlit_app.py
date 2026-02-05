@@ -319,7 +319,7 @@ def load_data():
         # Conversão de tipos
         df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce')
         numeric_columns = ['Gols Home', 'Gols Away', 'odd Home', 'odd Draw', 'odd Away',
-                           'Corner Home', 'Corner Away', 'Total Corner Match', 'Home Score HT', 'Away Score HT']
+                           ' Home', ' Away', 'Total  Match', 'Home Score HT', 'Away Score HT']
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -355,8 +355,8 @@ def calculate_team_stats(df, team_name, as_home=True):
             team_games = df[df['Home'] == team_name].copy()
             gols_feitos_col = 'Gols Home'
             gols_sofridos_col = 'Gols Away'
-            escanteios_feitos_col = 'Corner Home'
-            escanteios_sofridos_col = 'Corner Away'
+            escanteios_feitos_col = ' Home'
+            escanteios_sofridos_col = ' Away'
         else:
             # Jogos como visitante
             team_games = df[df['Away'] == team_name].copy()
@@ -2408,42 +2408,6 @@ def display_match_corner_prediction(home_stats, away_stats, home_team, away_team
         else:
             st.warning("⚠️ **JOGO EQUILIBRADO** - Escanteios podem variar muito")
 
-def show_corner_classification(df, teams):
-    """Exibe classificação geral de escanteios por time"""
-    st.subheader("📊 Classificação Geral de Escanteios")
-    
-    # Calcula médias de escanteios feitos e sofridos como mandante e visitante
-    stats_list = []
-    for team in teams:
-        home_stats = calculate_advanced_corner_stats(df, team, as_home=True)
-        away_stats = calculate_advanced_corner_stats(df, team, as_home=False)
-        
-        total_jogos = home_stats['total_jogos'] + away_stats['total_jogos']
-        
-        if total_jogos > 0:
-            media_feitos = (home_stats['media_geral_made'] * home_stats['total_jogos'] + 
-                           away_stats['media_geral_made'] * away_stats['total_jogos']) / total_jogos
-            
-            media_sofridos = (home_stats['media_geral_conceded'] * home_stats['total_jogos'] + 
-                             away_stats['media_geral_conceded'] * away_stats['total_jogos']) / total_jogos
-        else:
-            media_feitos = media_sofridos = 0
-        
-        stats_list.append({
-            "Time": team,
-            "Média Escanteios Feitos": round(media_feitos, 2),
-            "Média Escanteios Sofridos": round(media_sofridos, 2),
-            "Jogos Analisados": total_jogos
-        })
-    
-    df_stats = pd.DataFrame(stats_list)
-    df_stats = df_stats.sort_values(by="Média Escanteios Feitos", ascending=False)
-    
-    # Adicionar ranking
-    df_stats.reset_index(drop=True, inplace=True)
-    df_stats.index = df_stats.index + 1
-    
-    st.dataframe(df_stats, use_container_width=True)
 
 def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
     """
@@ -4074,6 +4038,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
