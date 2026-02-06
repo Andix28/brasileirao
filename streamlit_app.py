@@ -2524,10 +2524,6 @@ def display_match_prediction(lambda_home, lambda_away, total_probs, home_team, a
 # ===================================================================
 
 def analyze_corner_match(df, home_team, away_team, odds_home=None, odds_draw=None, odds_away=None):
-    """
-    FUNÇÃO PRINCIPAL - Cole esta no seu código Streamlit
-    Substitui toda a lógica antiga de análise de escanteios
-    """
     
     st.title("⚽ Análise Avançada de Escanteios")
     st.markdown(f"**{home_team}** 🆚 **{away_team}**")
@@ -3653,8 +3649,8 @@ def main():
                 st.session_state.selected_analysis = "2. Análise 1 Tempo HT"
                 st.rerun()
             
-            if st.button("🚩 Análise de s", key="corner_analysis", use_container_width=True):
-                st.session_state.selected_analysis = "7. Análise de s"
+            if st.button("🚩 Análise Escanteios", key="corner_analysis", use_container_width=True):
+                st.session_state.selected_analysis = "7. Análise Escanteio"
                 st.rerun()
 
         with col2:
@@ -3706,7 +3702,7 @@ def main():
                 show_score_prediction(df, teams)
             elif st.session_state.selected_analysis == "6. Gráficos Interativos":
                 show_interactive_charts(df)
-            elif st.session_state.selected_analysis == "7. Análise de s":
+            elif st.session_state.selected_analysis == "7. Análise Escanteio":
                 show_corner_analysis(df, teams)
             else:
                 st.error("Opção de análise inválida.")
@@ -4208,6 +4204,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
