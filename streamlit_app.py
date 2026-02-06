@@ -2081,11 +2081,6 @@ def create_empty_corner_stats():
         'recent_conceded': []
     }
 
-
-# ===================================================================
-# PARTE 2: CÁLCULO DE LAMBDA (TAXA ESPERADA)
-# ===================================================================
-
 def calculate_lambda_home(home_stats, away_stats, odds_home=None, odds_away=None):
     """
     Calcula lambda (taxa esperada) de escanteios do MANDANTE
@@ -2169,11 +2164,6 @@ def calculate_lambda_away(home_stats, away_stats, odds_home=None, odds_away=None
         lambda_adjusted = lambda_base
     
     return max(0.1, lambda_adjusted)
-
-
-# ===================================================================
-# PARTE 3: DISTRIBUIÇÃO DE PROBABILIDADE
-# ===================================================================
 
 def calculate_total_corners_distribution(lambda_home, lambda_away, max_corners=25):
     """
@@ -2518,10 +2508,36 @@ def display_match_prediction(lambda_home, lambda_away, total_probs, home_team, a
         "(quando a probabilidade estimada é maior que a odd sugere), não em acertar o número exato."
     )
 
+def show_corner_analysis(df, teams):
+    """Análise de Escanteios - Versão Refatorada"""
+    
+    st.header("🚩 Análise Avançada de Escanteios")
+    st.markdown("---")
+    
+    # Seleção de times
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        home_team = st.selectbox(
+            "🏠 Selecione o Time Mandante",
+            options=sorted(teams),
+            key="corner_home"
+        )
+    
+    with col2:
+        away_team = st.selectbox(
+            "✈️ Selecione o Time Visitante",
+            options=sorted([t for t in teams if t != home_team]),
+            key="corner_away"
+        )
+    
+    st.markdown("---")
+    
+    # Botão de análise
+    if st.button("📊 Analisar Confronto de Escanteios", type="primary", use_container_width=True):
+        # Chama a função principal do código novo
+        analyze_corner_match(df, home_team, away_team)
 
-# ===================================================================
-# PARTE 5: FUNÇÃO PRINCIPAL
-# ===================================================================
 
 def analyze_corner_match(df, home_team, away_team, odds_home=None, odds_draw=None, odds_away=None):
     
@@ -4204,6 +4220,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
