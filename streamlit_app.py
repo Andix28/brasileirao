@@ -2010,248 +2010,341 @@ def display_final_recommendations(home_analysis, away_analysis, draw_analysis,
                 else:
                     st.info("⚖️ **Jogo equilibrado**: Todas as opções têm valor similar")
 
-def show_corner_analysis(df, teams):
-    """Análise de escanteios com base nas médias e tendências recentes"""
-    st.header("🚩 Análise de Escanteios")
-    
-    if not teams:
-        st.warning("Nenhum time disponível.")
-        return
-    
-    # Abas para diferentes análises
-    tab1, tab2 = st.tabs(["🎯 Simulador de Jogo", "📊 Classificação Geral"])
-    
-    with tab1:
-        st.subheader("🚩 Simulação Avançada de Escanteios por Jogo")
-        
-        # Seleção de times com logos
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("🏠 **Time Mandante:**")
-            home_team = st.selectbox("Selecione o mandante:", teams, key="corner_home", label_visibility="collapsed")
-            display_team_with_logo(home_team, logo_size=(100, 100))
-            
-        with col2:
-            st.write("✈️ **Time Visitante:**")
-            away_team = st.selectbox("Selecione o visitante:", teams, key="corner_away", label_visibility="collapsed")
-            display_team_with_logo(away_team, logo_size=(100, 100))
-
-        if home_team == away_team:
-            st.warning("Por favor, selecione dois times diferentes.")
-            return
-
-        if st.button("🚩 Simular Escanteios do Jogo", key="simulate_game"):
-            # Calcula estatísticas avançadas de escanteios
-            home_stats = calculate_advanced_corner_stats(df, home_team, as_home=True)
-            away_stats = calculate_advanced_corner_stats(df, away_team, as_home=False)
-
-            if home_stats['total_jogos'] < 3 or away_stats['total_jogos'] < 3:
-                st.warning("Dados insuficientes para simular escanteios com confiança.")
-                return
-
-            # Exibir tabelas estatísticas separadas
-            display_corner_statistics_tables(home_stats, away_stats, home_team, away_team)
-            
-            # Gráfico comparativo
-            display_comparative_corner_chart(home_stats, away_stats, home_team, away_team)
-            
-            # Previsão do confronto
-            display_match_corner_prediction(home_stats, away_stats, home_team, away_team)
-    
-    with tab2:
-        # Chama a função de classificação
-        show_corner_classification(df, teams)
-
-def calculate_advanced_corner_stats(df, team, as_home=True):
-    """Calcula estatísticas avançadas de escanteios com tendências recentes"""
+def calculate_team_corner_stats(df, team, as_home=True):
+    """
+    Calcula estatísticas de escanteios por posição (mandante ou visitante)
+    """
     if as_home:
         games = df[df['Home'] == team].copy()
         corners_made_col = 'Corner Home'
         corners_conceded_col = 'Corner Away'
     else:
         games = df[df['Away'] == team].copy()
-        corners_made_col = 'Corner Away' 
+        corners_made_col = 'Corner Away'
         corners_conceded_col = 'Corner Home'
     
     if games.empty:
-        return create_empty_stats()
+        return create_empty_corner_stats()
     
-    # Remove jogos com dados faltantes
     games = games.dropna(subset=[corners_made_col, corners_conceded_col])
     
     if len(games) < 3:
-        return create_empty_stats()
+        return create_empty_corner_stats()
     
-    # Ordena por data/jogo ID para análise cronológica
     if 'Jogo ID' in games.columns:
         games = games.sort_values('Jogo ID', ascending=False)
     
-    # Estatísticas gerais
-    total_jogos = len(games)
-    total_made = games[corners_made_col].sum()
-    total_conceded = games[corners_conceded_col].sum()
+    total_games = len(games)
     
-    media_made = total_made / total_jogos
-    media_conceded = total_conceded / total_jogos
+    # Estatísticas FEITOS
+    all_made = games[corners_made_col].values
+    mean_made = np.mean(all_made)
+    std_made = np.std(all_made)
+    last_3_made = np.mean(all_made[:3]) if len(all_made) >= 3 else mean_made
+    last_5_made = np.mean(all_made[:5]) if len(all_made) >= 5 else mean_made
     
-    # Últimos 3 jogos (mais recentes)
-    last_3_games = games.head(3)
-    last_3_made = last_3_games[corners_made_col].sum()
-    last_3_conceded = last_3_games[corners_conceded_col].sum()
-    
-    media_last_3_made = last_3_made / 3
-    media_last_3_conceded = last_3_conceded / 3
-    
-    # Tendência (comparação últimos 3 vs média geral)
-    trend_made = ((media_last_3_made - media_made) / media_made * 100) if media_made > 0 else 0
-    trend_conceded = ((media_last_3_conceded - media_conceded) / media_conceded * 100) if media_conceded > 0 else 0
-    
-    # Estatísticas de posição específica (como mandante ou visitante)
-    position_media_made = media_made
-    position_media_conceded = media_conceded
+    # Estatísticas SOFRIDOS
+    all_conceded = games[corners_conceded_col].values
+    mean_conceded = np.mean(all_conceded)
+    std_conceded = np.std(all_conceded)
+    last_3_conceded = np.mean(all_conceded[:3]) if len(all_conceded) >= 3 else mean_conceded
+    last_5_conceded = np.mean(all_conceded[:5]) if len(all_conceded) >= 5 else mean_conceded
     
     return {
-        'total_jogos': total_jogos,
-        'media_geral_made': media_made,
-        'media_geral_conceded': media_conceded,
-        'media_posicao_made': position_media_made,
-        'media_posicao_conceded': position_media_conceded,
-        'media_last_3_made': media_last_3_made,
-        'media_last_3_conceded': media_last_3_conceded,
-        'trend_made': trend_made,
-        'trend_conceded': trend_conceded,
-        'last_3_games': last_3_games[[corners_made_col, corners_conceded_col]].values.tolist()
+        'total_games': total_games,
+        'mean_made': mean_made,
+        'std_made': std_made,
+        'last_3_made': last_3_made,
+        'last_5_made': last_5_made,
+        'mean_conceded': mean_conceded,
+        'std_conceded': std_conceded,
+        'last_3_conceded': last_3_conceded,
+        'last_5_conceded': last_5_conceded,
+        'recent_made': all_made[:5].tolist() if len(all_made) >= 5 else all_made.tolist(),
+        'recent_conceded': all_conceded[:5].tolist() if len(all_conceded) >= 5 else all_conceded.tolist()
     }
 
-def create_empty_stats():
-    """Cria estrutura vazia para estatísticas"""
+
+def create_empty_corner_stats():
+    """Estrutura vazia para estatísticas"""
     return {
-        'total_jogos': 0,
-        'media_geral_made': 0,
-        'media_geral_conceded': 0,
-        'media_posicao_made': 0,
-        'media_posicao_conceded': 0,
-        'media_last_3_made': 0,
-        'media_last_3_conceded': 0,
-        'trend_made': 0,
-        'trend_conceded': 0,
-        'last_3_games': []
+        'total_games': 0,
+        'mean_made': 0,
+        'std_made': 0,
+        'last_3_made': 0,
+        'last_5_made': 0,
+        'mean_conceded': 0,
+        'std_conceded': 0,
+        'last_3_conceded': 0,
+        'last_5_conceded': 0,
+        'recent_made': [],
+        'recent_conceded': []
     }
 
-def display_corner_statistics_tables(home_stats, away_stats, home_team, away_team):
-    """Exibe tabelas estatísticas detalhadas para cada time"""
-    st.subheader("📊 Estatísticas Detalhadas de Escanteios")
+
+# ===================================================================
+# PARTE 2: CÁLCULO DE LAMBDA (TAXA ESPERADA)
+# ===================================================================
+
+def calculate_lambda_home(home_stats, away_stats, odds_home=None, odds_away=None):
+    """
+    Calcula lambda (taxa esperada) de escanteios do MANDANTE
+    Considera: o que o mandante FAZ em casa + o que o visitante SOFRE fora
+    """
+    w_general = 0.60
+    w_last_5 = 0.25
+    w_last_3 = 0.15
     
-    # Criar duas colunas para as tabelas
+    # O que o mandante FAZ em casa
+    home_attack = (
+        home_stats['mean_made'] * w_general +
+        home_stats['last_5_made'] * w_last_5 +
+        home_stats['last_3_made'] * w_last_3
+    )
+    
+    # O que o visitante SOFRE fora
+    away_defense = (
+        away_stats['mean_conceded'] * w_general +
+        away_stats['last_5_conceded'] * w_last_5 +
+        away_stats['last_3_conceded'] * w_last_3
+    )
+    
+    lambda_base = (home_attack + away_defense) / 2
+    
+    # Ajuste leve por odds (se disponível)
+    if odds_home is not None and odds_away is not None:
+        prob_home = 1 / odds_home if odds_home > 0 else 0.5
+        prob_away = 1 / odds_away if odds_away > 0 else 0.5
+        total_prob = prob_home + prob_away
+        
+        if total_prob > 0:
+            dominance_factor = (prob_home / total_prob) - 0.5
+            adjustment = 1 + (dominance_factor * 0.20)
+            lambda_adjusted = lambda_base * adjustment
+        else:
+            lambda_adjusted = lambda_base
+    else:
+        lambda_adjusted = lambda_base
+    
+    return max(0.1, lambda_adjusted)
+
+
+def calculate_lambda_away(home_stats, away_stats, odds_home=None, odds_away=None):
+    """
+    Calcula lambda (taxa esperada) de escanteios do VISITANTE
+    Considera: o que o visitante FAZ fora + o que o mandante SOFRE em casa
+    """
+    w_general = 0.60
+    w_last_5 = 0.25
+    w_last_3 = 0.15
+    
+    # O que o visitante FAZ fora
+    away_attack = (
+        away_stats['mean_made'] * w_general +
+        away_stats['last_5_made'] * w_last_5 +
+        away_stats['last_3_made'] * w_last_3
+    )
+    
+    # O que o mandante SOFRE em casa
+    home_defense = (
+        home_stats['mean_conceded'] * w_general +
+        home_stats['last_5_conceded'] * w_last_5 +
+        home_stats['last_3_conceded'] * w_last_3
+    )
+    
+    lambda_base = (away_attack + home_defense) / 2
+    
+    if odds_home is not None and odds_away is not None:
+        prob_home = 1 / odds_home if odds_home > 0 else 0.5
+        prob_away = 1 / odds_away if odds_away > 0 else 0.5
+        total_prob = prob_home + prob_away
+        
+        if total_prob > 0:
+            dominance_factor = (prob_away / total_prob) - 0.5
+            adjustment = 1 + (dominance_factor * 0.15)
+            lambda_adjusted = lambda_base * adjustment
+        else:
+            lambda_adjusted = lambda_base
+    else:
+        lambda_adjusted = lambda_base
+    
+    return max(0.1, lambda_adjusted)
+
+
+# ===================================================================
+# PARTE 3: DISTRIBUIÇÃO DE PROBABILIDADE
+# ===================================================================
+
+def calculate_total_corners_distribution(lambda_home, lambda_away, max_corners=25):
+    """
+    Calcula distribuição de probabilidade do TOTAL de escanteios
+    Usa Poisson para cada time
+    """
+    corner_range = np.arange(0, max_corners + 1)
+    total_probs = {}
+    
+    for total in corner_range:
+        prob_total = 0
+        for home_corners in range(total + 1):
+            away_corners = total - home_corners
+            prob_home = poisson.pmf(home_corners, lambda_home)
+            prob_away = poisson.pmf(away_corners, lambda_away)
+            prob_total += prob_home * prob_away
+        
+        total_probs[total] = prob_total * 100
+    
+    return total_probs
+
+
+def calculate_over_under_probabilities(lambda_home, lambda_away, lines=[8.5, 9.5, 10.5, 11.5]):
+    """Calcula probabilidades de Over/Under"""
+    lambda_total = lambda_home + lambda_away
+    probabilities = {}
+    
+    for line in lines:
+        threshold = int(np.floor(line))
+        prob_under = poisson.cdf(threshold, lambda_total) * 100
+        prob_over = (1 - poisson.cdf(threshold, lambda_total)) * 100
+        
+        probabilities[f'Over {line}'] = prob_over
+        probabilities[f'Under {line}'] = prob_under
+    
+    return probabilities
+
+
+def calculate_confidence_metric(lambda_home, lambda_away, home_stats, away_stats):
+    """
+    Calcula confiabilidade baseada em:
+    - Quantidade de dados
+    - Dispersão
+    - Variância da distribuição
+    """
+    min_games = min(home_stats['total_games'], away_stats['total_games'])
+    data_score = min(40, min_games * 2)
+    
+    avg_std = (home_stats['std_made'] + home_stats['std_conceded'] + 
+               away_stats['std_made'] + away_stats['std_conceded']) / 4
+    avg_mean = (home_stats['mean_made'] + home_stats['mean_conceded'] +
+                away_stats['mean_made'] + away_stats['mean_conceded']) / 4
+    
+    if avg_mean > 0:
+        cv = avg_std / avg_mean
+        dispersion_score = max(0, 30 - (cv * 30))
+    else:
+        dispersion_score = 0
+    
+    lambda_total = lambda_home + lambda_away
+    variance_total = lambda_total
+    
+    if lambda_total > 0:
+        relative_variance = variance_total / lambda_total
+        variance_score = max(0, 30 - (relative_variance * 3))
+    else:
+        variance_score = 0
+    
+    confidence = data_score + dispersion_score + variance_score
+    return min(100, max(30, confidence))
+
+
+def find_probable_range(total_probs, cumulative_threshold=0.70):
+    """Encontra faixa que concentra ~70% da probabilidade"""
+    sorted_totals = sorted(total_probs.items(), key=lambda x: x[1], reverse=True)
+    
+    cumulative_prob = 0
+    range_values = []
+    
+    for total, prob in sorted_totals:
+        range_values.append(total)
+        cumulative_prob += prob
+        
+        if cumulative_prob >= cumulative_threshold * 100:
+            break
+    
+    if range_values:
+        return min(range_values), max(range_values), cumulative_prob
+    else:
+        return 0, 0, 0
+
+
+# ===================================================================
+# PARTE 4: VISUALIZAÇÃO (MANTÉM SEU LAYOUT ORIGINAL)
+# ===================================================================
+
+def display_team_statistics_table(stats, team_name, position="Mandante"):
+    """Exibe tabela de estatísticas do time"""
+    st.markdown(f"### {'🏠' if position == 'Mandante' else '✈️'} {team_name}")
+    
+    table_data = {
+        'Métrica': [
+            '📊 Média Geral (Feitos)',
+            '📊 Média Geral (Sofridos)',
+            f'🎯 Como {position} (Feitos)',
+            f'🎯 Como {position} (Sofridos)',
+            '🔥 Últimos 5 Jogos (Feitos)',
+            '🔥 Últimos 5 Jogos (Sofridos)',
+            '⚡ Últimos 3 Jogos (Feitos)',
+            '⚡ Últimos 3 Jogos (Sofridos)',
+            '📈 Desvio Padrão (Feitos)',
+            '📉 Desvio Padrão (Sofridos)'
+        ],
+        'Valor': [
+            f"{stats['mean_made']:.2f}",
+            f"{stats['mean_conceded']:.2f}",
+            f"{stats['mean_made']:.2f}",
+            f"{stats['mean_conceded']:.2f}",
+            f"{stats['last_5_made']:.2f}",
+            f"{stats['last_5_conceded']:.2f}",
+            f"{stats['last_3_made']:.2f}",
+            f"{stats['last_3_conceded']:.2f}",
+            f"{stats['std_made']:.2f}",
+            f"{stats['std_conceded']:.2f}"
+        ]
+    }
+    
+    df = pd.DataFrame(table_data)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+    
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.markdown("### 🏠 Time Mandante")
-        display_team_with_logo(home_team, logo_size=(100, 100))
-        
-        # Dados para tabela do mandante
-        home_data = {
-            'Métrica': [
-                '📊 Média Geral (Feitos)',
-                '📊 Média Geral (Sofridos)', 
-                '🎯 Média como Mandante (Feitos)',
-                '🎯 Média como Mandante (Sofridos)',
-                '🔥 Últimos 3 Jogos (Feitos)',
-                '🔥 Últimos 3 Jogos (Sofridos)',
-                '📈 Tendência (Feitos)',
-                '📉 Tendência (Sofridos)'
-            ],
-            'Valor': [
-                f"{home_stats['media_geral_made']:.1f}",
-                f"{home_stats['media_geral_conceded']:.1f}",
-                f"{home_stats['media_posicao_made']:.1f}",
-                f"{home_stats['media_posicao_conceded']:.1f}",
-                f"{home_stats['media_last_3_made']:.1f}",
-                f"{home_stats['media_last_3_conceded']:.1f}",
-                f"{home_stats['trend_made']:+.1f}%",
-                f"{home_stats['trend_conceded']:+.1f}%"
-            ]
-        }
-        
-        df_home = pd.DataFrame(home_data)
-        st.dataframe(df_home, use_container_width=True, hide_index=True)
-        
-        # Métricas de destaque
-        col1_1, col1_2 = st.columns(2)
-        with col1_1:
-            trend_color = "normal" if abs(home_stats['trend_made']) < 10 else ("inverse" if home_stats['trend_made'] > 0 else "off")
-            st.metric("🎯 Forma Recente (Feitos)", 
-                     f"{home_stats['media_last_3_made']:.1f}",
-                     delta=f"{home_stats['trend_made']:+.1f}%")
-        with col1_2:
-            st.metric("🛡️ Forma Recente (Sofridos)", 
-                     f"{home_stats['media_last_3_conceded']:.1f}",
-                     delta=f"{home_stats['trend_conceded']:+.1f}%")
+        trend_made = ((stats['last_3_made'] - stats['mean_made']) / stats['mean_made'] * 100) if stats['mean_made'] > 0 else 0
+        st.metric("🎯 Forma Recente (Feitos)", f"{stats['last_3_made']:.1f}", delta=f"{trend_made:+.1f}%")
     
     with col2:
-        st.markdown("### ✈️ Time Visitante")
-        display_team_with_logo(away_team, logo_size=(100, 100))
-        
-        # Dados para tabela do visitante
-        away_data = {
-            'Métrica': [
-                '📊 Média Geral (Feitos)',
-                '📊 Média Geral (Sofridos)',
-                '🎯 Média como Visitante (Feitos)',
-                '🎯 Média como Visitante (Sofridos)',
-                '🔥 Últimos 3 Jogos (Feitos)',
-                '🔥 Últimos 3 Jogos (Sofridos)',
-                '📈 Tendência (Feitos)',
-                '📉 Tendência (Sofridos)'
-            ],
-            'Valor': [
-                f"{away_stats['media_geral_made']:.1f}",
-                f"{away_stats['media_geral_conceded']:.1f}",
-                f"{away_stats['media_posicao_made']:.1f}",
-                f"{away_stats['media_posicao_conceded']:.1f}",
-                f"{away_stats['media_last_3_made']:.1f}",
-                f"{away_stats['media_last_3_conceded']:.1f}",
-                f"{away_stats['trend_made']:+.1f}%",
-                f"{away_stats['trend_conceded']:+.1f}%"
-            ]
-        }
-        
-        df_away = pd.DataFrame(away_data)
-        st.dataframe(df_away, use_container_width=True, hide_index=True)
-        
-        # Métricas de destaque
-        col2_1, col2_2 = st.columns(2)
-        with col2_1:
-            st.metric("🎯 Forma Recente (Feitos)", 
-                     f"{away_stats['media_last_3_made']:.1f}",
-                     delta=f"{away_stats['trend_made']:+.1f}%")
-        with col2_2:
-            st.metric("🛡️ Forma Recente (Sofridos)", 
-                     f"{away_stats['media_last_3_conceded']:.1f}",
-                     delta=f"{away_stats['trend_conceded']:+.1f}%")
+        trend_conceded = ((stats['last_3_conceded'] - stats['mean_conceded']) / stats['mean_conceded'] * 100) if stats['mean_conceded'] > 0 else 0
+        st.metric("🛡️ Forma Recente (Sofridos)", f"{stats['last_3_conceded']:.1f}", delta=f"{trend_conceded:+.1f}%")
+
 
 def display_comparative_corner_chart(home_stats, away_stats, home_team, away_team):
     """Exibe gráfico comparativo entre os times"""
     st.subheader("📈 Comparativo Estatístico")
     
-    # Dados para o gráfico
-    categories = ['Média Geral\n(Feitos)', 'Média Geral\n(Sofridos)', 
-                 'Média Posição\n(Feitos)', 'Média Posição\n(Sofridos)',
-                 'Últimos 3\n(Feitos)', 'Últimos 3\n(Sofridos)']
+    categories = [
+        'Média Geral\n(Feitos)', 
+        'Média Geral\n(Sofridos)', 
+        'Últimos 5\n(Feitos)', 
+        'Últimos 5\n(Sofridos)',
+        'Últimos 3\n(Feitos)', 
+        'Últimos 3\n(Sofridos)'
+    ]
     
     home_values = [
-        home_stats['media_geral_made'], home_stats['media_geral_conceded'],
-        home_stats['media_posicao_made'], home_stats['media_posicao_conceded'],
-        home_stats['media_last_3_made'], home_stats['media_last_3_conceded']
+        home_stats['mean_made'], 
+        home_stats['mean_conceded'],
+        home_stats['last_5_made'], 
+        home_stats['last_5_conceded'],
+        home_stats['last_3_made'], 
+        home_stats['last_3_conceded']
     ]
     
     away_values = [
-        away_stats['media_geral_made'], away_stats['media_geral_conceded'],
-        away_stats['media_posicao_made'], away_stats['media_posicao_conceded'],
-        away_stats['media_last_3_made'], away_stats['media_last_3_conceded']
+        away_stats['mean_made'], 
+        away_stats['mean_conceded'],
+        away_stats['last_5_made'], 
+        away_stats['last_5_conceded'],
+        away_stats['last_3_made'], 
+        away_stats['last_3_conceded']
     ]
     
-    # Criar gráfico comparativo
     fig = go.Figure()
     
     fig.add_trace(go.Bar(
@@ -2283,130 +2376,207 @@ def display_comparative_corner_chart(home_stats, away_stats, home_team, away_tea
     
     st.plotly_chart(fig, use_container_width=True)
 
-def display_match_corner_prediction(home_stats, away_stats, home_team, away_team):
-    """Exibe previsão sofisticada do confronto"""
+
+def display_match_prediction(lambda_home, lambda_away, total_probs, home_team, away_team, confidence):
+    """Exibe previsão do confronto com distribuição de probabilidades"""
     st.subheader("🎯 Previsão do Confronto")
     
-    # Cálculo sofisticado considerando forma recente e histórico
-    # Peso maior para forma recente (60%) e menor para média geral (40%)
-    weight_recent = 0.6
-    weight_general = 0.4
+    most_likely_total = max(total_probs.items(), key=lambda x: x[1])[0]
+    most_likely_prob = total_probs[most_likely_total]
+    min_range, max_range, cumulative_prob = find_probable_range(total_probs, 0.70)
     
-    # Escanteios esperados do mandante
-    home_corners_made = (home_stats['media_last_3_made'] * weight_recent + 
-                        home_stats['media_posicao_made'] * weight_general)
-    
-    # Considera também o que o visitante costuma sofrer
-    away_corners_conceded = (away_stats['media_last_3_conceded'] * weight_recent + 
-                            away_stats['media_posicao_conceded'] * weight_general)
-    
-    # Média ponderada entre o que o mandante faz e o que o visitante sofre
-    predicted_home_corners = (home_corners_made + away_corners_conceded) / 2
-    
-    # Escanteios esperados do visitante
-    away_corners_made = (away_stats['media_last_3_made'] * weight_recent + 
-                        away_stats['media_posicao_made'] * weight_general)
-    
-    # Considera também o que o mandante costuma sofrer
-    home_corners_conceded = (home_stats['media_last_3_conceded'] * weight_recent + 
-                            home_stats['media_posicao_conceded'] * weight_general)
-    
-    # Média ponderada entre o que o visitante faz e o que o mandante sofre
-    predicted_away_corners = (away_corners_made + home_corners_conceded) / 2
-    
-    # Total esperado
-    total_predicted = predicted_home_corners + predicted_away_corners
-    
-    # Ajuste baseado na tendência
-    trend_adjustment = (home_stats['trend_made'] + away_stats['trend_made']) / 200  # Divisão por 200 para converter % em fator
-    total_predicted = total_predicted * (1 + trend_adjustment)
-    
-    # Exibir previsão
-    st.markdown("### 🎯 Resultado da Simulação Avançada")
+    st.markdown("### 🎯 Taxas Esperadas (Lambda)")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("🏠 Escanteios Mandante", 
-                 f"{predicted_home_corners:.1f}",
-                 help="Baseado em forma recente (60%) e histórico (40%)")
+        st.metric("🏠 Lambda Mandante", f"{lambda_home:.2f}", help="Taxa esperada de escanteios do mandante (Poisson)")
     
     with col2:
-        st.metric("✈️ Escanteios Visitante", 
-                 f"{predicted_away_corners:.1f}",
-                 help="Baseado em forma recente (60%) e histórico (40%)")
+        st.metric("✈️ Lambda Visitante", f"{lambda_away:.2f}", help="Taxa esperada de escanteios do visitante (Poisson)")
     
     with col3:
-        st.metric("📦 Total Esperado", 
-                 f"{total_predicted:.1f}",
-                 help="Soma dos escanteios esperados + ajuste de tendência")
+        st.metric("📊 Total Esperado", f"{lambda_home + lambda_away:.2f}", help="Soma dos lambdas (valor esperado matemático)")
     
     with col4:
-        confidence = min(100, max(60, (home_stats['total_jogos'] + away_stats['total_jogos']) * 2))
-        st.metric("🎯 Confiabilidade", 
-                 f"{confidence:.0f}%",
-                 help="Baseada na quantidade de dados disponíveis")
+        st.metric("🎯 Confiabilidade", f"{confidence:.0f}%", help="Baseada em: quantidade de dados, dispersão e variância")
     
-    # Análise de probabilidades
-    st.markdown("### 📊 Análise de Probabilidades")
+    # Distribuição de Probabilidades
+    st.markdown("### 📊 Distribuição de Probabilidades")
     
-    if total_predicted > 0:
-        # Distribuição de probabilidade para número total de escanteios
-        corners_range = range(0, int(total_predicted * 2) + 5)
-        probabilities = [poisson.pmf(total, total_predicted) * 100 for total in corners_range]
-        
-        # Encontrar valores mais prováveis
-        max_prob_idx = probabilities.index(max(probabilities))
-        most_likely = corners_range[max_prob_idx]
-        
-        # Probabilidades para apostas comuns
-        prob_over_8_5 = sum(poisson.pmf(x, total_predicted) for x in range(9, 25)) * 100
-        prob_over_9_5 = sum(poisson.pmf(x, total_predicted) for x in range(10, 25)) * 100
-        prob_over_10_5 = sum(poisson.pmf(x, total_predicted) for x in range(11, 25)) * 100
-        
-        # Exibir probabilidades de apostas
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.info(f"**Mais Provável:** {most_likely} escanteios ({probabilities[max_prob_idx]:.1f}%)")
-        with col2:
-            st.info(f"**Over 8.5:** {prob_over_8_5:.1f}%")
-        with col3:
-            st.info(f"**Over 9.5:** {prob_over_9_5:.1f}%")
-        with col4:
-            st.info(f"**Over 10.5:** {prob_over_10_5:.1f}%")
-        
-        # Gráfico de distribuição
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            x=list(corners_range), 
-            y=probabilities,
-            marker_color=['#ff6b6b' if x == most_likely else '#1f77b4' for x in corners_range],
-            text=[f"{p:.1f}%" if p > 2 else "" for p in probabilities],
-            textposition='auto',
-            name='Probabilidade'
-        ))
-        
-        fig.update_layout(
-            title="Distribuição de Probabilidades - Total de Escanteios do Jogo",
-            xaxis_title="Total de Escanteios no Jogo",
-            yaxis_title="Probabilidade (%)",
-            showlegend=False,
-            height=400
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Recomendações baseadas na análise
-        st.markdown("### 💡 Recomendações de Apostas")
-        
-        if prob_over_9_5 > 60:
-            st.success(f"✅ **OVER 9.5 ESCANTEIOS** - {prob_over_9_5:.1f}% de probabilidade")
-        elif prob_over_8_5 > 65:
-            st.success(f"✅ **OVER 8.5 ESCANTEIOS** - {prob_over_8_5:.1f}% de probabilidade")
-        elif total_predicted < 8:
-            st.info(f"⚖️ **UNDER 8.5 ESCANTEIOS** pode ser uma boa opção - Total esperado: {total_predicted:.1f}")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.info(f"**Total Mais Provável:** {most_likely_total} escanteios ({most_likely_prob:.1f}%)")
+    
+    with col2:
+        st.info(f"**Faixa Provável (70%):** {min_range} a {max_range} escanteios")
+    
+    with col3:
+        variance = lambda_home + lambda_away
+        st.info(f"**Desvio Padrão:** ±{np.sqrt(variance):.1f} escanteios")
+    
+    # Gráfico de distribuição
+    fig = go.Figure()
+    
+    corners_list = sorted(total_probs.keys())
+    probs_list = [total_probs[c] for c in corners_list]
+    
+    colors = []
+    for c in corners_list:
+        if c == most_likely_total:
+            colors.append('#ff6b6b')
+        elif min_range <= c <= max_range:
+            colors.append('#4dabf7')
         else:
-            st.warning("⚠️ **JOGO EQUILIBRADO** - Escanteios podem variar muito")
+            colors.append('#dee2e6')
+    
+    fig.add_trace(go.Bar(
+        x=corners_list,
+        y=probs_list,
+        marker_color=colors,
+        text=[f"{p:.1f}%" if p > 1.5 else "" for p in probs_list],
+        textposition='auto',
+        name='Probabilidade',
+        hovertemplate='<b>%{x} escanteios</b><br>Probabilidade: %{y:.2f}%<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title="Distribuição de Probabilidades - Total de Escanteios",
+        xaxis_title="Total de Escanteios no Jogo",
+        yaxis_title="Probabilidade (%)",
+        showlegend=False,
+        height=400,
+        xaxis=dict(dtick=1)
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Probabilidades Over/Under
+    st.markdown("### 📊 Probabilidades Over/Under")
+    
+    over_under_probs = calculate_over_under_probabilities(lambda_home, lambda_away)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Over 8.5", f"{over_under_probs['Over 8.5']:.1f}%")
+    
+    with col2:
+        st.metric("Over 9.5", f"{over_under_probs['Over 9.5']:.1f}%")
+    
+    with col3:
+        st.metric("Over 10.5", f"{over_under_probs['Over 10.5']:.1f}%")
+    
+    with col4:
+        st.metric("Over 11.5", f"{over_under_probs['Over 11.5']:.1f}%")
+    
+    # Recomendações
+    st.markdown("### 💡 Análise de Oportunidades")
+    
+    min_confidence = 60
+    min_prob = 60
+    
+    recommendations = []
+    
+    if confidence >= min_confidence:
+        if over_under_probs['Over 9.5'] >= min_prob:
+            recommendations.append(
+                ("✅ OVER 9.5 ESCANTEIOS", 
+                 f"Probabilidade: {over_under_probs['Over 9.5']:.1f}% | Confiança: {confidence:.0f}%",
+                 "success")
+            )
+        elif over_under_probs['Over 9.5'] <= 40:
+            recommendations.append(
+                ("✅ UNDER 9.5 ESCANTEIOS",
+                 f"Probabilidade Under: {100-over_under_probs['Over 9.5']:.1f}% | Confiança: {confidence:.0f}%",
+                 "success")
+            )
+        
+        if over_under_probs['Over 10.5'] >= min_prob:
+            recommendations.append(
+                ("✅ OVER 10.5 ESCANTEIOS",
+                 f"Probabilidade: {over_under_probs['Over 10.5']:.1f}% | Confiança: {confidence:.0f}%",
+                 "success")
+            )
+    
+    if recommendations:
+        for title, description, msg_type in recommendations:
+            st.success(f"**{title}**\n\n{description}")
+    else:
+        st.warning(
+            f"⚖️ **JOGO INCERTO**\n\n"
+            f"Faixa mais provável: {min_range} a {max_range} escanteios ({cumulative_prob:.1f}% de probabilidade)\n\n"
+            f"Confiabilidade: {confidence:.0f}%\n\n"
+            f"⚠️ Evite apostas binárias. Considere mercados de faixa."
+        )
+    
+    st.markdown("---")
+    st.caption(
+        "⚠️ **Importante:** Esta análise trabalha com PROBABILIDADES, não certezas. "
+        "Escanteios são eventos de alta variância. O sucesso está em identificar VALUE "
+        "(quando a probabilidade estimada é maior que a odd sugere), não em acertar o número exato."
+    )
+
+
+# ===================================================================
+# PARTE 5: FUNÇÃO PRINCIPAL
+# ===================================================================
+
+def analyze_corner_match(df, home_team, away_team, odds_home=None, odds_draw=None, odds_away=None):
+    """
+    FUNÇÃO PRINCIPAL - Cole esta no seu código Streamlit
+    Substitui toda a lógica antiga de análise de escanteios
+    """
+    
+    st.title("⚽ Análise Avançada de Escanteios")
+    st.markdown(f"**{home_team}** 🆚 **{away_team}**")
+    st.markdown("---")
+    
+    # Calcular estatísticas
+    home_stats = calculate_team_corner_stats(df, home_team, as_home=True)
+    away_stats = calculate_team_corner_stats(df, away_team, as_home=False)
+    
+    # Verificar dados suficientes
+    if home_stats['total_games'] < 3 or away_stats['total_games'] < 3:
+        st.error(
+            "❌ **Dados Insuficientes**\n\n"
+            f"Jogos do {home_team} como mandante: {home_stats['total_games']}\n\n"
+            f"Jogos do {away_team} como visitante: {away_stats['total_games']}\n\n"
+            "São necessários pelo menos 3 jogos de cada time na posição específica."
+        )
+        return
+    
+    # Exibir estatísticas detalhadas
+    st.subheader("📊 Estatísticas Detalhadas de Escanteios")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        display_team_statistics_table(home_stats, home_team, "Mandante")
+    
+    with col2:
+        display_team_statistics_table(away_stats, away_team, "Visitante")
+    
+    st.markdown("---")
+    
+    # Gráfico comparativo
+    display_comparative_corner_chart(home_stats, away_stats, home_team, away_team)
+    
+    st.markdown("---")
+    
+    # Calcular lambdas
+    lambda_home = calculate_lambda_home(home_stats, away_stats, odds_home, odds_away)
+    lambda_away = calculate_lambda_away(home_stats, away_stats, odds_home, odds_away)
+    
+    # Distribuição de probabilidades
+    total_probs = calculate_total_corners_distribution(lambda_home, lambda_away)
+    
+    # Confiabilidade
+    confidence = calculate_confidence_metric(lambda_home, lambda_away, home_stats, away_stats)
+    
+    # Exibir previsão
+    display_match_prediction(lambda_home, lambda_away, total_probs, home_team, away_team, confidence)
 
 
 def get_team_display_name_with_logo(team_name, logo_size=(25, 25)):
@@ -3483,8 +3653,8 @@ def main():
                 st.session_state.selected_analysis = "2. Análise 1 Tempo HT"
                 st.rerun()
             
-            if st.button("🚩 Análise de Escanteios", key="corner_analysis", use_container_width=True):
-                st.session_state.selected_analysis = "7. Análise de Escanteios"
+            if st.button("🚩 Análise de s", key="corner_analysis", use_container_width=True):
+                st.session_state.selected_analysis = "7. Análise de s"
                 st.rerun()
 
         with col2:
@@ -3536,7 +3706,7 @@ def main():
                 show_score_prediction(df, teams)
             elif st.session_state.selected_analysis == "6. Gráficos Interativos":
                 show_interactive_charts(df)
-            elif st.session_state.selected_analysis == "7. Análise de Escanteios":
+            elif st.session_state.selected_analysis == "7. Análise de s":
                 show_corner_analysis(df, teams)
             else:
                 st.error("Opção de análise inválida.")
@@ -3659,7 +3829,7 @@ def calculate_advanced_team_stats(df, team, as_home=True):
             gols_ht_feitos = games_ht[gols_ht_feitos_col].sum()
             gols_ht_sofridos = games_ht[gols_ht_sofridos_col].sum()
     
-    # Estatísticas de escanteios
+    # Estatísticas de s
     corners_feitos = 0
     corners_sofridos = 0
     if corners_feitos_col in games.columns and corners_sofridos_col in games.columns:
@@ -4038,6 +4208,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
