@@ -3263,7 +3263,7 @@ def show_advanced_score_prediction(df, teams):
                 st.write(f"• Gols sofridos fora: {away_stats['gols_sofridos_fora']:.2f}/jogo")
 
 # Função de compatibilidade com o modelo original de Poisson simples (sem odds)
-------------------------------------------------------------------------------------------------------------------------------------------------
+
 def predict_score_poisson(home_avg, away_avg, home_def, away_def):
     """Predição simples com Poisson para compatibilidade com código original"""
     
@@ -4652,6 +4652,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
