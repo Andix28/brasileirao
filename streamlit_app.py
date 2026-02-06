@@ -2034,7 +2034,6 @@ def display_professional_analysis_refinado(analysis, team_name, position_label, 
 # ============================================================================
 
 def show_probability_analysis(df, teams):
-
     st.header("🎯 Probabilidade com histórico das ODDs")
     
     if df is None or df.empty:
@@ -2044,21 +2043,21 @@ def show_probability_analysis(df, teams):
     if not teams:
         st.warning("Nenhum time disponível.")
         return
-
+    
     # ========== INTERFACE ORIGINAL MANTIDA ==========
     col1, col2 = st.columns(2)
     with col1:
         team_home = st.selectbox("🏠 Time Mandante:", teams, key="prob_home_simple")
     with col2:
         team_away = st.selectbox("✈️ Time Visitante:", teams, key="prob_away_simple")
-
+    
     if team_home == team_away:
         st.error("⚠️ Selecione times diferentes para análise")
         return
-
+    
     # ========== ODDS ==========
     st.subheader("📊 Odds do Confronto")
-
+    
     # Inicialização do estado (uma vez)
     if "odd_home" not in st.session_state:
         st.session_state.odd_home = 2.30
@@ -2066,10 +2065,29 @@ def show_probability_analysis(df, teams):
         st.session_state.odd_draw = 3.10
     if "odd_away" not in st.session_state:
         st.session_state.odd_away = 3.30
-
+    
+    # ========== CALLBACKS PARA SINCRONIZAÇÃO ==========
+    def update_odd_home_from_slider():
+        st.session_state.odd_home = st.session_state.slider_odd_home
+    
+    def update_odd_home_from_input():
+        st.session_state.odd_home = st.session_state.input_odd_home
+    
+    def update_odd_draw_from_slider():
+        st.session_state.odd_draw = st.session_state.slider_odd_draw
+    
+    def update_odd_draw_from_input():
+        st.session_state.odd_draw = st.session_state.input_odd_draw
+    
+    def update_odd_away_from_slider():
+        st.session_state.odd_away = st.session_state.slider_odd_away
+    
+    def update_odd_away_from_input():
+        st.session_state.odd_away = st.session_state.input_odd_away
+    
     with st.container():
         col1, col2, col3 = st.columns(3)
-
+        
         # -------- ODD MANDANTE --------
         with col1:
             st.write("🏠 **Odd Mandante**")
@@ -2077,20 +2095,25 @@ def show_probability_analysis(df, teams):
                 "Valor:",
                 min_value=1.01,
                 max_value=10.0,
+                value=st.session_state.odd_home,
                 step=0.01,
                 format="%.2f",
-                key="odd_home",
-                help="Use o slider ou digite diretamente o valor"
+                key="slider_odd_home",
+                on_change=update_odd_home_from_slider,
+                help="Use o slider para seleção rápida"
             )
             st.number_input(
                 "Ou digite o valor exato:",
                 min_value=1.01,
                 max_value=50.0,
+                value=st.session_state.odd_home,
                 step=0.01,
                 format="%.2f",
-                key="odd_home"
+                key="input_odd_home",
+                on_change=update_odd_home_from_input,
+                help="Digite para valores precisos ou fora do range do slider"
             )
-
+        
         # -------- ODD EMPATE --------
         with col2:
             st.write("🤝 **Odd Empate**")
@@ -2098,20 +2121,25 @@ def show_probability_analysis(df, teams):
                 "Valor:",
                 min_value=1.01,
                 max_value=10.0,
+                value=st.session_state.odd_draw,
                 step=0.01,
                 format="%.2f",
-                key="odd_draw",
-                help="Use o slider ou digite diretamente o valor"
+                key="slider_odd_draw",
+                on_change=update_odd_draw_from_slider,
+                help="Use o slider para seleção rápida"
             )
             st.number_input(
                 "Ou digite o valor exato:",
                 min_value=1.01,
                 max_value=50.0,
+                value=st.session_state.odd_draw,
                 step=0.01,
                 format="%.2f",
-                key="odd_draw"
+                key="input_odd_draw",
+                on_change=update_odd_draw_from_input,
+                help="Digite para valores precisos ou fora do range do slider"
             )
-
+        
         # -------- ODD VISITANTE --------
         with col3:
             st.write("✈️ **Odd Visitante**")
@@ -2119,28 +2147,35 @@ def show_probability_analysis(df, teams):
                 "Valor:",
                 min_value=1.01,
                 max_value=10.0,
+                value=st.session_state.odd_away,
                 step=0.01,
                 format="%.2f",
-                key="odd_away",
-                help="Use o slider ou digite diretamente o valor"
+                key="slider_odd_away",
+                on_change=update_odd_away_from_slider,
+                help="Use o slider para seleção rápida"
             )
             st.number_input(
                 "Ou digite o valor exato:",
                 min_value=1.01,
                 max_value=50.0,
+                value=st.session_state.odd_away,
                 step=0.01,
                 format="%.2f",
-                key="odd_away"
+                key="input_odd_away",
+                on_change=update_odd_away_from_input,
+                help="Digite para valores precisos ou fora do range do slider"
             )
-
+    
+    # Pegar os valores sincronizados
     odd_home = st.session_state.odd_home
     odd_draw = st.session_state.odd_draw
     odd_away = st.session_state.odd_away
-
+    
     st.info(
         f"**Valores selecionados:** "
         f"🏠 {odd_home:.2f} | 🤝 {odd_draw:.2f} | ✈️ {odd_away:.2f}"
     )
+    
     if st.button("🔍 Analisar Valor nas Odds", type="primary"):
         # Probabilidades implícitas
         prob_home_imp = (1 / odd_home) * 100
@@ -5117,6 +5152,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
