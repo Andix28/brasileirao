@@ -1315,7 +1315,7 @@ def display_temporal_tendencies(home_stats, away_stats, team_home, team_away):
         st.markdown(f"""
         <div style="background: #2196F3; padding: 8px; border-radius: 5px; text-align: center;">
             <h3 style="color: white; margin: 0;">🏠 {team_home}</h3>
-            <h2 style="color: white; margin: 8px 0; font-size: 5px;">{home_tendency}</h2>
+            <h2 style="color: white; margin: 8px 0; font-size: 15px;">{home_tendency}</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1338,7 +1338,7 @@ def display_temporal_tendencies(home_stats, away_stats, team_home, team_away):
         st.markdown(f"""
         <div style="background: #FF6B6B; padding: 8px; border-radius: 5px; text-align: center;">
             <h3 style="color: white; margin: 0;">✈️ {team_away}</h3>
-            <h2 style="color: white; margin: 8px 0; font-size: 5px;">{away_tendency}</h2>  
+            <h2 style="color: white; margin: 8px 0; font-size: 15px;">{away_tendency}</h2>  
         </div>
         """, unsafe_allow_html=True)
         
@@ -5603,6 +5603,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
