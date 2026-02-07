@@ -1302,7 +1302,7 @@ def display_temporal_tendencies(home_stats, away_stats, team_home, team_away):
     """Exibe classificação de tendências temporais"""
     
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 8px; margin: 10px 0;">
         <h2 style="color: white; margin: 0; text-align: center;">🕐 Tendências Temporais</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -1313,9 +1313,9 @@ def display_temporal_tendencies(home_stats, away_stats, team_home, team_away):
         home_tendency, home_type = classify_temporal_tendency(home_stats)
         
         st.markdown(f"""
-        <div style="background: #2196F3; padding: 15px; border-radius: 10px; text-align: center;">
+        <div style="background: #2196F3; padding: 8px; border-radius: 5px; text-align: center;">
             <h3 style="color: white; margin: 0;">🏠 {team_home}</h3>
-            <h2 style="color: white; margin: 10px 0; font-size: 18px;">{home_tendency}</h2>  ← ADICIONE font-size
+            <h2 style="color: white; margin: 8px 0; font-size: 5px;">{home_tendency}</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1336,9 +1336,9 @@ def display_temporal_tendencies(home_stats, away_stats, team_home, team_away):
         away_tendency, away_type = classify_temporal_tendency(away_stats)
         
         st.markdown(f"""
-        <div style="background: #FF6B6B; padding: 15px; border-radius: 10px; text-align: center;">
+        <div style="background: #FF6B6B; padding: 8px; border-radius: 5px; text-align: center;">
             <h3 style="color: white; margin: 0;">✈️ {team_away}</h3>
-            <h2 style="color: white; margin: 10px 0; font-size: 18px;">{away_tendency}</h2>  ← ADICIONE font-size
+            <h2 style="color: white; margin: 8px 0; font-size: 5px;">{away_tendency}</h2>  
         </div>
         """, unsafe_allow_html=True)
         
@@ -5603,6 +5603,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
