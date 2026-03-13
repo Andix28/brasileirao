@@ -4581,25 +4581,8 @@ def predict_score_poisson(home_avg, away_avg, home_def, away_def,
     # Retorna no formato original (sem detalhes extras)
     return resultado, prob, lambda_h, lambda_a
 
-
-# ============================================================================
-# FUNÇÃO PARA STREAMLIT - MANTÉM UI/UX ORIGINAL
-# ============================================================================
-
 def show_score_prediction(df, teams):
-    """
-    VERSÃO REFINADA da função show_score_prediction.
-    
-    MANTÉM 100% DO LAYOUT E INTERFACE ORIGINAL.
-    Substitui apenas os cálculos internos.
-    
-    INSTRUÇÕES DE INTEGRAÇÃO:
-    --------------------------
-    1. Copie esta função para substituir a original
-    2. Certifique-se de que as funções auxiliares estejam importadas
-    3. Teste com alguns confrontos conhecidos
-    4. Compare resultados antes/depois para validar melhorias
-    """
+
     import streamlit as st
     
     st.header("🎯 Predição de Placar (Distribuição de Poisson)")
@@ -4629,12 +4612,10 @@ def show_score_prediction(df, teams):
         away_stats = calculate_team_stats(df, team_away, as_home=False)
 
         # Validação mínima
-        if home_stats['jogos'] < 3 or away_stats['jogos'] < 3:
+        if home_stats['jogos'] < 2 or away_stats['jogos'] < 2:
             st.warning("Dados insuficientes para realizar predição com confiança.")
             return
 
-        # ========== AQUI ESTÁ A MUDANÇA PRINCIPAL ==========
-        # Usa função refinada ao invés da original
         resultado, probabilidade, gols_esperados_home, gols_esperados_away = predict_score_poisson(
             home_avg=home_stats['media_gols_feitos'],
             away_avg=away_stats['media_gols_feitos'],
@@ -4645,7 +4626,6 @@ def show_score_prediction(df, teams):
             team_away=team_away   # NOVO: passa nome do adversário
         )
 
-        # ========== RESTO DO CÓDIGO MANTIDO IDÊNTICO ==========
         # Exibição de resultado com logos
         st.success("Placar Mais Provável:")
         display_score_result_with_logos(team_home, resultado[0], resultado[1], team_away)
@@ -5603,6 +5583,7 @@ def display_team_with_logo(team_name, logo_size=(80, 80)):
 # CHAMADA DA MAIN (adicionar no final do arquivo)
 if __name__ == "__main__":
     main()
+
 
 
 
